@@ -4,23 +4,23 @@
 # are set up for each component.
 #
 # Current status:
-# - Android: Project not initialized yet
+# - Android: Java/XML scaffold exists; product features are not implemented yet
 # - Backend: Project not initialized yet
 # - Admin: Project not initialized yet
 #
 # Planned checks (to be implemented when components are ready):
 # - Android: Gradle build, lint, unit tests
 # - Backend: Composer install, PHPUnit tests, PHP lint
-# - Admin: Build, lint, tests (stack TBD)
+# - Admin: React/TypeScript type-check, tests, production build
 # - Documentation: Markdown lint (optional)
 
 name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 jobs:
   validate:
