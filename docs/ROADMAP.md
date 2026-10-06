@@ -12,6 +12,14 @@ Do not create a separate `.ai/tasks/<TASK-ID>.md` or `.ai/plans/<TASK-ID>.md` fo
 
 Deliver a polished, end-to-end, single-store shopping demo for an international portfolio audience: an English-only Android customer app in Java/XML, a Laravel/MySQL REST API, and a React/TypeScript admin dashboard. Prices are sample USD amounts, data is fictional, and payment outcomes are simulated. This is not a production commerce launch.
 
+## Branch and release model
+
+- `develop` is the shared integration branch and intended GitHub default branch. Each Task gets one short-lived branch created from `develop` and a PR targeting `develop`; the builder, tester, and debugger for that Task use the same branch sequentially.
+- Delete a task branch after its PR is accepted and merged. Merged task work remains in `develop`, so there is no need to retain all child branches until the phase ends. Keep `develop` permanently.
+- At a phase/release boundary, complete the phase exit criteria and run the release checks on `develop`. A completed release moves to `main` only through a reviewed `develop` → `main` release PR; tag the released commit. Do not merge unfinished phase work to `main`.
+- The current `main` already contains earlier merged bootstrap/documentation work and has no formal release tag. Preserve that history as the one-time pre-policy baseline; start the new policy prospectively and do not reset or rewrite `main` to make it look release-only.
+- See the root [`AGENTS.md`](../AGENTS.md) for branch naming, PR, review, and cleanup rules. GitHub default-branch, auto-delete, and protection settings must match this policy; verify the actual remote settings rather than assuming Markdown changed them.
+
 ## Verified starting point
 
 Last reviewed: 2026-10-06. Recheck the repository and current branch before starting each task.
@@ -19,6 +27,7 @@ Last reviewed: 2026-10-06. Recheck the repository and current branch before star
 - Android has a Java/XML Gradle scaffold with Java 8 source compatibility, `minSdk 25`, and JUnit 4. Its exact local prerequisites and verified build/test commands are not yet recorded. Some architecture documentation says `minSdk 24`; FND-001 resolves this against the checked-in Gradle configuration and updates the conflicting documentation.
 - `backend/` and `admin/` contain agent guidance but no initialized applications.
 - `.github/workflows/ci.yml` is a placeholder. Its only active job checks repository structure; Android, backend, and admin checks are commented out.
+- GitHub `develop` has been created from the current pre-policy `main` baseline (`db8ff97`). The GitHub default branch, auto-delete option, and branch-protection settings still need verification/configuration under GIT-001.
 - `docs/openapi.yaml` does not exist. `docs/API_CONTRACT.md` records shared conventions, but endpoint schemas and per-class rate limits remain open.
 - `docs/DATABASE.md` is a logical model, not implemented migrations. The database and seed data still need implementation.
 
@@ -49,7 +58,7 @@ Pass the builder's tested state to the independent tester. If debugging is neede
 
 ## Phase 0 — Foundation (current)
 
-**Exit criteria:** all three components have repeatable, verified setup and check commands; the OpenAPI contract has been reviewed before endpoint work; CI runs the agreed component checks; remaining choices that block the first customer-to-order flow are recorded and resolved.
+**Exit criteria:** all three components have repeatable, verified setup and check commands; the OpenAPI contract has been reviewed before endpoint work; CI runs the agreed component checks; GitHub's integration/release branch settings match GIT-001; remaining choices that block the first customer-to-order flow are recorded and resolved.
 
 ### FND-001 — Verify Android scaffold and toolchain
 
@@ -124,20 +133,38 @@ Pass the builder's tested state to the independent tester. If debugging is neede
 
 **Verification:** OpenAPI validation plus a human review against the referenced product, architecture, database, and security documents. Endpoint implementation remains blocked until acceptance.
 
+### GIT-001 — Establish the develop integration branch
+
+**Status:** `[~]`
+
+**Depends on:** none
+
+**Scope:** establish the shared integration branch and align GitHub's branch workflow with the release policy without rewriting existing history.
+
+**Acceptance criteria:**
+
+- [x] Create `develop` from the current `main` baseline and preserve all existing merged history; do not force-push or reset `main`.
+- [ ] Set `develop` as the GitHub default branch so new task PRs default to the integration branch.
+- [ ] Configure GitHub to automatically delete merged task branches; keep `develop` and `main`.
+- [ ] Protect `develop` and `main` from direct/force pushes and require PR review. Review `develop` → `main` as a release PR only.
+- [ ] Open/re-target current in-flight work as a PR into `develop`; do not merge it automatically.
+
+**Verification:** inspect live GitHub branch refs, default branch, PR base, deletion setting, and protection rules. Confirm `main` was not rewritten.
+
 ### FND-005 — Make setup documentation and CI match the real projects
 
 **Status:** `[ ]`
 
-**Depends on:** FND-001, FND-002, FND-003, FND-004
+**Depends on:** FND-001, FND-002, FND-003, FND-004, GIT-001
 
 **Scope:** replace placeholder-only project checks with repeatable component checks and document what CI actually enforces.
 
 **Acceptance criteria:**
 
 - [ ] `docs/DEVELOPMENT.md` contains copyable setup/build/lint/static-check/test commands for Android, backend, admin, and OpenAPI validation; each command is verified against the checked-in tooling.
-- [ ] Update `.github/workflows/ci.yml` to run the documented required checks for each initialized component on pull requests and relevant pushes, using isolated test data and no committed secrets.
+- [ ] Update `.github/workflows/ci.yml` to run the documented required checks for each initialized component on task PRs to `develop` and release PRs to `main`, using isolated test data and no committed secrets.
 - [ ] Preserve failures as failures: do not skip, disable, or mask a required check to make CI green.
-- [ ] Verify the workflow on a pull request or equivalent run and record its result. Inspect repository branch-protection settings and document whether CI statuses/review are enforced; remote protection changes require the repository owner's approval.
+- [ ] Verify the workflow on a pull request or equivalent run and record its result. Inspect repository default-branch, auto-delete, and branch-protection settings against GIT-001; configure required status checks only after verifying their names, and document any setting that is not enforced.
 - [ ] Remove stale “not initialized” comments/status once they are false; never claim a workflow or branch rule is active without evidence.
 
 **Verification:** run the exact documented commands locally or in CI; inspect a successful workflow run and separately report any external branch-protection setting that remains unenforced.
