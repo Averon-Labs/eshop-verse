@@ -1,24 +1,79 @@
-# Compiled class file
-*.class
-
-# Log file
+# =====================
+# General
+# =====================
 *.log
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
 
-# BlueJ files
-*.ctxt
+# =====================
+# Secrets & Environment
+# =====================
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+*.p12
 
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
+# =====================
+# IDE & Editors
+# =====================
+.idea/
+*.iml
+.vscode/
+*.code-workspace
+*.sublime-project
+*.sublime-workspace
+.project
+.classpath
+.settings/
 
-# Package Files #
+# =====================
+# Java / Android
+# =====================
+*.class
 *.jar
 *.war
 *.nar
 *.ear
+hs_err_pid*
+replay_pid*
+
+# Android Studio / Gradle
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/captures/
+android/.externalNativeBuild/
+android/.cxx/
+android/google-services.json
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# =====================
+# PHP / Composer
+# =====================
+backend/vendor/
+backend/.env
+
+# =====================
+# Node / NPM (Admin)
+# =====================
+admin/node_modules/
+admin/dist/
+admin/build/
+admin/.env
+
+# =====================
+# Archives
+# =====================
 *.zip
 *.tar.gz
 *.rar
-
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-replay_pid*
