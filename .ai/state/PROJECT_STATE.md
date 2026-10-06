@@ -10,13 +10,14 @@
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| Repository structure | ✅ Established | Bootstrap complete |
-| Documentation | ✅ Established | Core docs created |
-| Android app | ⚠️ Scaffold present | Basic Java/XML Gradle app and placeholder tests are present; no customer features are implemented yet |
-| Backend API | ⬜ Not started | Setup is a Phase 0 foundation task |
-| Admin dashboard | ⬜ Not started | Setup is a Phase 0 foundation task |
-| CI/CD | ⬜ Placeholder | Workflow stubs created |
-| Database | ⬜ Not started | Conceptual model documented |
+| Repository structure | ✅ Established | Android scaffold and component guidance exist |
+| Documentation | ⚠️ Foundation documented | `docs/ROADMAP.md` is the canonical phase and Task-ID backlog; exact component commands remain to be verified |
+| Android app | ⚠️ Scaffold present | Java/XML Gradle scaffold and placeholder tests exist; no customer features. Gradle declares Java 8 source and minSdk 25; `docs/ARCHITECTURE.md` has a conflicting minSdk 24 statement to resolve in FND-001 |
+| Backend API | ⬜ Not initialized | `backend/` has guidance only; Laravel setup is FND-002 |
+| Admin dashboard | ⬜ Not initialized | `admin/` has guidance only; React/TypeScript setup is FND-003 |
+| API contract | ⬜ OpenAPI missing | `docs/API_CONTRACT.md` has shared conventions; `docs/openapi.yaml` and owner review are FND-004 |
+| CI/CD | ⚠️ Placeholder | `.github/workflows/ci.yml` only validates repository structure; component checks are commented out |
+| Database | ⬜ Not implemented | Logical model documented; migrations and isolated test database are part of backend/component Tasks |
 
 ## Active Branches
 
@@ -28,12 +29,11 @@
 
 - First-release portfolio scope and stack recorded in ADR-001
 - Sequential build/test/debug workflow documented
-- Android scaffold audited: Java 8, minSdk 25, JUnit 4; placeholder app/tests only
+- Canonical backlog and Task-ID workflow recorded in `docs/ROADMAP.md`
+- Android scaffold configuration observed: Java 8 source compatibility, minSdk 25, JUnit 4; exact environment/build commands still need verification
 
 ## Next Steps
 
-1. Start the Phase 1 feature work from the existing Android scaffold.
-2. Initialize the Laravel backend and React admin using the accepted stack.
-3. Write and review `docs/openapi.yaml` before endpoint implementation.
-4. Configure required CI checks and document exact component commands.
-5. Start the Phase 1 accounts and catalog vertical slice.
+1. Complete Phase 0 Tasks FND-001 through FND-005 in `docs/ROADMAP.md`, respecting dependencies.
+2. Get the OpenAPI contract reviewed before implementing any endpoint or client integration.
+3. Begin Phase 1 only after Phase 0 exit criteria are verified.
