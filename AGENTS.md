@@ -54,7 +54,8 @@ The platform is developed collaboratively by human developers and AI coding agen
 3. **Inspect git status** — check for uncommitted changes, current branch, recent commits.
 4. **Inspect existing code** — understand the current state before modifying.
 5. **Check for related `.ai/tasks/` files** — see if a task specification exists.
-6. **Create a plan** before implementing non-trivial changes.
+6. **Follow Ponytail principles** — see [`.agents/skills/ponytail/SKILL.md`](.agents/skills/ponytail/SKILL.md) (minimal code, strict YAGNI, reuse existing libs/code).
+7. **Create a plan** before implementing non-trivial changes.
 
 ### For Non-Trivial Features
 

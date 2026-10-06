@@ -86,7 +86,6 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed architecture docum
 │   ├── workflows/
 │   └── instructions/
 ├── AGENTS.md          # AI agent instructions (provider-neutral)
-├── CLAUDE.md          # Claude Code adapter
 ├── CONTRIBUTING.md    # Contribution guidelines
 └── LICENSE            # MIT License
 ```
