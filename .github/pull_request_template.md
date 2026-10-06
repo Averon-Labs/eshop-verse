@@ -2,9 +2,15 @@
 
 <!-- What does this PR do? Why is this change needed? -->
 
-## Related Issue
+> Task PRs target `develop`. Only reviewed, release-ready PRs from `develop` target `main`.
 
-<!-- Link to the GitHub Issue: Closes #XX -->
+## Roadmap Task
+
+- Task ID: <!-- e.g. FND-001; use docs/ROADMAP.md -->
+
+## Related Issue (optional)
+
+<!-- Link a GitHub Issue if one exists -->
 
 ## Type of Change
 
