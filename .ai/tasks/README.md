@@ -1,44 +1,7 @@
-# .ai/tasks/ — Task Specifications
+# Supplementary Task Context
 
-## Purpose
+The canonical phase plan, Task IDs, dependencies, scope, acceptance criteria, and verification expectations live in [`../../docs/ROADMAP.md`](../../docs/ROADMAP.md). Assign work by Task ID; do not create or maintain a duplicate task file for ordinary roadmap work.
 
-This directory contains task-specific context files that help AI agents understand and execute tasks.
+Create `.ai/tasks/<TASK-ID>.md` only when a task needs substantial persistent context that does not belong in the roadmap, such as a long investigation record or external technical constraints. Link it from the relevant roadmap entry, keep only the supplementary information here, and do not copy the task's acceptance criteria. Link GitHub Issues rather than treating this directory as an issue tracker.
 
-## Naming Convention
-
-```
-<TASK-ID>.md
-```
-
-Examples:
-- `AUTH-001.md` — Authentication implementation task
-- `CART-003.md` — Cart feature task
-
-## Template
-
-```markdown
-# <TASK-ID>: <Title>
-
-## GitHub Issue
-- Issue: #<number> (if applicable)
-
-## Requirements
-- ...
-
-## Acceptance Criteria
-- [ ] ...
-
-## Context
-- Relevant files: ...
-- Dependencies: ...
-- Related decisions: ...
-
-## Notes
-- ...
-```
-
-## Guidelines
-
-- Reference GitHub Issues rather than duplicating them.
-- Only create task files for complex tasks that need additional context.
-- Remove or archive completed task files.
+Apply the sequential build → independent test → debug only for reproduced failure → independent retest workflow and the no-identical-retry rule in the root [`AGENTS.md`](../../AGENTS.md). Use a handoff record only when the work is blocked or transferred, as described there.

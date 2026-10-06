@@ -13,7 +13,8 @@ For GitHub Copilot and other IDE-integrated agents working on admin dashboard co
 
 ## Key Rules
 
-- Technology stack: TBD
+- Technology: React and TypeScript (see `/admin/AGENTS.md`)
 - Communication with backend: REST API only
 - Do not embed business logic in the admin dashboard
 - Admin endpoints require admin role authorization
+- Use Laravel Sanctum's first-party SPA session flow and CSRF protection.
