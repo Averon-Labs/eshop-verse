@@ -34,14 +34,22 @@ The platform is developed collaboratively by human developers and AI coding agen
 
 ---
 
-## Multi-Agent Principles
+## Sequential Agent Workflow
 
-- This repository may be used by **multiple AI agents simultaneously**.
-- Agents must not assume they are the only contributor.
-- Agents must not assume their conversation history reflects the current repository state.
-- Agents must **inspect the repository** (files, git status, recent commits) before making changes.
-- Agents must work within their assigned scope and avoid touching files outside their task boundary.
-- All agent instructions are in this file and component-specific `AGENTS.md` files.
+Specialist agents work on one task **sequentially in the same task branch**. The coordinator assigns scope, acceptance criteria, and the current commit to each stage. Do not start the next stage while the previous agent is still editing.
+
+1. **Build agent:** implement only the task scope and add tests for new behavior. Report changed files, assumptions, and exact checks run.
+2. **Test agent:** independently run the checks named by the task and inspect acceptance criteria. It may add or improve tests within scope, but must not change production code or weaken/remove a failing check. Report exact commands and outcomes.
+3. **Debug agent:** enter only for a reproducible failure. Reproduce it first, identify the root cause, make the smallest in-scope fix, and add a regression test. Do not edit unrelated behavior.
+4. **Test agent:** verify the fix by rerunning the failing test, relevant neighboring tests, and the task's required suite. The coordinator reviews the final diff and evidence before marking the task complete.
+
+Every agent must inspect the current git status, branch, recent commits, task file, and relevant component guidance before editing. Agents must respect the assigned file/scope boundary and preserve untracked or unrelated work.
+
+### Debug Attempt Record
+
+For each failed approach, record the commit or code state, hypothesis, exact command/input, observed result, and why the hypothesis was rejected or accepted. Do not rerun an identical command against unchanged code, inputs, and environment unless new evidence changes the hypothesis. After three distinct unsuccessful hypotheses, stop, report the reproducible failure and evidence, and ask the coordinator for a decision. Never claim success while a required check is failing.
+
+Normal build → test → debug → retest transitions within one task do not require a handoff file or intermediate push. Use the handoff procedure below only when work is blocked or being transferred outside this planned sequence.
 
 ---
 
@@ -62,6 +70,7 @@ The platform is developed collaboratively by human developers and AI coding agen
 - Create a task file: `.ai/tasks/<TASK-ID>.md`
 - Create a plan file: `.ai/plans/<TASK-ID>.md`
 - Reference the relevant GitHub Issue if one exists.
+- Record acceptance criteria before implementation; use the task template in `.ai/tasks/README.md`.
 
 ---
 
@@ -100,6 +109,7 @@ The platform is developed collaboratively by human developers and AI coding agen
 - **Do not mark tests as expected failures** without documenting the reason.
 - Follow the testing strategy in `docs/TESTING.md`.
 - Test naming convention: `test_<unit>_<scenario>_<expected>` or equivalent for the language.
+- Follow the risk-based test levels and independent verification flow in `docs/TESTING.md`.
 
 ---
 
@@ -217,7 +227,7 @@ When an agent cannot complete a task or is handing off to another agent:
 
 ## Definition of Done
 
-A task is complete when:
+A code task is complete when:
 
 - [ ] Code is implemented and follows project conventions.
 - [ ] Tests are written and passing.
@@ -229,3 +239,5 @@ A task is complete when:
 - [ ] Branch is pushed and PR is created (or ready to create).
 - [ ] No secrets, credentials, or sensitive data are committed.
 - [ ] No linting errors or warnings are introduced.
+
+For a documentation-only task, mark code/test checks as not applicable with a reason; review links, consistency, and scope instead.

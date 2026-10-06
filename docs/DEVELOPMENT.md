@@ -6,8 +6,8 @@
 
 - Git
 - For Android development: Android Studio, JDK 17+
-- For Backend development: PHP 8.x, MySQL 8.x, Composer
-- For Admin development: TBD
+- For Backend development: a PHP release supported by the selected Laravel stable release, MySQL 8.x, and Composer
+- For Admin development: Node.js LTS and npm
 
 ### Clone and Setup
 
@@ -18,11 +18,13 @@ cd eshop-verse
 
 ### Component-Specific Setup
 
-Each component has its own setup process. See:
+Each component has its own setup process. The source code and actual dependency versions remain authoritative. See:
 
-- `android/` — Android application setup (TBD)
-- `backend/` — Backend API setup (TBD)
-- `admin/` — Admin dashboard setup (TBD)
+- `android/` — Java/XML Android application in Android Studio
+- `backend/` — Laravel API; configure local environment from `.env.example` and use migrations against a disposable local database
+- `admin/` — React/TypeScript client; configure its API origin without committing credentials
+
+Before a component is implemented, document its exact setup, build, lint, and test commands here. Do not invent commands in task prompts; copy them from the current project scripts/tooling.
 
 ---
 
@@ -40,7 +42,7 @@ All branching, commit, PR, testing, and agent workflow conventions are defined i
 2. Sync Gradle.
 3. Run on emulator or device.
 
-> Detailed setup will be documented when the Android project is initialized.
+> Exact commands will be documented when the Android build and test setup is verified.
 
 ### Backend
 
@@ -50,8 +52,18 @@ All branching, commit, PR, testing, and agent workflow conventions are defined i
 4. Run migrations.
 5. Start the development server.
 
-> Detailed setup will be documented when the backend project is initialized.
+> Exact commands will be documented when the Laravel application and test configuration are initialized.
 
 ### Admin Dashboard
 
-> Setup will be documented when the admin project is initialized.
+1. Install the pinned Node.js/npm dependencies.
+2. Configure the API origin for the local Laravel server.
+3. Run the documented development, lint, and test commands.
+
+> Exact commands will be documented when the React application and test configuration are initialized.
+
+---
+
+## Agent Work Sequence
+
+For each task, use the build → independent test → debug only if a failure is reproduced → independent retest sequence in the root [`AGENTS.md`](../AGENTS.md). The task file must name the acceptance criteria, exact checks, and expected evidence. CI must run the project's required build, lint, unit, and integration/API checks before merge; branch protection should require those checks and review. This repository's current workflow configuration must be verified before claiming those checks are active.
