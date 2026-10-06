@@ -143,13 +143,25 @@ Normal build → test → debug → retest transitions within one task do not re
 
 ### Branches
 
+Use this Gitflow-lite model:
+
+- `main` contains only approved, completed releases. Never start a feature/task branch from it or merge a task branch directly into it.
+- `develop` is the integration branch and the default base for task PRs. Create it once from the current `main` baseline; keep it after releases.
+- Create one short-lived branch per roadmap Task ID from `develop`: `feature/<TASK-ID>-<description>`, `fix/<TASK-ID>-<description>`, `refactor/<TASK-ID>-<description>`, `docs/<TASK-ID>-<description>`, or `chore/<TASK-ID>-<description>`.
+- All sequential agents for one Task share that task branch. After build/test/debug/retest and review pass, merge its PR into `develop`; delete the task branch after merge. Do not wait until the phase ends to clean already-merged branches.
+- When a phase/release is complete, run the release checks on `develop`. Promote a release only through a reviewed `develop` → `main` PR; tag the released commit. Never delete `develop`.
+- If the repository has not yet established `develop`, the coordinator creates it once from `main`; do not create competing integration branches.
+
+Branch names:
+
 ```
-main                   # Stable, protected. Never commit directly.
-feature/<description>  # New features
-fix/<description>      # Bug fixes
-refactor/<description> # Code refactoring
-chore/<description>    # Maintenance, tooling, config
-docs/<description>     # Documentation changes
+main                                  # Released versions only
+develop                               # Shared integration branch
+feature/<TASK-ID>-<description>       # Feature Task from develop
+fix/<TASK-ID>-<description>           # Bug-fix Task from develop
+refactor/<TASK-ID>-<description>      # Refactoring Task from develop
+chore/<TASK-ID>-<description>         # Maintenance Task from develop
+docs/<TASK-ID>-<description>          # Documentation Task from develop
 ```
 
 ### Commit Conventions
@@ -171,16 +183,18 @@ ci:       CI/CD changes
 - Keep commits focused and logically reversible.
 - One logical change per commit.
 - Write clear, descriptive commit messages.
-- Reference GitHub Issues when applicable: `feat: add login endpoint (#12)`.
+- Include the Task ID in the commit or PR title when applicable; reference a GitHub Issue if one exists.
 
 ### Pull Requests
 
-- All changes to `main` go through Pull Requests.
+- Task branches target `develop`; only release PRs from `develop` target `main`.
+- All changes to `develop` and `main` go through Pull Requests; no direct task commits to either branch.
 - PRs must have a clear description of what changed and why.
-- PRs must reference the relevant GitHub Issue.
+- PRs must reference the roadmap Task ID; link a GitHub Issue when one exists.
 - PRs must pass all CI checks before merging.
 - PRs require at least one human review for non-trivial changes.
 - Use the PR template at `.github/pull_request_template.md`.
+- Delete short-lived task branches after their PR merges; retain `develop` and `main`.
 
 ---
 
@@ -195,7 +209,7 @@ The following require explicit human approval before merging:
 - Dependency additions or major version upgrades
 - CI/CD pipeline changes
 - Changes to `AGENTS.md` or component AGENTS files
-- Changes to `main` branch protection rules
+- Changes to `main` or `develop` branch protection rules
 
 ---
 
