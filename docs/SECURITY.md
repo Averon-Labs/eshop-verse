@@ -4,8 +4,7 @@
 
 This document establishes security practices for the EShop Verse platform. All contributors (human and AI) must follow these guidelines.
 
-> **Note:** This document defines security requirements and practices.
-> Security features have not been implemented yet.
+> **Note:** These are requirements, not evidence that controls are already implemented. Verify each control against the code before release.
 
 ---
 
@@ -35,17 +34,18 @@ google-services.json   # if contains real config
 
 ## Authentication
 
-**Status: OPEN — Specific mechanism to be decided**
+**Status: DECIDED — Laravel Sanctum**
 
 ### Requirements
 
 - Passwords must be hashed using a strong algorithm (bcrypt, Argon2).
 - Never store plain text passwords.
 - Implement account lockout after repeated failed attempts.
-- Support secure session management.
-- Token-based authentication for the API.
-- Tokens must have reasonable expiration times.
+- Use Laravel's session protections for the first-party admin SPA and revocable Sanctum bearer tokens for Android.
+- Keep Android tokens in platform-protected storage; never put them in source control, logs, or ordinary preferences.
+- Configure a 30-day maximum token lifetime and revoke the current token on logout; verify the behavior in tests.
 - Implement secure password reset flow.
+- Require an authenticated customer account for checkout in the demo.
 
 ---
 
@@ -58,6 +58,7 @@ google-services.json   # if contains real config
 - Never rely on client-side authorization checks alone.
 - Admin endpoints must require admin role.
 - Users must only access their own data (orders, cart, profile).
+- Test object-level authorization using another customer's identifiers; every query/mutation must enforce ownership on the server.
 
 ---
 
@@ -89,6 +90,7 @@ google-services.json   # if contains real config
 - Implement rate limiting.
 - Return minimal error information to clients (no stack traces, no internal paths).
 - Use CORS configuration for the admin dashboard.
+- Protect the first-party admin session flow with secure cookies and CSRF protections; configure the SPA/API domains deliberately.
 - Validate and sanitize all query parameters.
 
 ### Recommended Headers
@@ -143,3 +145,10 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains
 - Encrypt database connections (TLS).
 - Regular database backups.
 - Separate database credentials per environment.
+
+## Portfolio Demo Boundaries
+
+- Use fictional seed users, products, addresses, and orders. Never publish real customer or merchant data.
+- Payment is simulated. Do not request, accept, log, or store card numbers, security codes, or live payment tokens.
+- Do not describe the portfolio demo as production-ready. A real launch requires a separate threat model, privacy/legal review for its target market, payment-provider review, deployment controls, monitoring, backup/recovery, and incident response.
+- Use the [OWASP API Security Top 10](https://owasp.org/API-Security/) as a risk checklist, especially broken object/function authorization, authentication, and unrestricted resource consumption. It complements application-specific review; it is not a substitute for one.

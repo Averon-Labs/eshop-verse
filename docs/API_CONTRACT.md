@@ -10,15 +10,15 @@ Both the Android application and the backend must treat this contract as their s
 
 ## Base URL
 
-**Status: OPEN**
+**Status: DECIDED**
 
-The base URL structure will follow:
+The base URL is:
 
 ```
 https://<domain>/api/v1/
 ```
 
-Versioning is embedded in the URL path.
+Versioning is embedded in the URL path. The production-like demo uses HTTPS; local development may use HTTP.
 
 ---
 
@@ -33,7 +33,7 @@ Versioning is embedded in the URL path.
 
 ## Versioning Strategy
 
-**Status: PROPOSED**
+**Status: DECIDED**
 
 - API version is included in the URL path: `/api/v1/`, `/api/v2/`
 - Breaking changes require a new API version.
@@ -108,7 +108,7 @@ HTTP 204 No Content
 
 ## Error Response Conventions
 
-**Status: PROPOSED**
+**Status: DECIDED**
 
 All error responses follow a consistent format:
 
@@ -135,18 +135,18 @@ All error responses follow a consistent format:
 
 ## Authentication Conventions
 
-**Status: OPEN**
+**Status: DECIDED — Laravel Sanctum**
 
-Proposed approach:
-- Token-based authentication (JWT or opaque tokens).
-- Token sent via `Authorization: Bearer <token>` header.
-- Specific authentication flow to be decided (see `docs/decisions/`).
+- Android authenticates with revocable Sanctum bearer tokens in the `Authorization` header.
+- The first-party React admin uses Sanctum's cookie/session flow and CSRF protections; it must share a compatible top-level domain with the API.
+- The demo requires an account for checkout. There is no guest checkout or social login in the first release.
+- The backend enforces customer ownership and admin roles on every protected resource. Hiding a control in the UI is not authorization.
 
 ---
 
 ## Pagination Conventions
 
-**Status: PROPOSED**
+**Status: DECIDED**
 
 - Use query parameters: `?page=1&perPage=20`
 - Default page size: 20 items.
@@ -162,23 +162,45 @@ Proposed approach:
 | 200 | Success — resource returned |
 | 201 | Created — new resource created |
 | 204 | No Content — action successful, no body |
-| 400 | Bad Request — invalid input |
+| 400 | Bad Request — malformed request or invalid syntax |
 | 401 | Unauthorized — authentication required |
 | 403 | Forbidden — insufficient permissions |
 | 404 | Not Found — resource does not exist |
 | 409 | Conflict — resource conflict (e.g., duplicate) |
-| 422 | Unprocessable Entity — validation errors |
+| 422 | Unprocessable Entity — syntactically valid request with invalid field values |
 | 429 | Too Many Requests — rate limited |
 | 500 | Internal Server Error — unexpected server failure |
 
 ---
 
+## Contract Source and First-Release Resources
+
+`API_CONTRACT.md` defines shared conventions. Before implementing an endpoint, create and review `docs/openapi.yaml` as the machine-readable source of truth for paths, schemas, authentication, errors, and examples. Keep this document focused on cross-endpoint rules; do not maintain duplicate endpoint schemas in prose.
+
+The first-release contract must cover:
+
+- Registration, login, logout, and the authenticated customer profile.
+- Public product/category listing, search, sorting, and product details.
+- Authenticated cart read/update operations.
+- Order creation, customer order history/details, and a simulated payment outcome.
+- Admin-only product/category/inventory management and order status updates.
+
+Order creation must be safe against accidental duplicate submission (for example, an idempotency key). Prices and totals use fixed-precision decimal values and include the `USD` currency code; clients must not use binary floating-point arithmetic for money.
+
+---
+
+## Contract Change Workflow
+
+1. Update the OpenAPI description and identify compatibility impact before changing backend or clients.
+2. Get review from the API owner and affected client owners for breaking changes.
+3. Implement server and client changes against the same contract revision.
+4. Run contract/API tests and retain compatibility for non-breaking additions. Breaking changes require a documented version migration.
+
+English is the only supported API-facing locale in the first release. Error messages shown to end users are English; machine-readable error codes remain stable.
+
+---
+
 ## Open Decisions
 
-- [ ] Authentication mechanism (JWT vs. opaque tokens)
-- [ ] Rate limiting strategy
-- [ ] File upload conventions (product images)
-- [ ] Search/filter query parameter conventions
-- [ ] Sorting conventions
-- [ ] Bulk operation conventions
-- [ ] Webhook conventions (if needed)
+- [ ] Exact endpoint schemas and examples in `docs/openapi.yaml` (must be completed before endpoint implementation)
+- [ ] Rate limits for each endpoint class

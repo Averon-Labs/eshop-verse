@@ -9,11 +9,11 @@
 | Aspect | Decision | Status |
 |--------|----------|--------|
 | Type | Web application | DECIDED |
-| Technology | TBD | OPEN |
-| Served by | TBD | OPEN |
+| Technology | React and TypeScript | DECIDED |
+| API access | REST API only | DECIDED |
+| Authentication | Laravel Sanctum first-party SPA session | DECIDED |
 
-> The admin dashboard technology stack has not been decided yet.
-> Do not begin implementation until the technology decision is made (see `docs/decisions/`).
+Use a supported stable toolchain selected at project initialization. The SPA and API must use a compatible first-party domain arrangement for secure cookie/CSRF behavior.
 
 ---
 
@@ -26,18 +26,18 @@
 
 ---
 
-## Planned Capabilities
+## First-Release Capabilities
 
 - Product management (CRUD)
 - Category management
 - Order management
-- User management
 - Inventory management
-- Basic analytics / reporting
+
+Customer administration and analytics are deferred; see `docs/PRODUCT.md`.
 
 ---
 
 ## Testing
 
-- Testing strategy will be defined once the technology stack is decided.
-- See `docs/TESTING.md` for general conventions.
+- Use Vitest and React Testing Library for component/behavior tests unless the initialized project has a documented equivalent.
+- See `docs/TESTING.md` for shared test levels and the sequential verification workflow.

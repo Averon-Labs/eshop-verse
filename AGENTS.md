@@ -25,8 +25,8 @@ The platform is developed collaboratively by human developers and AI coding agen
 3. **Automated tests** — verified behavior
 4. **Git history** — commit log and branch state
 5. **Architecture Decision Records** — `docs/decisions/`
-6. **Project documentation** — `docs/`
-7. **Task specifications** — `.ai/tasks/`
+6. **Project documentation and canonical backlog** — `docs/`, especially [`docs/ROADMAP.md`](docs/ROADMAP.md) for planned Task IDs, dependencies, scope, and acceptance criteria
+7. **Supplementary task context** — `.ai/tasks/` only when a roadmap task links to it
 8. **AI-generated plans and notes** — `.ai/plans/`, `.ai/handoffs/`
 
 > **AI conversation history is NEVER authoritative project state.**
@@ -34,14 +34,24 @@ The platform is developed collaboratively by human developers and AI coding agen
 
 ---
 
-## Multi-Agent Principles
+## Sequential Agent Workflow
 
-- This repository may be used by **multiple AI agents simultaneously**.
-- Agents must not assume they are the only contributor.
-- Agents must not assume their conversation history reflects the current repository state.
-- Agents must **inspect the repository** (files, git status, recent commits) before making changes.
-- Agents must work within their assigned scope and avoid touching files outside their task boundary.
-- All agent instructions are in this file and component-specific `AGENTS.md` files.
+Specialist agents work on one task **sequentially in the same task branch**. The coordinator assigns scope, acceptance criteria, and the current commit to each stage. Do not start the next stage while the previous agent is still editing.
+
+1. **Build agent:** implement only the task scope and add tests for new behavior. Report changed files, assumptions, and exact checks run.
+2. **Test agent:** independently run the checks named by the task and inspect acceptance criteria. It may add or improve tests within scope, but must not change production code or weaken/remove a failing check. Report exact commands and outcomes.
+3. **Debug agent:** enter only for a reproducible failure. Reproduce it first, identify the root cause, make the smallest in-scope fix, and add a regression test. Do not edit unrelated behavior.
+4. **Test agent:** verify the fix by rerunning the failing test, relevant neighboring tests, and the task's required suite. The coordinator reviews the final diff and evidence before marking the task complete.
+
+Every agent must inspect the current git status, branch, recent commits, assigned Task entry in `docs/ROADMAP.md`, any linked supplementary context, and relevant component guidance before editing. Agents must respect the assigned file/scope boundary and preserve untracked or unrelated work.
+
+### Debug Attempt Record
+
+For each failed approach, record the commit or code state, hypothesis, exact command/input, observed result, and why the hypothesis was rejected or accepted. Do not rerun an identical command against unchanged code, inputs, and environment unless new evidence changes the hypothesis. After three distinct unsuccessful hypotheses, stop, report the reproducible failure and evidence, and ask the coordinator for a decision. Never claim success while a required check is failing.
+
+The coordinator must pass the reproduction evidence and attempt record to the next agent; do not rely on implicit or unshared conversation history to prevent repeated attempts.
+
+Normal build → test → debug → retest transitions within one task do not require a handoff file or intermediate push. Use the handoff procedure below only when work is blocked or being transferred outside this planned sequence.
 
 ---
 
@@ -53,15 +63,16 @@ The platform is developed collaboratively by human developers and AI coding agen
 2. **Read the relevant component AGENTS.md** (`android/AGENTS.md`, `backend/AGENTS.md`, or `admin/AGENTS.md`).
 3. **Inspect git status** — check for uncommitted changes, current branch, recent commits.
 4. **Inspect existing code** — understand the current state before modifying.
-5. **Check for related `.ai/tasks/` files** — see if a task specification exists.
+5. **Read the assigned Task ID in `docs/ROADMAP.md`** and inspect any supplementary `.ai/tasks/` file explicitly linked by that entry.
 6. **Follow Ponytail principles** — see [`.agents/skills/ponytail/SKILL.md`](.agents/skills/ponytail/SKILL.md) (minimal code, strict YAGNI, reuse existing libs/code).
-7. **Create a plan** before implementing non-trivial changes.
+7. For substantial work, plan from the roadmap entry before implementing; keep the plan in the task discussion unless durable extra context is genuinely needed.
 
 ### For Non-Trivial Features
 
-- Create a task file: `.ai/tasks/<TASK-ID>.md`
-- Create a plan file: `.ai/plans/<TASK-ID>.md`
-- Reference the relevant GitHub Issue if one exists.
+- Select one existing Task ID from [`docs/ROADMAP.md`](docs/ROADMAP.md); do not assign a whole phase as one implementation task.
+- The roadmap entry is the canonical task specification and contains scope, dependencies, acceptance criteria, and verification expectations. Do not copy it into a separate per-task file.
+- If planned work is missing from the roadmap, add and review a Task entry there before implementation. Link a GitHub Issue if one exists.
+- Create an optional `.ai/tasks/<TASK-ID>.md` or `.ai/plans/<TASK-ID>.md` only for substantial persistent context that cannot fit in the roadmap; link it from the Task entry and avoid duplicating acceptance criteria.
 
 ---
 
@@ -100,6 +111,7 @@ The platform is developed collaboratively by human developers and AI coding agen
 - **Do not mark tests as expected failures** without documenting the reason.
 - Follow the testing strategy in `docs/TESTING.md`.
 - Test naming convention: `test_<unit>_<scenario>_<expected>` or equivalent for the language.
+- Follow the risk-based test levels and independent verification flow in `docs/TESTING.md`.
 
 ---
 
@@ -207,8 +219,8 @@ When an agent cannot complete a task or is handing off to another agent:
 ## Context Management
 
 - Use `.ai/state/PROJECT_STATE.md` for high-level project status (updated periodically, not after every change).
-- Use `.ai/tasks/<TASK-ID>.md` for task-specific context.
-- Use `.ai/plans/<TASK-ID>.md` for implementation plans.
+- Use `docs/ROADMAP.md` as the canonical phase/task backlog and acceptance source.
+- Use `.ai/tasks/<TASK-ID>.md` or `.ai/plans/<TASK-ID>.md` only for linked supplementary context that would otherwise be lost or make the roadmap unwieldy.
 - Use `.ai/reviews/<PR-ID>.md` for code review notes.
 - **Do not create files in `.ai/` unless they contain genuinely useful persistent information.**
 - **Do not use `.ai/` as a replacement for GitHub Issues or PRs.**
@@ -217,7 +229,7 @@ When an agent cannot complete a task or is handing off to another agent:
 
 ## Definition of Done
 
-A task is complete when:
+A code task is complete when:
 
 - [ ] Code is implemented and follows project conventions.
 - [ ] Tests are written and passing.
@@ -229,3 +241,5 @@ A task is complete when:
 - [ ] Branch is pushed and PR is created (or ready to create).
 - [ ] No secrets, credentials, or sensitive data are committed.
 - [ ] No linting errors or warnings are introduced.
+
+For a documentation-only task, mark code/test checks as not applicable with a reason; review links, consistency, and scope instead.

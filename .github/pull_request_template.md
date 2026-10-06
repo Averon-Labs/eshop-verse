@@ -25,10 +25,15 @@
 
 <!-- How was this tested? -->
 
+- Commands run and result (or N/A with reason):
+- Commit tested (or N/A for documentation-only changes):
+- Unrun checks and reason (write "None" when all required checks ran):
+
 - [ ] Unit tests added/updated
 - [ ] Integration tests added/updated
 - [ ] Manual testing performed
 - [ ] Existing tests still pass
+- [ ] Regression test added for a bug fix
 
 ## Checklist
 
@@ -39,6 +44,7 @@
 - [ ] No secrets or credentials committed
 - [ ] Commit messages follow conventions
 - [ ] No linting errors introduced
+- [ ] No failing test was skipped, disabled, or weakened
 
 ## Screenshots (if applicable)
 

@@ -37,11 +37,11 @@ EShop Verse follows a client-server architecture with clearly separated componen
 | Data Layer | Repository Pattern | DECIDED |
 | Local Storage | Room (where appropriate) | DECIDED |
 | Networking | REST API client | DECIDED |
-| HTTP Client | OPEN — Retrofit recommended | PROPOSED |
-| Image Loading | OPEN — Glide or Coil | OPEN QUESTION |
-| Dependency Injection | OPEN — Hilt or manual | OPEN QUESTION |
-| Navigation | OPEN — Jetpack Navigation or manual | OPEN QUESTION |
-| Min SDK | OPEN — 24 recommended | PROPOSED |
+| HTTP Client | Retrofit | DECIDED |
+| Image Loading | Glide | DECIDED |
+| Dependency Injection | Constructor injection/manual wiring for the first release | DECIDED |
+| Navigation | AndroidX Navigation | DECIDED |
+| Min SDK | 24 for the initial target; verify against the actual Android toolchain | DECIDED |
 
 ### Backend API
 
@@ -50,25 +50,28 @@ EShop Verse follows a client-server architecture with clearly separated componen
 | Language | PHP | DECIDED |
 | API Style | RESTful | DECIDED |
 | Database | MySQL | DECIDED |
-| Framework | OPEN — vanilla PHP, Laravel, or Slim | OPEN QUESTION |
-| Authentication | OPEN — JWT or session-based | OPEN QUESTION |
-| API Versioning | OPEN — URL prefix recommended | PROPOSED |
+| Framework | Laravel; use the supported stable release selected when implementation begins | DECIDED |
+| Authentication | Laravel Sanctum: bearer tokens for Android; cookie/session auth for the first-party admin SPA | DECIDED |
+| Schema Changes | Laravel migrations | DECIDED |
+| API Versioning | `/api/v1/` URL prefix | DECIDED |
 
 ### Admin Dashboard
 
 | Aspect | Decision | Status |
 |--------|----------|--------|
 | Type | Web application | DECIDED |
-| Technology | OPEN — to be decided | OPEN QUESTION |
-| Served by | OPEN — same backend or separate | OPEN QUESTION |
+| Technology | React and TypeScript | DECIDED |
+| Backend access | REST API only; no direct database access or embedded business rules | DECIDED |
+| Authentication | Laravel Sanctum first-party SPA session authentication | DECIDED |
+| Hosting | Separate frontend build under a domain compatible with the API's first-party cookie session | DECIDED |
 
 ### Database
 
 | Aspect | Decision | Status |
 |--------|----------|--------|
 | Engine | MySQL | DECIDED |
-| Schema migrations | OPEN — manual SQL or framework-managed | OPEN QUESTION |
-| Character set | OPEN — utf8mb4 recommended | PROPOSED |
+| Schema migrations | Laravel migrations | DECIDED |
+| Character set | utf8mb4 | DECIDED |
 
 ---
 
@@ -97,12 +100,12 @@ docs/       → Shared documentation
 
 | Concern | Approach | Status |
 |---------|----------|--------|
-| Authentication | Token-based (API) + local session (Android) | PROPOSED |
-| Error Handling | Consistent error response format across API | PROPOSED |
-| Logging | Server-side logging; client-side crash reporting | PROPOSED |
-| Monitoring | OPEN | OPEN QUESTION |
-| Caching | OPEN — client-side and/or server-side | OPEN QUESTION |
-| File Storage | OPEN — local filesystem or cloud storage for product images | OPEN QUESTION |
+| Authentication | Sanctum-managed API tokens for Android; secure cookie session for admin SPA | DECIDED |
+| Error Handling | Consistent JSON error envelope from `API_CONTRACT.md` | DECIDED |
+| Logging | Server-side structured logs; never include credentials or payment data | DECIDED |
+| Monitoring | Out of scope for the portfolio demo; define before public production use | DEFERRED |
+| Caching | HTTP/client caching only where useful; no distributed cache in the first release | DECIDED |
+| File Storage | Seeded image URLs or local development storage; production storage is out of scope | DECIDED |
 
 ---
 
@@ -111,3 +114,5 @@ docs/       → Shared documentation
 Significant decisions are tracked as Architecture Decision Records in `docs/decisions/`.
 
 See [DECISIONS.md](DECISIONS.md) for the index.
+
+The first-release stack and its rationale are recorded in [ADR-001](decisions/ADR-001-portfolio-stack.md).

@@ -15,9 +15,12 @@ For GitHub Copilot and other IDE-integrated agents working on backend code.
 ## Key Rules
 
 - Language: PHP
+- Framework: Laravel (see `/backend/AGENTS.md`)
 - API Style: RESTful
 - Database: MySQL
+- Authentication: Laravel Sanctum
 - Follow PSR-12 coding standards
 - Use parameterized queries — never concatenate SQL
 - Validate all input server-side
 - Follow API contract conventions
+- Use Laravel migrations and PHPUnit tests with isolated data
