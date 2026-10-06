@@ -1,0 +1,55 @@
+name: Task
+description: A development task or chore
+title: "task: "
+labels: ["task"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Task
+        Describe the task to be completed.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What needs to be done?
+      placeholder: Describe the task...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which component does this task affect?
+      options:
+        - Android App
+        - Backend API
+        - Admin Dashboard
+        - Database
+        - Documentation
+        - CI/CD
+        - Infrastructure
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: How do we know this task is complete?
+      placeholder: |
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any additional information or references.
+    validations:
+      required: false

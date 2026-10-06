@@ -1,0 +1,80 @@
+# CI Workflow — EShop Verse
+#
+# This is a placeholder CI workflow. It will be expanded as build systems
+# are set up for each component.
+#
+# Current status:
+# - Android: Project not initialized yet
+# - Backend: Project not initialized yet
+# - Admin: Project not initialized yet
+#
+# Planned checks (to be implemented when components are ready):
+# - Android: Gradle build, lint, unit tests
+# - Backend: Composer install, PHPUnit tests, PHP lint
+# - Admin: Build, lint, tests (stack TBD)
+# - Documentation: Markdown lint (optional)
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    name: Validate Repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify repository structure
+        run: |
+          echo "Verifying repository structure..."
+          test -f AGENTS.md       && echo "✓ AGENTS.md"
+          test -f README.md       && echo "✓ README.md"
+          test -f CONTRIBUTING.md && echo "✓ CONTRIBUTING.md"
+          test -f LICENSE         && echo "✓ LICENSE"
+          test -d android/        && echo "✓ android/"
+          test -d backend/        && echo "✓ backend/"
+          test -d admin/          && echo "✓ admin/"
+          test -d docs/           && echo "✓ docs/"
+          echo "Repository structure is valid."
+
+  # Uncomment and configure when Android project is initialized:
+  # android:
+  #   name: Android Build & Test
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-java@v4
+  #       with:
+  #         java-version: '17'
+  #         distribution: 'temurin'
+  #     - name: Build
+  #       working-directory: android
+  #       run: ./gradlew build
+  #     - name: Test
+  #       working-directory: android
+  #       run: ./gradlew test
+  #     - name: Lint
+  #       working-directory: android
+  #       run: ./gradlew lint
+
+  # Uncomment and configure when Backend project is initialized:
+  # backend:
+  #   name: Backend Build & Test
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: shivammathur/setup-php@v2
+  #       with:
+  #         php-version: '8.2'
+  #     - name: Install Dependencies
+  #       working-directory: backend
+  #       run: composer install --no-progress
+  #     - name: Test
+  #       working-directory: backend
+  #       run: vendor/bin/phpunit
