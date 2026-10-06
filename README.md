@@ -1,36 +1,31 @@
 # EShop Verse
 
-A production-oriented e-commerce platform featuring an Android customer application, RESTful backend, and admin dashboard.
+A portfolio e-commerce application with an Android customer app, REST API, and a small admin dashboard. It demonstrates a complete English-language shopping flow; it is not a live commerce service.
 
 ---
 
 ## Overview
 
-EShop Verse is a multi-component e-commerce platform designed for real-world usage. It provides customers with a mobile shopping experience, merchants with an administration dashboard, and connects both through a RESTful API.
+EShop Verse is a single-store portfolio project for an international audience. The Android customer app and admin dashboard use the same REST API. The first release uses English UI and sample USD prices, and checkout uses a simulated payment flow.
 
 ## Features
 
 ### Customer Application (Android)
-- Product browsing and search
-- Product details and reviews
-- Shopping cart and wishlist
-- User authentication and profiles
-- Order placement and tracking
-- Push notifications
+- Product browsing, categories, search, and product details
+- Account registration and sign-in
+- Shopping cart and checkout with simulated payment
+- Order history and status
 
 ### Admin Dashboard
-- Product and inventory management
-- Order management and fulfillment
-- User management
-- Analytics and reporting
+- Product, category, and inventory management
+- Order status management
 
 ### Backend API
 - RESTful API serving both client applications
 - User authentication and authorization
 - Product catalog management
 - Order processing
-- Payment integration
-- Notification services
+- Simulated checkout and payment outcomes for demonstrations
 
 ---
 
@@ -64,8 +59,8 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed architecture docum
 | Component | Technologies |
 |-----------|-------------|
 | Android App | Java, XML, Material 3, MVVM, Repository Pattern, Room, Retrofit |
-| Backend | PHP, RESTful API |
-| Admin Dashboard | TBD |
+| Backend | PHP, Laravel, RESTful API |
+| Admin Dashboard | React, TypeScript |
 | Database | MySQL |
 | CI/CD | GitHub Actions |
 
@@ -138,7 +133,7 @@ Supported agents include Claude Code, OpenAI Codex, Google Gemini/Antigravity, G
 
 **Phase 0 — Foundation**
 
-The repository structure and engineering workflow are being established. Application development has not yet begun.
+The first-release product scope and engineering workflow are documented. Feature completion has not yet been verified.
 
 See [docs/ROADMAP.md](docs/ROADMAP.md) for the full project roadmap.
 

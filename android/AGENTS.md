@@ -14,32 +14,17 @@
 | Data Layer | Repository Pattern | DECIDED |
 | Local Database | Room (where appropriate) | DECIDED |
 | Networking | REST API | DECIDED |
-| HTTP Client | Retrofit (recommended) | PROPOSED |
-| Image Loading | TBD | OPEN |
-| DI | TBD | OPEN |
+| HTTP Client | Retrofit | DECIDED |
+| Image Loading | Glide | DECIDED |
+| Dependency Injection | Constructor injection/manual wiring for the first release | DECIDED |
+| Navigation | AndroidX Navigation | DECIDED |
+| Minimum SDK | 25 in the current Gradle scaffold | DECIDED |
 
 ---
 
-## Project Structure (Planned)
+## Project Structure
 
-```
-android/
-├── app/
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/com/eshopverse/
-│   │   │   │   ├── data/           # Data layer (repositories, models, API, Room)
-│   │   │   │   ├── ui/             # UI layer (activities, fragments, viewmodels)
-│   │   │   │   └── util/           # Utility classes
-│   │   │   └── res/                # Resources (layouts, drawables, values)
-│   │   ├── test/                   # Unit tests
-│   │   └── androidTest/            # Instrumented tests
-│   └── build.gradle
-├── build.gradle                    # Project-level build config
-├── settings.gradle
-├── gradle.properties
-└── AGENTS.md                       # This file
-```
+Follow the checked-in Android Gradle scaffold and existing Java namespace. Organize new code by feature and layer without assuming a package path or replacing the Kotlin DSL Gradle files.
 
 ---
 
@@ -85,3 +70,5 @@ android/
 - Unit tests in `app/src/test/`
 - Instrumented tests in `app/src/androidTest/`
 - See `docs/TESTING.md` for conventions.
+- Add tests for new behavior with the implementation; the independent test agent verifies them afterward.
+- Keep all user-visible UI and errors in English string resources.

@@ -4,30 +4,33 @@
 
 This document defines the design system for EShop Verse's Android customer application. It establishes a consistent visual language using Material 3 (Material You) principles.
 
-> **Note:** Specific values (colors, exact dimensions) are placeholders and require design approval before finalization.
+The first release is English-only and left-to-right. Store all visible text in string resources so future localization does not require layout rewrites.
+
+The tokens below are the first-release baseline. Keep them in Android resources and update them only through a reviewed design change.
 
 ---
 
 ## Color System
 
-**Status: OPEN**
+**Status: DECIDED — initial light theme**
 
-The color system will follow Material 3's dynamic color scheme structure:
+Use a stable brand palette with Material 3 semantic roles:
 
-- **Primary** — Brand primary color for key UI elements
-- **Secondary** — Supporting color for less prominent elements
-- **Tertiary** — Accent color for contrast and emphasis
-- **Error** — Error states and destructive actions
-- **Surface** — Background and container colors
-- **On-Primary / On-Secondary / On-Surface** — Text/icon colors on respective surfaces
+| Role | Initial value | On-color |
+|------|---------------|----------|
+| Primary | `#3347A8` | `#FFFFFF` |
+| Secondary | `#455A64` | `#FFFFFF` |
+| Tertiary | `#00695C` | `#FFFFFF` |
+| Error | `#B3261E` | `#FFFFFF` |
+| Surface | `#FAFAFC` | `#1B1B1F` |
 
-Dark theme support: **PROPOSED** — planned but not required for initial release.
+Dark theme support is deferred. Verify text contrast for actual component states; do not infer that a palette token alone guarantees accessible contrast.
 
 ---
 
 ## Typography
 
-**Status: PROPOSED**
+**Status: DECIDED**
 
 Following Material 3 type scale:
 
@@ -44,13 +47,13 @@ Following Material 3 type scale:
 | Label Large | Buttons, tabs |
 | Label Medium | Captions, metadata |
 
-Font family: **OPEN** — System default or custom font to be decided.
+Font family: Android system default (Roboto on supported Android versions); keep text in English string resources.
 
 ---
 
 ## Spacing
 
-**Status: PROPOSED**
+**Status: DECIDED**
 
 Using a 4dp base unit:
 
@@ -69,7 +72,7 @@ Consistent spacing should be applied to padding, margins, and gaps.
 
 ## Shapes
 
-**Status: PROPOSED**
+**Status: DECIDED**
 
 Following Material 3 shape scale:
 
@@ -85,7 +88,7 @@ Following Material 3 shape scale:
 
 ## Elevation
 
-**Status: PROPOSED**
+**Status: DECIDED**
 
 Material 3 tonal elevation levels:
 
@@ -107,10 +110,10 @@ Material 3 tonal elevation levels:
 | Type | Usage |
 |------|-------|
 | Filled | Primary actions (Add to Cart, Place Order) |
-| Outlined | Secondary actions (Add to Wishlist) |
+| Outlined | Secondary actions |
 | Text | Tertiary actions (View All, Cancel) |
 | FAB | Primary screen action |
-| Icon | Toolbar actions, favorites |
+| Icon | Toolbar and utility actions |
 
 ### Inputs
 
@@ -127,17 +130,14 @@ Material 3 tonal elevation levels:
 |------|-------|
 | Product Card | Product grid/list items |
 | Order Card | Order history items |
-| Review Card | Product review items |
 | Category Card | Category browsing |
 
 ### Product Components
 
 - Product image carousel
-- Price display (with sale price support)
-- Rating stars display
+- Price display in USD
 - Add to cart button
-- Wishlist toggle
-- Product badge (new, sale, out of stock)
+- Product badge (new, out of stock)
 - Quantity selector
 
 ---
@@ -151,14 +151,13 @@ Material 3 tonal elevation levels:
 | Skeleton screens | Initial content loading |
 | Circular progress | Action in progress |
 | Linear progress | Page-level loading |
-| Shimmer effect | PROPOSED — Content placeholder |
+| Shimmer effect | Not required; use static skeletons in the first release |
 
 ### Empty States
 
 | Screen | Message |
 |--------|---------|
 | Empty cart | Illustration + "Your cart is empty" + CTA |
-| Empty wishlist | Illustration + "No saved items" + CTA |
 | Empty orders | Illustration + "No orders yet" + CTA |
 | No search results | Illustration + "No results found" + suggestions |
 
@@ -176,19 +175,18 @@ Material 3 tonal elevation levels:
 
 ## Navigation
 
-**Status: PROPOSED**
+**Status: DECIDED**
 
-- Bottom Navigation Bar with 4-5 primary destinations
+- Bottom Navigation Bar with four primary destinations
 - Toolbar with contextual actions
 - Back navigation following Android conventions
-- Deep linking support planned
+- Deep links are deferred from the first release
 
-Proposed bottom navigation items:
+Bottom navigation items:
 1. Home
 2. Categories / Search
 3. Cart
-4. Wishlist
-5. Profile / Account
+4. Profile / Account
 
 ---
 
