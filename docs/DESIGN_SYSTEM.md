@@ -8,11 +8,32 @@ The first release is English-only and left-to-right. Store all visible text in s
 
 The tokens below are the first-release baseline. Keep them in Android resources and update them only through a reviewed design change.
 
+## Visual Consistency Rules
+
+- This is the single visual language for every Android customer-app screen. New screens extend the patterns and tokens here; they must not introduce a screen-specific design language.
+- Build the UI with Android Views/XML and Material 3 components from the Material Components for Android library. The app theme must inherit from a Material 3 theme and every screen must use the same app theme, including night-mode resources when present.
+- Use the shared theme and resource tokens for colors, type, dimensions, shapes, and component styles. Do not hardcode color, spacing, corner radius, text appearance, or elevation in individual layouts. A deliberate token change updates this document and the shared Android resources together.
+- Use Material 3 components and shared patterns for top app bars, bottom navigation, buttons, text fields, cards, dialogs, snackbars, and progress indicators. Product, category, cart, order, and account screens should reuse consistent component structure, content hierarchy, spacing, and interaction states.
+- Every data-driven screen defines loading, content, empty, error/retry, and success feedback as applicable. These states use consistent layouts, wording, icon treatment, and action placement across the app.
+- Prefer clear hierarchy, restrained decoration, readable typography, consistent alignment and whitespace, and purposeful imagery. Avoid decoration that competes with product content or creates inconsistent screen density.
+- Support small and large screens, system font scaling, RTL readiness while keeping first-release copy English/LTR, accessible contrast, 48dp minimum touch targets, content descriptions, TalkBack, keyboard navigation, and visible focus.
+- Before implementing a screen, inspect existing screens and this guide. Extend a shared component or pattern when possible. Introduce a new reusable pattern only when a real product need is not met by the existing system, and document it here.
+
+### XML Implementation Checklist
+
+For each new or materially changed screen, verify during implementation/review that:
+
+1. The root and child views use the common Material 3 app theme and shared styles.
+2. All user-visible strings come from string resources; colors and dimensions come from shared resources.
+3. Material 3 components are used for standard interactions instead of custom lookalikes.
+4. Screen structure, spacing, typography, and state handling match existing screens and this system.
+5. Touch targets, contrast, content descriptions, font scaling, and keyboard/focus behavior are addressed.
+
 ---
 
 ## Color System
 
-**Status: DECIDED — initial light theme**
+**Status: DECIDED — initial light theme; dark theme support remains deferred**
 
 Use a stable brand palette with Material 3 semantic roles:
 
