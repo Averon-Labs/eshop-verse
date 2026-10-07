@@ -91,11 +91,11 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed architecture docum
 
 This project uses a branch-based workflow:
 
-1. Create a feature branch from `main`.
+1. Fetch the latest remote refs and create a task branch from `develop`.
 2. Implement changes with focused commits.
 3. Open a Pull Request.
 4. Pass CI checks and code review.
-5. Merge to `main`.
+5. Merge task PRs to `develop`; promote a completed release to `main` only through a reviewed release PR.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for full details.
 
@@ -126,7 +126,10 @@ Supported agents include Claude Code, OpenAI Codex, Google Gemini/Antigravity, G
 | [TESTING.md](docs/TESTING.md) | Testing strategy |
 | [DEVELOPMENT.md](docs/DEVELOPMENT.md) | Development workflow |
 | [DECISIONS.md](docs/DECISIONS.md) | Architecture decisions index |
-| [ROADMAP.md](docs/ROADMAP.md) | Project roadmap |
+| [ROADMAP.md](docs/ROADMAP.md) | Project phase gates, shared tasks, and Task ID index |
+| [ANDROID_ROADMAP.md](docs/ANDROID_ROADMAP.md) | Android phases, numbered steps, and canonical task criteria |
+| [BACKEND_ROADMAP.md](docs/BACKEND_ROADMAP.md) | Backend phases, numbered steps, and canonical task criteria |
+| [ADMIN_ROADMAP.md](docs/ADMIN_ROADMAP.md) | Admin phases, numbered steps, and canonical task criteria |
 
 ---
 
@@ -136,7 +139,7 @@ Supported agents include Claude Code, OpenAI Codex, Google Gemini/Antigravity, G
 
 The first-release product scope and engineering workflow are documented. Feature completion has not yet been verified.
 
-See [docs/ROADMAP.md](docs/ROADMAP.md) for the full project roadmap.
+See [docs/ROADMAP.md](docs/ROADMAP.md) for project gates and shared tasks, and the component roadmaps for numbered implementation steps.
 
 ---
 

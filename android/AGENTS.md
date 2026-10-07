@@ -2,6 +2,8 @@
 
 > Read the root `AGENTS.md` first. This file contains Android-specific rules.
 
+The canonical Android task steps and acceptance criteria are in [`docs/ANDROID_ROADMAP.md`](../docs/ANDROID_ROADMAP.md). Project gates and shared tasks are in [`docs/ROADMAP.md`](../docs/ROADMAP.md).
+
 ---
 
 ## Architecture
