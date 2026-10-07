@@ -101,6 +101,14 @@ Normal build → test → debug → retest transitions within one task do not re
 - Consult `docs/decisions/` before making architectural changes.
 - New architectural decisions must be proposed as ADRs in `docs/decisions/`.
 
+### Android Visual Design
+
+- All customer-app screens use the shared Material 3 XML/View system in `docs/DESIGN_SYSTEM.md`; do not mix unrelated visual styles between screens.
+- Use the single app theme and shared color, typography, spacing, shape, elevation, and component tokens. Define or change tokens centrally and update the design-system document when approved.
+- Prefer Material 3 components and established screen patterns for app bars, navigation, product cards, forms, actions, dialogs, and loading/empty/error/success states. Avoid ad hoc colors, dimensions, typography, custom controls, or one-off interaction patterns.
+- Keep layouts responsive and accessible: minimum 48dp touch targets, scalable text, semantic labels, keyboard/focus support, and verified contrast.
+- Before adding a new screen pattern or changing the visual language, check the design system and existing screens; extend shared patterns rather than creating a parallel style.
+
 ---
 
 ## Testing Rules
