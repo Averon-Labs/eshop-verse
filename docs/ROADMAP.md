@@ -130,7 +130,7 @@ Name the roadmap, phase, and step (step numbering restarts at 1 in each phase), 
 
 ### Step 5 — PLAN-002 — Separate agent role workflows and remove duplicated process guidance
 
-**Status:** `[~]`
+**Status:** `[x]`
 
 **Depends on:** PLAN-001
 
@@ -138,12 +138,12 @@ Name the roadmap, phase, and step (step numbering restarts at 1 in each phase), 
 
 **Acceptance criteria:**
 
-- [ ] Add concise build, independent-test, and conditional-debug workflow guides under `.agents/workflows/`; each defines its entry conditions, scope boundaries, required evidence, and handoff to the next stage.
-- [ ] Keep `AGENTS.md` as the shared entry point and route each specialist to the correct guide; preserve the sequential same-task-branch flow, distinct builder/tester/debugger roles, independent retest, and no-repeat-without-new-evidence rule.
-- [ ] Use a focused local commit as each editing stage's handoff snapshot: builder commits implementation, tester commits any test-only additions, and debugger commits a fix; report the exact SHA verified and do not push during normal stage transitions.
-- [ ] Keep `docs/TESTING.md` focused on test strategy and test conventions; keep component setup details in `docs/DEVELOPMENT.md` and component-specific agent instructions in each component `AGENTS.md`.
-- [ ] Remove duplicated agent-stage procedures from supporting documents while preserving unique component, test-design, setup, contribution, and handoff requirements.
-- [ ] Update documentation entry points and links; confirm each roadmap Task ID remains canonical in one entry and verify Markdown links and the final documentation diff.
+- [x] Add concise build, independent-test, and conditional-debug workflow guides under `.agents/workflows/`; each defines its entry conditions, scope boundaries, required evidence, and handoff to the next stage.
+- [x] Keep `AGENTS.md` as the shared entry point and route each specialist to the correct guide; preserve the sequential same-task-branch flow, distinct builder/tester/debugger roles, independent retest, and no-repeat-without-new-evidence rule.
+- [x] Use a focused local commit as each editing stage's handoff snapshot: builder commits implementation, tester commits any test-only additions, and debugger commits a fix; report the exact SHA verified and do not push during normal stage transitions.
+- [x] Keep `docs/TESTING.md` focused on test strategy and test conventions; keep component setup details in `docs/DEVELOPMENT.md` and component-specific agent instructions in each component `AGENTS.md`.
+- [x] Remove duplicated agent-stage procedures from supporting documents while preserving unique component, test-design, setup, contribution, and handoff requirements.
+- [x] Update documentation entry points and links; confirm each roadmap Task ID remains canonical in one entry and verify Markdown links and the final documentation diff.
 
 **Verification:** review the shared and role-specific instructions for conflicts, check all changed internal Markdown links and roadmap references, and run `git diff --check`. Application builds and runtime tests are not applicable to this documentation-only task.
 
