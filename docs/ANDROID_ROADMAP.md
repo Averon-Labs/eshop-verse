@@ -6,7 +6,7 @@ Plan Android customer-app work in Java/XML using the documented MVVM, Repository
 
 This file is the canonical task list for its component. Each task appears once here; stable Task IDs identify work across branches and PRs. Project-wide phase gates and cross-component tasks are canonical in [ROADMAP.md](ROADMAP.md). Follow [repository-wide agent instructions](../AGENTS.md), component guidance, authoritative documents linked by the task, and the actual implementation.
 
-A roadmap assignment must include this roadmap name, phase, and step, for example: Android Roadmap, Phase 1, Step 1. Step numbers restart at 1 in every phase. Check dependencies before starting; a later step is not ready until its listed dependencies are complete.
+A roadmap assignment must include this roadmap name, phase, and step, for example: Android Roadmap, Phase 1, Step 1; include a Sub-step only when the canonical task explicitly defines one. Step numbers restart at 1 in every phase, and Sub-step numbering restarts within its parent Step. Nested acceptance checklists remain criteria, not separate assignments. Check dependencies before starting; a later step is not ready until its listed dependencies are complete. See [the project roadmap](ROADMAP.md) for the Sub-step rule and [repository Git naming conventions](../AGENTS.md).
 
 ## Phase steps
 
