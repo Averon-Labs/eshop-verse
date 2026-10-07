@@ -25,7 +25,7 @@ The platform is developed collaboratively by human developers and AI coding agen
 3. **Automated tests** — verified behavior
 4. **Git history** — commit log and branch state
 5. **Architecture Decision Records** — `docs/decisions/`
-6. **Project documentation and canonical backlog** — `docs/`, especially [`docs/ROADMAP.md`](docs/ROADMAP.md) for planned Task IDs, dependencies, scope, and acceptance criteria
+6. **Project documentation and canonical backlog** — `docs/ROADMAP.md` for project phase gates and shared tasks, plus the relevant component roadmap (`docs/ANDROID_ROADMAP.md`, `docs/BACKEND_ROADMAP.md`, or `docs/ADMIN_ROADMAP.md`) for that component's canonical Task entries, dependencies, scope, and acceptance criteria
 7. **Supplementary task context** — `.ai/tasks/` only when a roadmap task links to it
 8. **AI-generated plans and notes** — `.ai/plans/`, `.ai/handoffs/`
 
@@ -36,22 +36,18 @@ The platform is developed collaboratively by human developers and AI coding agen
 
 ## Sequential Agent Workflow
 
-Specialist agents work on one task **sequentially in the same task branch**. The coordinator assigns scope, acceptance criteria, and the current commit to each stage. Do not start the next stage while the previous agent is still editing.
+Specialist agents work one at a time on the same task branch. Unless the owner narrows the request, assigning a roadmap step or Task ID covers the full workflow through a PR ready for human review. The coordinator assigns each stage its scope, acceptance criteria, and current commit; do not start another stage while an agent is editing. Each stage that edits creates a focused local commit before handoff so the next stage has a stable snapshot; normal stage transitions do not push.
 
-1. **Build agent:** implement only the task scope and add tests for new behavior. Report changed files, assumptions, and exact checks run.
-2. **Test agent:** independently run the checks named by the task and inspect acceptance criteria. It may add or improve tests within scope, but must not change production code or weaken/remove a failing check. Report exact commands and outcomes.
-3. **Debug agent:** enter only for a reproducible failure. Reproduce it first, identify the root cause, make the smallest in-scope fix, and add a regression test. Do not edit unrelated behavior.
-4. **Test agent:** verify the fix by rerunning the failing test, relevant neighboring tests, and the task's required suite. The coordinator reviews the final diff and evidence before marking the task complete.
+Each specialist reads only the workflow guide for its assigned role, in addition to the shared and task-relevant guidance:
 
-Every agent must inspect the current git status, branch, recent commits, assigned Task entry in `docs/ROADMAP.md`, any linked supplementary context, and relevant component guidance before editing. Agents must respect the assigned file/scope boundary and preserve untracked or unrelated work.
+1. **Builder:** [`.agents/workflows/build.md`](.agents/workflows/build.md) — implement the task and add tests for changed behavior.
+2. **Independent tester:** [`.agents/workflows/test.md`](.agents/workflows/test.md) — independently verify the builder's commit; it must be a different agent from the builder.
+3. **Debugger:** [`.agents/workflows/debug.md`](.agents/workflows/debug.md) — a third, distinct agent, used only after a failure is reproduced.
+4. **Independent retest:** the tester or another independent tester verifies a debug fix. The coordinator reviews evidence and the final diff before completion.
 
-### Debug Attempt Record
+Every agent must inspect the current git status, branch, recent commits, assigned Task entry in its canonical component roadmap (or `docs/ROADMAP.md` for a shared task), any linked supplementary context, and relevant component guidance before editing. Agents must respect the assigned file/scope boundary and preserve untracked or unrelated work.
 
-For each failed approach, record the commit or code state, hypothesis, exact command/input, observed result, and why the hypothesis was rejected or accepted. Do not rerun an identical command against unchanged code, inputs, and environment unless new evidence changes the hypothesis. After three distinct unsuccessful hypotheses, stop, report the reproducible failure and evidence, and ask the coordinator for a decision. Never claim success while a required check is failing.
-
-The coordinator must pass the reproduction evidence and attempt record to the next agent; do not rely on implicit or unshared conversation history to prevent repeated attempts.
-
-Normal build → test → debug → retest transitions within one task do not require a handoff file or intermediate push. Use the handoff procedure below only when work is blocked or being transferred outside this planned sequence.
+Debuggers must keep an attempt record and must not repeat a failed approach without new evidence; follow the limits and evidence format in the debug guide. The coordinator passes that record between stages. A tester commits any test-only additions and reports the exact SHA verified; if it makes no changes, it reports the builder's SHA. Normal build → test → debug → retest transitions need no handoff file or intermediate push; use the handoff procedure below only when work is blocked or transferred outside this sequence. After independent verification and coordinator review, the coordinator publishes the task branch and prepares a PR; never merge automatically.
 
 ---
 
@@ -63,14 +59,24 @@ Normal build → test → debug → retest transitions within one task do not re
 2. **Read the relevant component AGENTS.md** (`android/AGENTS.md`, `backend/AGENTS.md`, or `admin/AGENTS.md`).
 3. **Inspect git status** — check for uncommitted changes, current branch, recent commits.
 4. **Inspect existing code** — understand the current state before modifying.
-5. **Read the assigned Task ID in `docs/ROADMAP.md`** and inspect any supplementary `.ai/tasks/` file explicitly linked by that entry.
+5. **Read the assigned Step and canonical Task entry** in the matching component roadmap, or `docs/ROADMAP.md` for cross-component work; inspect any supplementary `.ai/tasks/` file explicitly linked by that entry.
 6. **Follow Ponytail principles** — see [`.agents/skills/ponytail/SKILL.md`](.agents/skills/ponytail/SKILL.md) (minimal code, strict YAGNI, reuse existing libs/code).
 7. For substantial work, plan from the roadmap entry before implementing; keep the plan in the task discussion unless durable extra context is genuinely needed.
 
+### Step Assignment and Clarification
+
+- Identify work by roadmap name, phase, and step (for example, `Android Roadmap — Phase 1 — Step 1`) or by stable Task ID. Step numbering restarts at 1 in every phase. If the owner names a phase and step without identifying a roadmap, ask which component they mean.
+- Read the canonical task, its dependencies, applicable component instructions, and every authoritative project document that governs the task's scope: the task-linked documents and any applicable product, architecture/ADR, API/database, design, security, and testing guidance. Inspect source, tests, and current configuration to resolve decisions already answered by repository evidence; do not bulk-read unrelated component documents or ask the owner to repeat a documented decision.
+- If scope, acceptance criteria, product behavior, architecture, API/schema/security behavior, or a consequential library/dependency choice is materially missing or contradictory, ask a focused question. State the unresolved decision, give a recommendation and tradeoff when useful, and pause only the dependent work. Once the owner answers, continue the task without asking for another start or plan confirmation.
+- If the task and authoritative evidence fully specify the work, proceed without an approval question or a redundant plan-confirmation turn. For example, Android image loading is already specified as Glide in `android/AGENTS.md`; do not ask whether to use Glide or Picasso.
+- Do not silently guess at material requirements or mark uncertainty as resolved. If dependencies are incomplete, report the exact blocking Task ID and do not expand the assigned scope to bypass it.
+- Run `git fetch --prune origin` before creating a task branch and again before staging, committing, or pushing. This refreshes local remote-tracking refs, including remote branch deletions. Create new work from the latest `origin/develop`; before publishing, compare local and fetched refs, fast-forward a clean local `develop` when safe, and incorporate newer `origin/develop` and same-task-branch commits into the task branch without rewriting published commits. Delete a local task branch only after verifying its PR merged and the worktree is clean. Preserve unrelated local work, never force-push shared branches, and stop to report conflicts or divergence you cannot safely resolve.
+- Never merge a PR automatically.
+
 ### For Non-Trivial Features
 
-- Select one existing Task ID from [`docs/ROADMAP.md`](docs/ROADMAP.md); do not assign a whole phase as one implementation task.
-- The roadmap entry is the canonical task specification and contains scope, dependencies, acceptance criteria, and verification expectations. Do not copy it into a separate per-task file.
+- Select one existing Task ID from the applicable component roadmap or [`docs/ROADMAP.md`](docs/ROADMAP.md) for a shared task; do not assign a whole phase as one implementation task.
+- The Task entry is canonical in exactly one roadmap and contains scope, dependencies, acceptance criteria, and verification expectations. `docs/ROADMAP.md` indexes component tasks and owns cross-component tasks; do not copy criteria into another roadmap or per-task file.
 - If planned work is missing from the roadmap, add and review a Task entry there before implementation. Link a GitHub Issue if one exists.
 - Create an optional `.ai/tasks/<TASK-ID>.md` or `.ai/plans/<TASK-ID>.md` only for substantial persistent context that cannot fit in the roadmap; link it from the Task entry and avoid duplicating acceptance criteria.
 
@@ -100,6 +106,21 @@ Normal build → test → debug → retest transitions within one task do not re
 - Do not introduce cross-component dependencies outside the API boundary.
 - Consult `docs/decisions/` before making architectural changes.
 - New architectural decisions must be proposed as ADRs in `docs/decisions/`.
+
+### Android Visual Design
+
+- All customer-app screens use the shared Material 3 XML/View system in `docs/DESIGN_SYSTEM.md`; do not mix unrelated visual styles between screens.
+- Use the single app theme and shared color, typography, spacing, shape, elevation, and component tokens. Define or change tokens centrally and update the design-system document when approved.
+- Prefer Material 3 components and established screen patterns for app bars, navigation, product cards, forms, actions, dialogs, and loading/empty/error/success states. Avoid ad hoc colors, dimensions, typography, custom controls, or one-off interaction patterns.
+- Keep layouts responsive and accessible: minimum 48dp touch targets, scalable text, semantic labels, keyboard/focus support, and verified contrast.
+- Before adding a new screen pattern or changing the visual language, check the design system and existing screens; extend shared patterns rather than creating a parallel style.
+
+### Admin Web Visual Design
+
+- Follow the shared tokens in `docs/DESIGN_SYSTEM.md` and page-level behavior/layout in `docs/SCREEN_SPECIFICATIONS.md` for every dashboard page.
+- Reuse the same coral/neutral palette, Lato typography, spacing, shapes, status semantics, and responsive principles as the customer app. Use web navigation and tables appropriate to desktop; do not copy Android's bottom navigation into the dashboard.
+- Keep dashboard pages limited to the first-release scope. Analytics, customer administration, notifications, transaction history, CMS, and wishlist are deferred unless a new product Task changes that scope.
+- Ensure keyboard operation, persistent labels, visible focus, non-color-only status, and readable table/card behavior at supported narrow widths.
 
 ---
 
@@ -227,7 +248,7 @@ The following require explicit human approval before merging:
 
 ## Agent Handoff Rules
 
-When an agent cannot complete a task or is handing off to another agent:
+When a task is blocked or work must be transferred outside the planned sequential role workflow, use this procedure. It does not apply to normal build → test → debug → retest transitions; those use local commits without a handoff file or push, as described above:
 
 1. **Commit all work in progress** on the feature branch.
 2. **Create a handoff file**: `.ai/handoffs/<TASK-ID>.md` containing:
@@ -245,7 +266,7 @@ When an agent cannot complete a task or is handing off to another agent:
 ## Context Management
 
 - Use `.ai/state/PROJECT_STATE.md` for high-level project status (updated periodically, not after every change).
-- Use `docs/ROADMAP.md` as the canonical phase/task backlog and acceptance source.
+- Use `docs/ROADMAP.md` for project phase gates, shared tasks, and the Task ID index; use the applicable component roadmap for canonical component Task entries and acceptance criteria.
 - Use `.ai/tasks/<TASK-ID>.md` or `.ai/plans/<TASK-ID>.md` only for linked supplementary context that would otherwise be lost or make the roadmap unwieldy.
 - Use `.ai/reviews/<PR-ID>.md` for code review notes.
 - **Do not create files in `.ai/` unless they contain genuinely useful persistent information.**

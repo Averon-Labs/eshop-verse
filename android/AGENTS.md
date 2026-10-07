@@ -2,6 +2,8 @@
 
 > Read the root `AGENTS.md` first. This file contains Android-specific rules.
 
+The canonical Android task steps and acceptance criteria are in [`docs/ANDROID_ROADMAP.md`](../docs/ANDROID_ROADMAP.md). Project gates and shared tasks are in [`docs/ROADMAP.md`](../docs/ROADMAP.md).
+
 ---
 
 ## Architecture
@@ -18,13 +20,20 @@
 | Image Loading | Glide | DECIDED |
 | Dependency Injection | Constructor injection/manual wiring for the first release | DECIDED |
 | Navigation | AndroidX Navigation | DECIDED |
-| Minimum SDK | 25 in the current Gradle scaffold | DECIDED |
+| Namespace / application ID | `com.averonlabs.eshopverse` | DECIDED |
+| Compile SDK | Android API 36, minor API level 1 | DECIDED |
+| Target SDK | 36 | DECIDED |
+| Minimum SDK | 25 | DECIDED |
+| Java source/target | Java 11 | DECIDED |
+| Android Gradle Plugin | 9.2.1 | DECIDED |
+| Gradle wrapper | 9.4.1 | DECIDED |
+| Material Components | 1.10.0 in the current scaffold | CURRENT SCAFFOLD; review before changing |
 
 ---
 
 ## Project Structure
 
-Follow the checked-in Android Gradle scaffold and existing Java namespace. Organize new code by feature and layer without assuming a package path or replacing the Kotlin DSL Gradle files.
+Follow the checked-in Android Gradle scaffold and namespace `com.averonlabs.eshopverse`. Organize new code by feature and layer without replacing the Kotlin DSL Gradle files.
 
 ---
 
@@ -51,6 +60,9 @@ Follow the checked-in Android Gradle scaffold and existing Java namespace. Organ
 - Use string resources for all user-visible text.
 - Use dimension resources for spacing.
 - Use color resources defined in the design system.
+- Follow [`docs/DESIGN_SYSTEM.md`](../docs/DESIGN_SYSTEM.md) for every screen. Use the shared Material 3 theme, XML/View components, styles, and resource tokens; keep screen patterns visually consistent across the app.
+- Follow the page-level flows and states in [`docs/SCREEN_SPECIFICATIONS.md`](../docs/SCREEN_SPECIFICATIONS.md); use the same specified palette, Lato type hierarchy, and reusable patterns throughout.
+- Do not introduce one-off colors, spacing, typography, shapes, elevations, or custom component styles in individual screens. Propose changes centrally and update both the design-system guide and shared resources.
 - Support content descriptions for accessibility.
 
 ---
@@ -70,5 +82,5 @@ Follow the checked-in Android Gradle scaffold and existing Java namespace. Organ
 - Unit tests in `app/src/test/`
 - Instrumented tests in `app/src/androidTest/`
 - See `docs/TESTING.md` for conventions.
-- Add tests for new behavior with the implementation; the independent test agent verifies them afterward.
+- Add tests for new behavior with the implementation.
 - Keep all user-visible UI and errors in English string resources.

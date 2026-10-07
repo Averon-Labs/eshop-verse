@@ -42,6 +42,12 @@ All branching, commit, PR, testing, and agent workflow conventions are defined i
 2. Sync Gradle.
 3. Run on emulator or device.
 
+Current scaffold configuration (recheck when build files change): Java/XML; namespace and application ID `com.averonlabs.eshopverse`; compile SDK 36.1; min SDK 25; target SDK 36; Java source/target 11; Android Gradle Plugin 9.2.1; Gradle wrapper 9.4.1; Material Components 1.10.0. AGP 9.2 requires JDK 17 and Gradle 9.4.1; its documented maximum API is 37.0. Install Android SDK Platform 36 and Build Tools 36.0.0 or the version required by the project. The regenerated scaffold also declares AppCompat 1.6.1, ConstraintLayout 2.1.4, Navigation 2.6.0, and AndroidX test dependencies from 2023; review their compatibility and whether they are all needed before implementation.
+
+All Android UI is Java/XML using the shared Material 3 design system in [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md). Use the common app theme and shared resource tokens for each screen.
+
+The current source is still the Android Studio sample (navigation demo, placeholder fragments, and sample strings); it is not a completed customer app and its checks have not yet been verified.
+
 > Exact commands will be documented when the Android build and test setup is verified.
 
 ### Backend
@@ -64,6 +70,6 @@ All branching, commit, PR, testing, and agent workflow conventions are defined i
 
 ---
 
-## Agent Work Sequence
+## Task and Agent Guidance
 
-For each task, assign a Task ID from the canonical backlog in [`ROADMAP.md`](ROADMAP.md); its entry names the scope, acceptance criteria, and verification expectations. No separate task file is needed for ordinary backlog work. Follow the build → independent test → debug only if a failure is reproduced → independent retest sequence in the root [`AGENTS.md`](../AGENTS.md). Use the commands documented above for the initialized component, and report exact commands and outcomes. CI must run the project's required build, lint, unit, and integration/API checks before merge; branch protection should require those checks and review. Verify the actual workflow and repository settings before claiming those checks are active.
+Follow [`AGENTS.md`](../AGENTS.md) for roadmap task selection, clarification, and agent-role assignment; it links the concise role guides. Use this document for component setup and verified commands. CI should run the required build, lint, unit, and integration/API checks; verify the checked-in workflow and repository settings before claiming they are active.

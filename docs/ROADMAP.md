@@ -1,12 +1,14 @@
-# Product Delivery Roadmap and Task Backlog
+# Project Roadmap and Shared Task Backlog
 
 ## Purpose and source of truth
 
-This file is the single, ordered backlog for delivering the first EShop Verse portfolio release. It contains the phases, individual Task IDs, dependencies, scope, acceptance criteria, and verification expectations. A phase describes a milestone; assign and complete one Task ID at a time.
+This is the project-level index for phase gates, cross-component tasks, and Task ID ownership. It is not the task list for Android, backend, or admin implementation. Assign component work from [ANDROID_ROADMAP.md](ANDROID_ROADMAP.md), [BACKEND_ROADMAP.md](BACKEND_ROADMAP.md), or [ADMIN_ROADMAP.md](ADMIN_ROADMAP.md); those files hold canonical task scope, dependencies, acceptance criteria, and verification expectations.
 
-Product boundaries are in [`PRODUCT.md`](PRODUCT.md), architecture choices in [`ARCHITECTURE.md`](ARCHITECTURE.md) and [`decisions/ADR-001-portfolio-stack.md`](decisions/ADR-001-portfolio-stack.md), API conventions in [`API_CONTRACT.md`](API_CONTRACT.md), and shared test/security rules in [`TESTING.md`](TESTING.md) and [`SECURITY.md`](SECURITY.md). Those documents define standards; this roadmap tracks implementation work and its completion.
+Each component roadmap resets step numbering to Step 1 at the start of every phase. Give an agent the roadmap name, phase, and step, or the stable Task ID. If the component is not identified, ask which roadmap. Cross-component work is listed here and referenced by component roadmaps without copying its acceptance criteria.
 
-Do not create a separate `.ai/tasks/<TASK-ID>.md` or `.ai/plans/<TASK-ID>.md` for ordinary roadmap work. Use those files only when a task has substantial persistent context that cannot fit here; link to the Task ID and do not copy its acceptance criteria.
+Product boundaries are in [PRODUCT.md](PRODUCT.md), architecture choices in [ARCHITECTURE.md](ARCHITECTURE.md) and [decisions/](decisions/), shared UI rules in [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) and [SCREEN_SPECIFICATIONS.md](SCREEN_SPECIFICATIONS.md), API conventions in [API_CONTRACT.md](API_CONTRACT.md), and test/security rules in [TESTING.md](TESTING.md) and [SECURITY.md](SECURITY.md). Those documents define standards; the canonical roadmap task entry tracks implementation.
+
+Do not create a separate .ai/tasks/<TASK-ID>.md or .ai/plans/<TASK-ID>.md for ordinary work. Use those files only for substantial persistent context that cannot fit the canonical task; link them from that task and do not duplicate acceptance criteria.
 
 ## Project goal
 
@@ -14,126 +16,45 @@ Deliver a polished, end-to-end, single-store shopping demo for an international 
 
 ## Branch and release model
 
-- `develop` is the shared integration branch and intended GitHub default branch. Each Task gets one short-lived branch created from `develop` and a PR targeting `develop`; the builder, tester, and debugger for that Task use the same branch sequentially.
-- Delete a task branch after its PR is accepted and merged. Merged task work remains in `develop`, so there is no need to retain all child branches until the phase ends. Keep `develop` permanently.
-- At a phase/release boundary, complete the phase exit criteria and run the release checks on `develop`. A completed release moves to `main` only through a reviewed `develop` → `main` release PR; tag the released commit. Do not merge unfinished phase work to `main`.
-- The current `main` already contains earlier merged bootstrap/documentation work and has no formal release tag. Preserve that history as the one-time pre-policy baseline; start the new policy prospectively and do not reset or rewrite `main` to make it look release-only.
-- See the root [`AGENTS.md`](../AGENTS.md) for branch naming, PR, review, and cleanup rules. GitHub default-branch, auto-delete, and protection settings must match this policy; verify the actual remote settings rather than assuming Markdown changed them.
+- develop is the shared integration branch. Each Task gets one short-lived branch from develop and a PR targeting develop; builder, tester, and debugger use that Task branch sequentially.
+- Delete a task branch after its PR is accepted and merged. Keep develop permanently.
+- At a phase/release boundary, complete phase exit criteria and run release checks on develop. Promote a release only through a reviewed develop-to-main PR; tag the released commit.
+- The current main contains earlier merged bootstrap/documentation work and has no formal release tag. Preserve that history as the one-time pre-policy baseline; do not reset or rewrite main.
+- See [AGENTS.md](../AGENTS.md) for branch naming, PR, review, and cleanup rules. Markdown does not change GitHub settings; verify actual remote configuration.
 
 ## Verified starting point
 
-Last reviewed: 2026-10-06. Recheck the repository and current branch before starting each task.
+Last reviewed: 2026-10-07. Recheck source and Git state before starting each Task.
 
-- Android has a Java/XML Gradle scaffold with Java 8 source compatibility, `minSdk 25`, and JUnit 4. Its exact local prerequisites and verified build/test commands are not yet recorded. Some architecture documentation says `minSdk 24`; FND-001 resolves this against the checked-in Gradle configuration and updates the conflicting documentation.
-- `backend/` and `admin/` contain agent guidance but no initialized applications.
-- `.github/workflows/ci.yml` is a placeholder. Its only active job checks repository structure; Android, backend, and admin checks are commented out.
-- GitHub `develop` has been created from the current pre-policy `main` baseline (`db8ff97`). The GitHub default branch, auto-delete option, and branch-protection settings still need verification/configuration under GIT-001.
-- `docs/openapi.yaml` does not exist. `docs/API_CONTRACT.md` records shared conventions, but endpoint schemas and per-class rate limits remain open.
-- `docs/DATABASE.md` is a logical model, not implemented migrations. The database and seed data still need implementation.
+- Android has a regenerated Java/XML Gradle scaffold: namespace/application ID com.averonlabs.eshopverse, compile SDK 36.1, minSdk 25, targetSdk 36, Java 11 source/target, AGP 9.2.1, Gradle 9.4.1, Material Components 1.10.0, and JUnit 4. Exact setup/build/test commands remain to be confirmed under Android FND-001.
+- backend/ and admin/ contain agent guidance but no initialized applications.
+- .github/workflows/ci.yml is a placeholder. Its active job checks repository structure; component checks are not active.
+- GitHub develop was created from the current pre-policy main baseline. Default branch, auto-delete, and branch protection must be verified under GIT-001.
+- docs/openapi.yaml does not exist. docs/API_CONTRACT.md records shared conventions, but endpoint schemas and per-class rate limits remain open.
+- docs/DATABASE.md is a logical model, not implemented migrations.
 
 This is a repository snapshot, not a promise that the state remains unchanged. Confirm facts again when a Task starts.
 
 ## Status and completion rules
 
-- Task status: `[ ]` not started, `[~]` in progress, `[x]` complete with evidence, `[!]` blocked with the reason recorded.
-- Acceptance checkboxes are checked only after the task's implementation and verification evidence are reviewed.
-- A task is complete when every acceptance criterion passes, required checks are green, and the reviewer has the exact commands, outcomes, and commit tested. Follow the Definition of Done in [`../AGENTS.md`](../AGENTS.md).
-- If a task reveals a missing product or architecture decision, record the question and stop dependent work; do not silently broaden scope or contradict an accepted ADR.
-- OpenAPI must be reviewed and accepted before implementing API endpoints or client integrations against them. The owner can review the proposed contract as a concrete artifact; no additional product choice is needed to prepare its first draft from the accepted scope.
+- Task status: [ ] not started, [~] in progress, [x] complete with evidence, [!] blocked with the reason recorded.
+- Acceptance checkboxes are checked only after implementation and verification evidence are reviewed.
+- A task is complete when every criterion passes, required checks are green, and the reviewer has exact commands, outcomes, and the commit tested. Follow the Definition of Done in [AGENTS.md](../AGENTS.md).
+- If a task exposes a missing product or architecture decision, ask the owner and stop dependent work; do not silently broaden scope or contradict an accepted ADR.
+- OpenAPI must be reviewed and accepted before implementing API endpoints or client integrations. The owner can review the draft as a concrete artifact; no additional product choice is needed to prepare it from accepted scope.
 
-## How to assign and run a task
+## How to assign and execute a task
 
-Give the agent a Task ID and the relevant stage. It must read the root `AGENTS.md`, applicable component `AGENTS.md` files, this Task entry, and the linked source-of-truth documents; inspect current git status, branch, recent commits, and implementation before acting. You do not need to paste the project rules or acceptance criteria into each prompt.
-
-Use the sequential workflow in [`../AGENTS.md`](../AGENTS.md): one builder, then an independent tester, then a debugger only for a reproduced failure, then the tester verifies the fix. Do not have these roles edit the same task simultaneously.
-
-Example prompts (replace `AUTH-001` with the assigned ID):
-
-- **Build:** “Implement `AUTH-001` from `docs/ROADMAP.md`. Follow repository and component instructions, stay within the task scope, add the required tests, and report changed files, assumptions, exact commands, results, and commit.”
-- **Test:** “Independently verify `AUTH-001` from `docs/ROADMAP.md` at the builder's current commit. Do not change production code or weaken checks. Run the task's required checks, inspect each acceptance criterion, and report exact commands, results, and any reproducible failure.”
-- **Debug:** “Investigate this tester-reproduced failure in `AUTH-001`. First reproduce it using the supplied evidence, inspect prior failed hypotheses, make the smallest root-cause fix in scope, add a regression test, and report the exact attempt and verification evidence. Do not retry an unchanged approach without new evidence.”
-- **Retest:** “Independently verify the `AUTH-001` fix at its new commit: rerun the failing check, relevant neighboring checks, and the task-required suite. Report exact commands and outcomes.”
-
-Pass the builder's tested state to the independent tester. If debugging is needed, pass the exact failure evidence and prior attempts to the debugger. The attempt-record format, no-identical-retry rule, and stop-after-three-hypotheses rule are defined once in the root [`AGENTS.md`](../AGENTS.md); the coordinator must pass that record between agents because unshared conversation history is not reliable evidence.
+Name the roadmap, phase, and step (step numbering restarts at 1 in each phase), or give the stable Task ID. `ROADMAP.md` defines project gates and shared tasks and indexes component work; `ANDROID_ROADMAP.md`, `BACKEND_ROADMAP.md`, and `ADMIN_ROADMAP.md` hold the canonical component task scopes, dependencies, acceptance criteria, and verification expectations. For assignment, reading, clarification, and execution rules, follow the root [AGENTS.md](../AGENTS.md).
 
 ## Phase 0 — Foundation (current)
 
-**Exit criteria:** all three components have repeatable, verified setup and check commands; the OpenAPI contract has been reviewed before endpoint work; CI runs the agreed component checks; GitHub's integration/release branch settings match GIT-001; remaining choices that block the first customer-to-order flow are recorded and resolved.
+**Exit criteria:** all three components have repeatable, verified setup and check commands; the OpenAPI contract has been reviewed before endpoint work; CI runs the agreed component checks; GitHub's integration/release branch settings match GIT-001; the shared first-release UI specification is accepted before screen implementation; remaining choices that block the first customer-to-order flow are recorded and resolved.
 
-### FND-001 — Verify Android scaffold and toolchain
 
-**Status:** `[ ]`
+**Android steps:** [Android Roadmap — Phase 0](ANDROID_ROADMAP.md). **Backend steps:** [Backend Roadmap — Phase 0](BACKEND_ROADMAP.md). **Admin steps:** [Admin Roadmap — Phase 0](ADMIN_ROADMAP.md).
 
-**Depends on:** none
-
-**Scope:** inspect the existing Android Gradle project and reconcile its actual configuration with Android documentation.
-
-**Acceptance criteria:**
-
-- [ ] Record the supported JDK, Android SDK/build-tools requirements, Gradle/Android Gradle Plugin versions, Java language level, namespace, and min/target SDK from the actual project; resolve the documented minSdk disagreement.
-- [ ] Verify a clean setup, build, lint, JVM test, and any configured instrumentation-test commands; record exact commands and prerequisites in `docs/DEVELOPMENT.md`.
-- [ ] Confirm the existing scaffold tests pass or record a reproducible failure; do not treat placeholder tests as feature coverage.
-- [ ] Keep the app Java/XML and avoid changing product behavior in this foundation task.
-
-**Verification:** fresh-environment Android build/lint/tests; compare the documented commands with the actual Gradle tasks and CI environment.
-
-### FND-002 — Initialize Laravel API and local database workflow
-
-**Status:** `[ ]`
-
-**Depends on:** none
-
-**Scope:** create the backend application foundation using the accepted Laravel/PHP/MySQL stack, without implementing product endpoints.
-
-**Acceptance criteria:**
-
-- [ ] Select supported stable framework/runtime versions and commit the dependency lockfile; document the selected versions.
-- [ ] Provide safe local configuration instructions and `.env.example` placeholders; no real secrets are checked in.
-- [ ] Configure migrations and a disposable isolated test database workflow; document how a developer creates and resets local data safely.
-- [ ] Configure the backend unit/feature test runner and a minimal passing baseline test.
-- [ ] Record and verify exact install, setup, migration, style/static-check, and test commands in `docs/DEVELOPMENT.md`.
-- [ ] Do not add business endpoints before FND-004 is reviewed.
-
-**Verification:** clean dependency install, disposable-database migration, and backend baseline test/checks.
-
-### FND-003 — Initialize the admin application and local workflow
-
-**Status:** `[ ]`
-
-**Depends on:** none
-
-**Scope:** create the React/TypeScript admin foundation; do not implement product workflows yet.
-
-**Acceptance criteria:**
-
-- [ ] Select supported stable tooling and commit the package lockfile; use the agreed Vitest and React Testing Library strategy or document a reviewed equivalent.
-- [ ] Configure the API origin without committing credentials and document the local SPA/API origin arrangement needed for Sanctum cookies and CSRF.
-- [ ] Provide a minimal app and a passing behavior-oriented test.
-- [ ] Record and verify exact install, development, type-check/lint, test, and production-build commands in `docs/DEVELOPMENT.md`.
-- [ ] Do not call or implement product endpoints before FND-004 is reviewed.
-
-**Verification:** clean dependency install, baseline UI test, static checks, and production build.
-
-### FND-004 — Draft and review the OpenAPI contract
-
-**Status:** `[ ]`
-
-**Depends on:** none; must finish before any endpoint or client integration Task
-
-**Scope:** create `docs/openapi.yaml` from the accepted product/API/database/security decisions and close the remaining contract decisions.
-
-**Acceptance criteria:**
-
-- [ ] Describe registration, login/logout, profile, and password-reset flows; public category/product listing, search, sorting, pagination, and product details; customer cart; order creation, history/detail, and simulated payment result; admin authentication, catalog/category/inventory management, and order-status management.
-- [ ] Define request/response schemas, required/optional fields, validation constraints, status codes, shared error envelope, pagination, USD money representation, and representative examples.
-- [ ] Define Android bearer-token and admin Sanctum session/CSRF security schemes, ownership/role expectations, and rate-limit classes/limits.
-- [ ] Define order idempotency behavior, price/stock authority, order/address snapshots, and simulated payment success/failure state semantics consistently with `PRODUCT.md` and `DATABASE.md`.
-- [ ] Validate the document with a documented OpenAPI validator and record the exact validation command; resolve all errors.
-- [ ] Obtain API-owner review/acceptance and update `API_CONTRACT.md` to link to the approved machine-readable contract without duplicating endpoint schemas.
-
-**Verification:** OpenAPI validation plus a human review against the referenced product, architecture, database, and security documents. Endpoint implementation remains blocked until acceptance.
-
-### GIT-001 — Establish the develop integration branch
+### Step 1 — GIT-001 — Establish the develop integration branch
 
 **Status:** `[~]`
 
@@ -151,7 +72,45 @@ Pass the builder's tested state to the independent tester. If debugging is neede
 
 **Verification:** inspect live GitHub branch refs, default branch, PR base, deletion setting, and protection rules. Confirm `main` was not rewritten.
 
-### FND-005 — Make setup documentation and CI match the real projects
+### Step 2 — DES-001 — Define shared visual direction and first-release screen specifications
+
+**Status:** `[x]`
+
+**Depends on:** none
+
+**Scope:** translate the owner's supplied visual reference into one shared Android/admin visual language and document first-release screens already required by the product and roadmap. The reference is style guidance only; it must not expand page, content, or behavior scope.
+
+**Acceptance criteria:**
+
+- [x] `docs/DESIGN_SYSTEM.md` defines the cross-platform coral/neutral palette, Lato typography, shared spacing/shapes/elevation, Android Material 3 rules, web dashboard patterns, responsive behavior, and accessibility requirements.
+- [x] `docs/SCREEN_SPECIFICATIONS.md` describes all first-release Android and admin screens, navigation shells, primary content/actions, and relevant loading/empty/error/success behavior.
+- [x] Screen specifications apply reference layout cues only where an existing screen has a matching role; other screens retain their product/roadmap content hierarchy and flow while using shared visual tokens.
+- [x] Screen flows respect the product/database/API boundaries: authenticated cart, sample shipping and no tax, simulated payment without card data, seeded product images, and admin-only catalog/inventory/order capabilities.
+- [x] Out-of-scope reference concepts are excluded; unresolved data/API conflicts (including category archive behavior) are explicitly recorded rather than invented.
+- [x] Android/web agent guidance, product/roadmap references, and ADR index link to the shared design documents without duplicating the page inventory.
+
+**Verification:** documentation review against `PRODUCT.md`, `DATABASE.md`, `API_CONTRACT.md`, `ARCHITECTURE.md`, and existing Android/admin Tasks; check internal links and `git diff --check`. No code or runtime test is applicable.
+
+### Step 3 — PLAN-001 — Split component roadmaps and define task execution and clarification workflow
+
+**Status:** `[x]`
+
+**Depends on:** none
+
+**Scope:** organize the canonical backlog into component roadmaps with phase-local step numbers and make task assignment, clarification, and sequential agent execution unambiguous.
+
+**Acceptance criteria:**
+
+- [x] Create separate Android, Backend, and Admin roadmaps; every phase numbers its steps from Step 1.
+- [x] Keep each Task ID's scope, dependencies, acceptance criteria, and verification expectations in exactly one canonical entry; link shared work rather than copying it.
+- [x] Update repository and component instructions and developer-facing entry points to tell agents which roadmap to read and how a step assignment maps to a Task ID.
+- [x] Define when to proceed without a question, when a material ambiguity requires an owner question, and that work continues after the answer without a second confirmation.
+- [x] Define the end-to-end sequential build, independent test, conditional debug, retest, review, and PR-ready workflow.
+- [x] Verify roadmap task mapping, step numbering, internal links, and the documentation diff.
+
+**Verification:** inspect the generated roadmaps and all updated references; run documentation link/Task ID consistency checks and git diff --check. Application build and runtime tests are not applicable.
+
+### Step 4 — FND-005 — Make setup documentation and CI match the real projects
 
 **Status:** `[ ]`
 
@@ -169,244 +128,51 @@ Pass the builder's tested state to the independent tester. If debugging is neede
 
 **Verification:** run the exact documented commands locally or in CI; inspect a successful workflow run and separately report any external branch-protection setting that remains unenforced.
 
+### Step 5 — PLAN-002 — Separate agent role workflows and remove duplicated process guidance
+
+**Status:** `[x]`
+
+**Depends on:** PLAN-001
+
+**Scope:** keep shared repository policy in the root instructions, put actionable build, test, and debug procedures in role-specific workflow guides, and remove repeated process descriptions from supporting Markdown without merging distinct product or technical references.
+
+**Acceptance criteria:**
+
+- [x] Add concise build, independent-test, and conditional-debug workflow guides under `.agents/workflows/`; each defines its entry conditions, scope boundaries, required evidence, and handoff to the next stage.
+- [x] Keep `AGENTS.md` as the shared entry point and route each specialist to the correct guide; preserve the sequential same-task-branch flow, distinct builder/tester/debugger roles, independent retest, and no-repeat-without-new-evidence rule.
+- [x] Use a focused local commit as each editing stage's handoff snapshot: builder commits implementation, tester commits any test-only additions, and debugger commits a fix; report the exact SHA verified and do not push during normal stage transitions.
+- [x] Keep `docs/TESTING.md` focused on test strategy and test conventions; keep component setup details in `docs/DEVELOPMENT.md` and component-specific agent instructions in each component `AGENTS.md`.
+- [x] Remove duplicated agent-stage procedures from supporting documents while preserving unique component, test-design, setup, contribution, and handoff requirements.
+- [x] Update documentation entry points and links; confirm each roadmap Task ID remains canonical in one entry and verify Markdown links and the final documentation diff.
+
+**Verification:** review the shared and role-specific instructions for conflicts, check all changed internal Markdown links and roadmap references, and run `git diff --check`. Application builds and runtime tests are not applicable to this documentation-only task.
+
 ## Phase 1 — Accounts and Catalog
 
-**Entry criteria:** Phase 0 exit criteria are met. Implement the shared contract; update and review OpenAPI before changing endpoint behavior.
+**Entry criteria:** Phase 0 exit criteria are met, including acceptance of DES-001 before implementing customer/admin screens. Implement the shared contract; update and review OpenAPI before changing endpoint behavior.
 
-### AUTH-001 — Customer account API
 
-**Status:** `[ ]`
-
-**Depends on:** FND-002, FND-004, FND-005
-
-**Scope:** customer registration, login/logout, profile, password reset, secure password storage, rate limiting/lockout controls, and revocable Android Sanctum tokens.
-
-**Acceptance criteria:**
-
-- [ ] Valid registration/login/profile/logout/reset flows match the reviewed OpenAPI schemas and security rules.
-- [ ] Invalid input, duplicate email, invalid credentials, reset-token failure/expiry, rate limits, and logout revocation return documented outcomes without leaking secrets.
-- [ ] Tests prove passwords are hashed, token lifetime/revocation rules and account lockout after repeated failures are enforced, and reset email can be safely exercised through a local mail sink.
-- [ ] Tests cover relevant validation, authentication, and abuse boundaries; no real email or external provider is required for local tests.
-
-**Verification:** backend unit and API feature/security tests for every listed success and failure path.
-
-### AUTH-002 — Android customer authentication and profile
-
-**Status:** `[ ]`
-
-**Depends on:** FND-001, AUTH-001
-
-**Scope:** English registration, sign-in, sign-out, profile, password-reset screens, API integration, and protected token persistence.
-
-**Acceptance criteria:**
-
-- [ ] Forms show field validation, loading, server errors, network errors, and success states in English.
-- [ ] Tokens use platform-protected storage, are never logged, and are cleared on logout or rejected/expired session.
-- [ ] Repository/ViewModel behavior is testable without Android framework dependencies where practical; critical UI flow has a focused UI test.
-- [ ] UI uses XML/Material 3 and supports accessibility labels and keyboard/input types.
-
-**Verification:** Android unit tests for state and storage behavior, API-client tests for mapped responses, and a focused instrumentation/UI test for the critical auth path.
-
-### AUTH-003 — Admin session authentication and API authorization
-
-**Status:** `[ ]`
-
-**Depends on:** FND-002, FND-003, FND-004, FND-005
-
-**Scope:** secure first-party admin sign-in/session lifecycle, Sanctum CSRF flow, and server-enforced admin role checks.
-
-**Acceptance criteria:**
-
-- [ ] Admin login/logout and session/CSRF behavior work with the documented local SPA/API origins and reviewed contract.
-- [ ] Admin routes reject guests and customer accounts; tests verify role checks server-side, not only hidden UI controls.
-- [ ] Session cookies use secure settings appropriate to local vs. HTTPS environments; no bearer token is stored in browser local storage for the admin SPA.
-- [ ] Failure and expired-session UI states are visible and recoverable.
-
-**Verification:** backend authentication/authorization feature tests and admin UI tests for login, logout, CSRF/session expiry, and rejected access.
-
-### CAT-001 — Catalog read API and fictional seed data
-
-**Status:** `[ ]`
-
-**Depends on:** FND-002, FND-004, FND-005
-
-**Scope:** category/product schema, fictional seed catalog, and public read/search/sort/pagination endpoints.
-
-**Acceptance criteria:**
-
-- [ ] Migrations enforce documented relationships, valid prices, product status, and image ordering; use fixed-precision USD money.
-- [ ] Seed/reset creates useful fictional categories/products/images reproducibly and never contains real personal data.
-- [ ] Listing, detail, category, search, sort, pagination, and empty-result behavior match OpenAPI.
-- [ ] Invalid filters and pagination boundaries return documented errors; inactive/unavailable products do not leak into customer results.
-
-**Verification:** migration/seed checks and API feature tests for results, filters, pagination, validation, and public access.
-
-### CAT-002 — Android catalog browsing
-
-**Status:** `[ ]`
-
-**Depends on:** FND-001, FND-004, CAT-001
-
-**Scope:** home/category browsing, product list/detail, search/sort, and API-backed image display.
-
-**Acceptance criteria:**
-
-- [ ] Customer can browse seeded products, open details, search, sort, and navigate categories using the reviewed API contract.
-- [ ] Loading, empty, image failure, offline/server error, and retry states are handled.
-- [ ] USD amounts are formatted consistently without binary floating-point calculations; all user-facing copy is English.
-- [ ] ViewModel/repository mapping has unit tests and the main browse-to-detail path has a focused UI test.
-
-**Verification:** Android unit/API mapping tests and a focused UI smoke test with deterministic responses or seed data.
-
-### CAT-003 — Admin catalog and inventory API
-
-**Status:** `[ ]`
-
-**Depends on:** FND-002, FND-004, AUTH-003, CAT-001
-
-**Scope:** admin-only create/read/update/archive operations for products and categories, plus validated inventory updates.
-
-**Acceptance criteria:**
-
-- [ ] CRUD and inventory operations follow OpenAPI, validation, and database constraints.
-- [ ] Guest/customer access is rejected; tests cover role enforcement, invalid values, missing resources, and inventory boundaries.
-- [ ] Public catalog changes reflect persisted admin updates; deleted/archived data follows the documented status behavior.
-- [ ] No client-supplied total or stock value bypasses server-side validation.
-
-**Verification:** backend feature tests with database state assertions and authorization tests for each protected operation.
-
-### CAT-004 — Admin catalog and inventory screens
-
-**Status:** `[ ]`
-
-**Depends on:** FND-003, FND-004, AUTH-003, CAT-003
-
-**Scope:** React admin screens/forms for product, category, and stock management through the REST API.
-
-**Acceptance criteria:**
-
-- [ ] Admin can list, create, edit, archive, and validate product/category data and update stock through documented APIs.
-- [ ] Loading, empty, validation, conflict, unauthorized/session-expired, and network-error states are understandable and recoverable.
-- [ ] Forms are keyboard accessible, have labels, and behave at supported narrow and desktop widths.
-- [ ] Tests cover critical form behavior and API error mapping without depending on backend internals.
-
-**Verification:** admin component/behavior tests and production build/type checks.
+Task steps are component-specific: see [Android](ANDROID_ROADMAP.md), [Backend](BACKEND_ROADMAP.md), and [Admin](ADMIN_ROADMAP.md).
 
 **Phase 1 exit criteria:** a customer can register/sign in and browse/search seeded products; the admin can sign in and manage the catalog/inventory; server-side authorization, API/UI failure states, and the listed component tests pass.
+
 
 ## Phase 2 — Cart, Checkout, and Orders
 
 **Entry criteria:** Phase 1 exit criteria are met. All money, stock, ownership, idempotency, and state transitions follow the reviewed contract.
 
-### CART-001 — Customer cart API
 
-**Status:** `[ ]`
-
-**Depends on:** FND-002, FND-004, AUTH-001, CAT-001
-
-**Scope:** one persistent cart per signed-in customer with add/update/remove/read operations.
-
-**Acceptance criteria:**
-
-- [ ] Server validates product availability, positive bounded quantity, and current product/stock state on every mutation.
-- [ ] Cart totals use server-side fixed-precision money; clients cannot set authoritative prices.
-- [ ] Customer ownership is enforced on every read and mutation; tests try another customer's cart identifiers.
-- [ ] Empty cart, unavailable product, stock conflict, invalid quantity, and normal edits return the documented outcomes.
-
-**Verification:** database-backed API tests for all mutations, totals, errors, and cross-customer authorization.
-
-### CART-002 — Android cart experience
-
-**Status:** `[ ]`
-
-**Depends on:** FND-001, FND-004, AUTH-002, CAT-002, CART-001
-
-**Scope:** display and edit the signed-in customer's cart and recover from server conflicts.
-
-**Acceptance criteria:**
-
-- [ ] Customer can inspect items, update quantity, remove items, and see server-confirmed totals.
-- [ ] Empty/loading/offline/error/stock-changed states are handled; retry does not silently duplicate a mutation.
-- [ ] Cart state and money formatting are covered by unit tests; critical add/update/remove UI actions have focused UI coverage.
-
-**Verification:** Android unit/API mapping tests and cart UI flow tests.
-
-### ORD-001 — Order creation and simulated payment API
-
-**Status:** `[ ]`
-
-**Depends on:** FND-002, FND-004, AUTH-001, CAT-001, CART-001
-
-**Scope:** server-authoritative checkout quote/order creation, address and line-item snapshots, idempotency, and explicitly simulated success/failure payment outcomes.
-
-**Acceptance criteria:**
-
-- [ ] Server recalculates prices, subtotal, configured sample shipping, and total using fixed precision; it ignores client totals.
-- [ ] Order stores immutable product/address/price snapshots and follows documented state transitions.
-- [ ] Order creation and payment/stock transitions are transaction-safe under concurrent or stale-stock requests; match `DATABASE.md` by changing inventory transactionally only when simulated payment succeeds.
-- [ ] Repeating the same idempotency key/request does not create duplicate orders; conflicting reuse returns a documented result.
-- [ ] Simulation accepts no card data, calls no real provider, and clearly distinguishes success from failure; failed payment is never shown as paid.
-- [ ] Tests cover duplicate submission, stale stock, insufficient stock, transaction rollback, totals, ownership, and both payment outcomes.
-
-**Verification:** database-backed API/transaction tests, idempotency tests, and security/ownership tests.
-
-### CHECK-001 — Android checkout and simulated payment flow
-
-**Status:** `[ ]`
-
-**Depends on:** FND-001, FND-004, AUTH-002, CART-002, ORD-001
-
-**Scope:** signed-in address capture, order review, explicit demo outcome selection, and result display.
-
-**Acceptance criteria:**
-
-- [ ] Checkout validates required address fields, displays server-confirmed USD totals, and clearly labels the payment step as simulated.
-- [ ] UI collects no card number, security code, or live payment credential.
-- [ ] Success, failure, timeout, retry, and duplicate-submit states map correctly to server order state.
-- [ ] Tests cover validation, state transitions, and safe retry/idempotency behavior.
-
-**Verification:** Android unit/API mapping tests and a focused UI smoke test for success and failure outcomes.
-
-### ORD-002 — Android order history and details
-
-**Status:** `[ ]`
-
-**Depends on:** FND-001, FND-004, AUTH-002, ORD-001
-
-**Scope:** customer-owned order list/detail and status display.
-
-**Acceptance criteria:**
-
-- [ ] Customer can view only their own orders and sees immutable item, address, USD total, payment result, and current status snapshots.
-- [ ] Empty/loading/network/error states are handled with accessible English copy.
-- [ ] Tests cover parsing, status display, and authorization/error handling.
-
-**Verification:** backend ownership tests remain green; Android repository/ViewModel tests and order-history UI smoke test pass.
-
-### ORD-003 — Admin order management
-
-**Status:** `[ ]`
-
-**Depends on:** FND-003, FND-004, AUTH-003, ORD-001
-
-**Scope:** admin order list/detail and permitted status updates.
-
-**Acceptance criteria:**
-
-- [ ] Admin can inspect order snapshots and apply only documented valid state transitions.
-- [ ] Server rejects unauthorized users and invalid transitions; tests cover both.
-- [ ] Dashboard shows loading, empty, conflict, error, and updated status states.
-- [ ] Admin tests verify behavior through API responses, not implementation details.
-
-**Verification:** backend transition/authorization feature tests and admin behavior tests.
+Task steps are component-specific: see [Android](ANDROID_ROADMAP.md), [Backend](BACKEND_ROADMAP.md), and [Admin](ADMIN_ROADMAP.md).
 
 **Phase 2 exit criteria:** a signed-in customer can complete the sample purchase flow through the API and database, including explicit simulated success/failure and safe duplicate submission; the customer can view the order and an admin can manage its status. Required ownership, stock, payment-state, and regression checks pass.
+
 
 ## Phase 3 — Quality and Portfolio Delivery
 
 **Entry criteria:** Phase 2 customer purchase flow and admin order workflow are complete.
 
-### QUAL-001 — Cross-component purchase-flow regression
+
+### Step 1 — QUAL-001 — Cross-component purchase-flow regression
 
 **Status:** `[ ]`
 
@@ -423,11 +189,11 @@ Pass the builder's tested state to the independent tester. If debugging is neede
 
 **Verification:** run the smoke/regression suite from a clean database state and verify its CI job.
 
-### QUAL-002 — Accessibility and UI quality pass
+### Step 2 — QUAL-002 — Accessibility and UI quality pass
 
 **Status:** `[ ]`
 
-**Depends on:** CAT-002, CAT-004, CART-002, CHECK-001, ORD-002, ORD-003
+**Depends on:** DES-001, CAT-002, CAT-004, CART-002, CHECK-001, ORD-002, ORD-003
 
 **Scope:** inspect and fix first-release accessibility, responsive behavior, consistency, and user-facing state gaps.
 
@@ -439,7 +205,7 @@ Pass the builder's tested state to the independent tester. If debugging is neede
 
 **Verification:** repeatable manual checklist plus focused automated accessibility/UI checks where supported by existing tooling.
 
-### QUAL-003 — Security and privacy review
+### Step 3 — QUAL-003 — Security and privacy review
 
 **Status:** `[ ]`
 
@@ -456,7 +222,7 @@ Pass the builder's tested state to the independent tester. If debugging is neede
 
 **Verification:** security test matrix, dependency audit commands from `docs/DEVELOPMENT.md`, and reviewed findings record.
 
-### QUAL-004 — Demo data and portfolio handoff guide
+### Step 4 — QUAL-004 — Demo data and portfolio handoff guide
 
 **Status:** `[ ]`
 
@@ -473,7 +239,7 @@ Pass the builder's tested state to the independent tester. If debugging is neede
 
 **Verification:** a person unfamiliar with the repository follows the guide from a clean checkout without undocumented steps.
 
-### QUAL-005 — Clean-checkout release rehearsal
+### Step 5 — QUAL-005 — Clean-checkout release rehearsal
 
 **Status:** `[ ]`
 
@@ -490,12 +256,49 @@ Pass the builder's tested state to the independent tester. If debugging is neede
 
 **Verification:** independent reviewer repeats the documented clean-checkout procedure and checks the CI run and final task evidence.
 
+**Component evidence:** the three component roadmaps list expected contributions to these canonical shared tasks; those are references, not extra task copies.
+
 **Phase 3 exit criteria:** an unfamiliar reviewer can set up and evaluate the complete local demo from a clean checkout; required CI/security/accessibility checks pass; demo limitations and any deferred follow-up work are clear.
+
+
+## Canonical Task ID index
+
+Each Task ID has exactly one canonical task entry. Status, dependencies, acceptance criteria, and verification expectations are maintained only there.
+
+| Task ID | Canonical location | Task |
+|---------|--------------------|------|
+| FND-001 | [Android Roadmap — Phase 0 — Step 1](ANDROID_ROADMAP.md) | Verify Android scaffold and toolchain |
+| FND-002 | [Backend Roadmap — Phase 0 — Step 1](BACKEND_ROADMAP.md) | Initialize Laravel API and local database workflow |
+| FND-003 | [Admin Roadmap — Phase 0 — Step 1](ADMIN_ROADMAP.md) | Initialize the admin application and local workflow |
+| FND-004 | [Backend Roadmap — Phase 0 — Step 2](BACKEND_ROADMAP.md) | Draft and review the OpenAPI contract |
+| GIT-001 | [Project Roadmap — Phase 0 — Step 1](ROADMAP.md) | Establish the develop integration branch |
+| FND-005 | [Project Roadmap — Phase 0 — Step 4](ROADMAP.md) | Make setup documentation and CI match the real projects |
+| DES-001 | [Project Roadmap — Phase 0 — Step 2](ROADMAP.md) | Define shared visual direction and first-release screen specifications |
+| AUTH-001 | [Backend Roadmap — Phase 1 — Step 1](BACKEND_ROADMAP.md) | Customer account API |
+| AUTH-002 | [Android Roadmap — Phase 1 — Step 1](ANDROID_ROADMAP.md) | Android customer authentication and profile |
+| AUTH-003 | [Admin Roadmap — Phase 1 — Step 1](ADMIN_ROADMAP.md) | Admin session authentication and API authorization |
+| CAT-001 | [Backend Roadmap — Phase 1 — Step 2](BACKEND_ROADMAP.md) | Catalog read API and fictional seed data |
+| CAT-002 | [Android Roadmap — Phase 1 — Step 2](ANDROID_ROADMAP.md) | Android catalog browsing |
+| CAT-003 | [Backend Roadmap — Phase 1 — Step 3](BACKEND_ROADMAP.md) | Admin catalog and inventory API |
+| CAT-004 | [Admin Roadmap — Phase 1 — Step 2](ADMIN_ROADMAP.md) | Admin catalog and inventory screens |
+| CART-001 | [Backend Roadmap — Phase 2 — Step 1](BACKEND_ROADMAP.md) | Customer cart API |
+| CART-002 | [Android Roadmap — Phase 2 — Step 1](ANDROID_ROADMAP.md) | Android cart experience |
+| ORD-001 | [Backend Roadmap — Phase 2 — Step 2](BACKEND_ROADMAP.md) | Order creation and simulated payment API |
+| CHECK-001 | [Android Roadmap — Phase 2 — Step 2](ANDROID_ROADMAP.md) | Android checkout and simulated payment flow |
+| ORD-002 | [Android Roadmap — Phase 2 — Step 3](ANDROID_ROADMAP.md) | Android order history and details |
+| ORD-003 | [Admin Roadmap — Phase 2 — Step 1](ADMIN_ROADMAP.md) | Admin order management |
+| QUAL-001 | [Project Roadmap — Phase 3 — Step 1](ROADMAP.md) | Cross-component purchase-flow regression |
+| QUAL-002 | [Project Roadmap — Phase 3 — Step 2](ROADMAP.md) | Accessibility and UI quality pass |
+| QUAL-003 | [Project Roadmap — Phase 3 — Step 3](ROADMAP.md) | Security and privacy review |
+| QUAL-004 | [Project Roadmap — Phase 3 — Step 4](ROADMAP.md) | Demo data and portfolio handoff guide |
+| QUAL-005 | [Project Roadmap — Phase 3 — Step 5](ROADMAP.md) | Clean-checkout release rehearsal |
+| PLAN-001 | [Project Roadmap — Phase 0 — Step 3](ROADMAP.md) | Split component roadmaps and define task execution and clarification workflow |
+| PLAN-002 | [Project Roadmap — Phase 0 — Step 5](ROADMAP.md) | Separate agent role workflows and remove duplicated process guidance |
 
 ## Optional follow-up — Public deployment
 
-Public hosting is outside the required portfolio release. Do not block completion of Phases 0–3 on it. If requested, create a separately scoped deployment task after the local release is complete. Before execution, the owner must choose/approve the hosting provider, domain/origin arrangement, budget, secrets/configuration, and public demo-account policy. Deployment must use HTTPS, fictional data, and the simulated-payment boundary; production operations remain a separate project.
+Public hosting is outside the required portfolio release. Do not block Phases 0–3 on it. If requested, create a separately scoped deployment Task after the local release is complete. Before execution, the owner must choose/approve the hosting provider, domain/origin arrangement, budget, secrets/configuration, and public demo-account policy. Deployment must use HTTPS, fictional data, and the simulated-payment boundary; production operations remain a separate project.
 
 ## Deferred product features
 
-Wishlist, reviews, push notifications, coupons, analytics, guest checkout, multiple currencies/languages, real payment processing, taxes, carrier integrations, multi-vendor support, and production operations are not required for this release. Add any only through an explicitly accepted scope/ADR and a new Task ID in this backlog.
+Wishlist, reviews, push notifications, coupons, analytics, guest checkout, multiple currencies/languages, real payment processing, taxes, carrier integrations, multi-vendor support, and production operations are not required for this release. Add any only through an explicitly accepted scope/ADR and a new Task ID in the appropriate canonical roadmap.
