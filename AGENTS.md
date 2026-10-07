@@ -36,22 +36,18 @@ The platform is developed collaboratively by human developers and AI coding agen
 
 ## Sequential Agent Workflow
 
-Specialist agents work on one task **sequentially in the same task branch**. Unless the owner explicitly narrows the request, assigning a roadmap step or Task ID authorizes the coordinator to carry that task through implementation, independent verification, any needed debugging/retest, review, and a PR ready for human review. The coordinator assigns scope, acceptance criteria, and the current commit to each stage. Do not start the next stage while the previous agent is still editing.
+Specialist agents work one at a time on the same task branch. Unless the owner narrows the request, assigning a roadmap step or Task ID covers the full workflow through a PR ready for human review. The coordinator assigns each stage its scope, acceptance criteria, and current commit; do not start another stage while an agent is editing. Each stage that edits creates a focused local commit before handoff so the next stage has a stable snapshot; normal stage transitions do not push.
 
-1. **Build agent:** implement only the task scope and add tests for new behavior. Report changed files, assumptions, and exact checks run.
-2. **Independent test agent:** a different agent from the builder runs the task's named checks and inspects acceptance criteria. It may add or improve tests within scope, but must not change production code or weaken/remove a failing check. Report exact commands and outcomes.
-3. **Debug agent:** only a third, distinct agent enters for a reproducible failure. Reproduce it first, identify the root cause, make the smallest in-scope fix, and add a regression test. Do not edit unrelated behavior.
-4. **Independent retest:** the test agent (or another independent tester) verifies the fix by rerunning the failing test, relevant neighboring tests, and the task's required suite. The coordinator reviews the final diff and evidence before marking the task complete.
+Each specialist reads only the workflow guide for its assigned role, in addition to the shared and task-relevant guidance:
+
+1. **Builder:** [`.agents/workflows/build.md`](.agents/workflows/build.md) — implement the task and add tests for changed behavior.
+2. **Independent tester:** [`.agents/workflows/test.md`](.agents/workflows/test.md) — independently verify the builder's commit; it must be a different agent from the builder.
+3. **Debugger:** [`.agents/workflows/debug.md`](.agents/workflows/debug.md) — a third, distinct agent, used only after a failure is reproduced.
+4. **Independent retest:** the tester or another independent tester verifies a debug fix. The coordinator reviews evidence and the final diff before completion.
 
 Every agent must inspect the current git status, branch, recent commits, assigned Task entry in its canonical component roadmap (or `docs/ROADMAP.md` for a shared task), any linked supplementary context, and relevant component guidance before editing. Agents must respect the assigned file/scope boundary and preserve untracked or unrelated work.
 
-### Debug Attempt Record
-
-For each failed approach, record the commit or code state, hypothesis, exact command/input, observed result, and why the hypothesis was rejected or accepted. Do not rerun an identical command against unchanged code, inputs, and environment unless new evidence changes the hypothesis. After three distinct unsuccessful hypotheses, stop, report the reproducible failure and evidence, and ask the coordinator for a decision. Never claim success while a required check is failing.
-
-The coordinator must pass the reproduction evidence and attempt record to the next agent; do not rely on implicit or unshared conversation history to prevent repeated attempts.
-
-Normal build → test → debug → retest transitions within one task do not require a handoff file or intermediate push. Use the handoff procedure below only when work is blocked or being transferred outside this planned sequence.
+Debuggers must keep an attempt record and must not repeat a failed approach without new evidence; follow the limits and evidence format in the debug guide. The coordinator passes that record between stages. A tester commits any test-only additions and reports the exact SHA verified; if it makes no changes, it reports the builder's SHA. Normal build → test → debug → retest transitions need no handoff file or intermediate push; use the handoff procedure below only when work is blocked or transferred outside this sequence. After independent verification and coordinator review, the coordinator publishes the task branch and prepares a PR; never merge automatically.
 
 ---
 
@@ -75,7 +71,7 @@ Normal build → test → debug → retest transitions within one task do not re
 - If the task and authoritative evidence fully specify the work, proceed without an approval question or a redundant plan-confirmation turn. For example, Android image loading is already specified as Glide in `android/AGENTS.md`; do not ask whether to use Glide or Picasso.
 - Do not silently guess at material requirements or mark uncertainty as resolved. If dependencies are incomplete, report the exact blocking Task ID and do not expand the assigned scope to bypass it.
 - Run `git fetch --prune origin` before creating a task branch and again before staging, committing, or pushing. This refreshes local remote-tracking refs, including remote branch deletions. Create new work from the latest `origin/develop`; before publishing, compare local and fetched refs, fast-forward a clean local `develop` when safe, and incorporate newer `origin/develop` and same-task-branch commits into the task branch without rewriting published commits. Delete a local task branch only after verifying its PR merged and the worktree is clean. Preserve unrelated local work, never force-push shared branches, and stop to report conflicts or divergence you cannot safely resolve.
-- An assignment normally covers the full sequential workflow below through a pushed task branch and PR ready for human review. The owner does not need to separately request build, test, debug, retest, commit, or PR preparation. Never merge a PR automatically.
+- Never merge a PR automatically.
 
 ### For Non-Trivial Features
 
@@ -240,7 +236,7 @@ The following require explicit human approval before merging:
 
 ## Agent Handoff Rules
 
-When an agent cannot complete a task or is handing off to another agent:
+When a task is blocked or work must be transferred outside the planned sequential role workflow, use this procedure. It does not apply to normal build → test → debug → retest transitions; those use local commits without a handoff file or push, as described above:
 
 1. **Commit all work in progress** on the feature branch.
 2. **Create a handoff file**: `.ai/handoffs/<TASK-ID>.md` containing:
