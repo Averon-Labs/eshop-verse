@@ -45,10 +45,13 @@ hs_err_pid*
 replay_pid*
 
 # Android Studio / Gradle
+EShopVerse/
+android/.idea/
 android/.gradle/
 android/build/
 android/app/build/
 android/local.properties
+android/gradle/gradle-daemon-jvm.properties
 android/captures/
 android/.externalNativeBuild/
 android/.cxx/
