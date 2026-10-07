@@ -19,6 +19,7 @@ See [docs/decisions/README.md](decisions/README.md) for ADR conventions.
 | ID | Title | Status | Date |
 |----|-------|--------|------|
 | [ADR-001](decisions/ADR-001-portfolio-stack.md) | Portfolio stack and first-release boundaries | ACCEPTED | 2026-10-06 |
+| [ADR-002](decisions/ADR-002-shared-visual-direction.md) | Shared coral-and-neutral visual direction | ACCEPTED | 2026-10-07 |
 
 ---
 

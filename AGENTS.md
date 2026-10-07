@@ -109,6 +109,13 @@ Normal build → test → debug → retest transitions within one task do not re
 - Keep layouts responsive and accessible: minimum 48dp touch targets, scalable text, semantic labels, keyboard/focus support, and verified contrast.
 - Before adding a new screen pattern or changing the visual language, check the design system and existing screens; extend shared patterns rather than creating a parallel style.
 
+### Admin Web Visual Design
+
+- Follow the shared tokens in `docs/DESIGN_SYSTEM.md` and page-level behavior/layout in `docs/SCREEN_SPECIFICATIONS.md` for every dashboard page.
+- Reuse the same coral/neutral palette, Lato typography, spacing, shapes, status semantics, and responsive principles as the customer app. Use web navigation and tables appropriate to desktop; do not copy Android's bottom navigation into the dashboard.
+- Keep dashboard pages limited to the first-release scope. Analytics, customer administration, notifications, transaction history, CMS, and wishlist are deferred unless a new product Task changes that scope.
+- Ensure keyboard operation, persistent labels, visible focus, non-color-only status, and readable table/card behavior at supported narrow widths.
+
 ---
 
 ## Testing Rules

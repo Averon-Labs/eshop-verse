@@ -4,7 +4,7 @@
 
 This file is the single, ordered backlog for delivering the first EShop Verse portfolio release. It contains the phases, individual Task IDs, dependencies, scope, acceptance criteria, and verification expectations. A phase describes a milestone; assign and complete one Task ID at a time.
 
-Product boundaries are in [`PRODUCT.md`](PRODUCT.md), architecture choices in [`ARCHITECTURE.md`](ARCHITECTURE.md) and [`decisions/ADR-001-portfolio-stack.md`](decisions/ADR-001-portfolio-stack.md), API conventions in [`API_CONTRACT.md`](API_CONTRACT.md), and shared test/security rules in [`TESTING.md`](TESTING.md) and [`SECURITY.md`](SECURITY.md). Those documents define standards; this roadmap tracks implementation work and its completion.
+Product boundaries are in [`PRODUCT.md`](PRODUCT.md), architecture choices in [`ARCHITECTURE.md`](ARCHITECTURE.md) and [`decisions/`](decisions/), shared UI rules in [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) and [`SCREEN_SPECIFICATIONS.md`](SCREEN_SPECIFICATIONS.md), API conventions in [`API_CONTRACT.md`](API_CONTRACT.md), and test/security rules in [`TESTING.md`](TESTING.md) and [`SECURITY.md`](SECURITY.md). Those documents define standards; this roadmap tracks implementation work and its completion.
 
 Do not create a separate `.ai/tasks/<TASK-ID>.md` or `.ai/plans/<TASK-ID>.md` for ordinary roadmap work. Use those files only when a task has substantial persistent context that cannot fit here; link to the Task ID and do not copy its acceptance criteria.
 
@@ -58,11 +58,11 @@ Pass the builder's tested state to the independent tester. If debugging is neede
 
 ## Phase 0 — Foundation (current)
 
-**Exit criteria:** all three components have repeatable, verified setup and check commands; the OpenAPI contract has been reviewed before endpoint work; CI runs the agreed component checks; GitHub's integration/release branch settings match GIT-001; remaining choices that block the first customer-to-order flow are recorded and resolved.
+**Exit criteria:** all three components have repeatable, verified setup and check commands; the OpenAPI contract has been reviewed before endpoint work; CI runs the agreed component checks; GitHub's integration/release branch settings match GIT-001; the shared first-release UI specification is accepted before screen implementation; remaining choices that block the first customer-to-order flow are recorded and resolved.
 
 ### FND-001 — Verify Android scaffold and toolchain
 
-**Status:** `[~]`
+**Status:** `[x]`
 
 **Depends on:** none
 
@@ -131,6 +131,7 @@ Pass the builder's tested state to the independent tester. If debugging is neede
 - [ ] Define request/response schemas, required/optional fields, validation constraints, status codes, shared error envelope, pagination, USD money representation, and representative examples.
 - [ ] Define Android bearer-token and admin Sanctum session/CSRF security schemes, ownership/role expectations, and rate-limit classes/limits.
 - [ ] Define order idempotency behavior, price/stock authority, order/address snapshots, and simulated payment success/failure state semantics consistently with `PRODUCT.md` and `DATABASE.md`.
+- [ ] Resolve category lifecycle and product reassignment behavior: the roadmap mentions category archive, while the current logical category schema has no status field.
 - [ ] Validate the document with a documented OpenAPI validator and record the exact validation command; resolve all errors.
 - [ ] Obtain API-owner review/acceptance and update `API_CONTRACT.md` to link to the approved machine-readable contract without duplicating endpoint schemas.
 
@@ -172,9 +173,28 @@ Pass the builder's tested state to the independent tester. If debugging is neede
 
 **Verification:** run the exact documented commands locally or in CI; inspect a successful workflow run and separately report any external branch-protection setting that remains unenforced.
 
+### DES-001 — Define shared visual direction and first-release screen specifications
+
+**Status:** `[~]`
+
+**Depends on:** none
+
+**Scope:** translate the owner's supplied visual reference into one shared Android/admin visual language and document first-release screens already required by the product and roadmap. The reference is style guidance only; it must not expand page, content, or behavior scope.
+
+**Acceptance criteria:**
+
+- [x] `docs/DESIGN_SYSTEM.md` defines the cross-platform coral/neutral palette, Lato typography, shared spacing/shapes/elevation, Android Material 3 rules, web dashboard patterns, responsive behavior, and accessibility requirements.
+- [x] `docs/SCREEN_SPECIFICATIONS.md` describes all first-release Android and admin screens, navigation shells, primary content/actions, and relevant loading/empty/error/success behavior.
+- [x] Screen specifications apply reference layout cues only where an existing screen has a matching role; other screens retain their product/roadmap content hierarchy and flow while using shared visual tokens.
+- [x] Screen flows respect the product/database/API boundaries: authenticated cart, sample shipping and no tax, simulated payment without card data, seeded product images, and admin-only catalog/inventory/order capabilities.
+- [x] Out-of-scope reference concepts are excluded; unresolved data/API conflicts (including category archive behavior) are explicitly recorded rather than invented.
+- [x] Android/web agent guidance, product/roadmap references, and ADR index link to the shared design documents without duplicating the page inventory.
+
+**Verification:** documentation review against `PRODUCT.md`, `DATABASE.md`, `API_CONTRACT.md`, `ARCHITECTURE.md`, and existing Android/admin Tasks; check internal links and `git diff --check`. No code or runtime test is applicable.
+
 ## Phase 1 — Accounts and Catalog
 
-**Entry criteria:** Phase 0 exit criteria are met. Implement the shared contract; update and review OpenAPI before changing endpoint behavior.
+**Entry criteria:** Phase 0 exit criteria are met, including acceptance of DES-001 before implementing customer/admin screens. Implement the shared contract; update and review OpenAPI before changing endpoint behavior.
 
 ### AUTH-001 — Customer account API
 
@@ -197,7 +217,7 @@ Pass the builder's tested state to the independent tester. If debugging is neede
 
 **Status:** `[ ]`
 
-**Depends on:** FND-001, AUTH-001
+**Depends on:** FND-001, AUTH-001, DES-001
 
 **Scope:** English registration, sign-in, sign-out, profile, password-reset screens, API integration, and protected token persistence.
 
@@ -214,7 +234,7 @@ Pass the builder's tested state to the independent tester. If debugging is neede
 
 **Status:** `[ ]`
 
-**Depends on:** FND-002, FND-003, FND-004, FND-005
+**Depends on:** FND-002, FND-003, FND-004, FND-005, DES-001
 
 **Scope:** secure first-party admin sign-in/session lifecycle, Sanctum CSRF flow, and server-enforced admin role checks.
 
@@ -248,7 +268,7 @@ Pass the builder's tested state to the independent tester. If debugging is neede
 
 **Status:** `[ ]`
 
-**Depends on:** FND-001, FND-004, CAT-001
+**Depends on:** FND-001, FND-004, CAT-001, DES-001
 
 **Scope:** home/category browsing, product list/detail, search/sort, and API-backed image display.
 
@@ -282,9 +302,9 @@ Pass the builder's tested state to the independent tester. If debugging is neede
 
 **Status:** `[ ]`
 
-**Depends on:** FND-003, FND-004, AUTH-003, CAT-003
+**Depends on:** FND-003, FND-004, AUTH-003, CAT-003, DES-001
 
-**Scope:** React admin screens/forms for product, category, and stock management through the REST API.
+**Scope:** React admin screens for product, category, and stock management through the REST API.
 
 **Acceptance criteria:**
 
@@ -322,7 +342,7 @@ Pass the builder's tested state to the independent tester. If debugging is neede
 
 **Status:** `[ ]`
 
-**Depends on:** FND-001, FND-004, AUTH-002, CAT-002, CART-001
+**Depends on:** FND-001, FND-004, AUTH-002, CAT-002, CART-001, DES-001
 
 **Scope:** display and edit the signed-in customer's cart and recover from server conflicts.
 
@@ -357,7 +377,7 @@ Pass the builder's tested state to the independent tester. If debugging is neede
 
 **Status:** `[ ]`
 
-**Depends on:** FND-001, FND-004, AUTH-002, CART-002, ORD-001
+**Depends on:** FND-001, FND-004, AUTH-002, CART-002, ORD-001, DES-001
 
 **Scope:** signed-in address capture, order review, explicit demo outcome selection, and result display.
 
@@ -374,7 +394,7 @@ Pass the builder's tested state to the independent tester. If debugging is neede
 
 **Status:** `[ ]`
 
-**Depends on:** FND-001, FND-004, AUTH-002, ORD-001
+**Depends on:** FND-001, FND-004, AUTH-002, ORD-001, DES-001
 
 **Scope:** customer-owned order list/detail and status display.
 
@@ -390,7 +410,7 @@ Pass the builder's tested state to the independent tester. If debugging is neede
 
 **Status:** `[ ]`
 
-**Depends on:** FND-003, FND-004, AUTH-003, ORD-001
+**Depends on:** FND-003, FND-004, AUTH-003, ORD-001, DES-001
 
 **Scope:** admin order list/detail and permitted status updates.
 
@@ -430,7 +450,7 @@ Pass the builder's tested state to the independent tester. If debugging is neede
 
 **Status:** `[ ]`
 
-**Depends on:** CAT-002, CAT-004, CART-002, CHECK-001, ORD-002, ORD-003
+**Depends on:** DES-001, CAT-002, CAT-004, CART-002, CHECK-001, ORD-002, ORD-003
 
 **Scope:** inspect and fix first-release accessibility, responsive behavior, consistency, and user-facing state gaps.
 

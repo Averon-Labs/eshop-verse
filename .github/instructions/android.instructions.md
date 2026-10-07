@@ -9,6 +9,7 @@ For GitHub Copilot and other IDE-integrated agents working on Android code.
 - Architecture: `/docs/ARCHITECTURE.md`
 - API Contract: `/docs/API_CONTRACT.md`
 - Design System: `/docs/DESIGN_SYSTEM.md`
+- Screen specifications: `/docs/SCREEN_SPECIFICATIONS.md`
 - Testing: `/docs/TESTING.md`
 
 ## Key Rules

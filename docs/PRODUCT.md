@@ -72,6 +72,8 @@ EShop Verse is a portfolio project that demonstrates a complete single-store sho
 
 Customer account administration and analytics are deferred.
 
+The shared visual direction and detailed first-release page layouts/states are defined in [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) and [`SCREEN_SPECIFICATIONS.md`](SCREEN_SPECIFICATIONS.md).
+
 ---
 
 ## Major Business Domains
