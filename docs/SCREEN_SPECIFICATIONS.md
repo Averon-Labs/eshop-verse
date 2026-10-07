@@ -2,7 +2,7 @@
 
 ## Purpose and authority
 
-This document translates approved product and roadmap tasks into a consistent visual treatment for the Android customer application and web admin dashboard. It complements, and does not duplicate, the shared tokens and reusable component rules in [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md). Product behavior and scope remain governed by [`PRODUCT.md`](PRODUCT.md), the API contract, and the canonical Task entries in [`ROADMAP.md`](ROADMAP.md). This document does not authorize new pages or features.
+This document translates approved product and roadmap tasks into a consistent visual treatment for the Android customer application and web admin dashboard. It complements, and does not duplicate, the shared tokens and reusable component rules in [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md). Product behavior and scope remain governed by [`PRODUCT.md`](PRODUCT.md), the API contract, and the canonical Task entries in the relevant component roadmap or [`ROADMAP.md`](ROADMAP.md) for shared work. This document does not authorize new pages or features.
 
 The supplied visual reference ([Pinterest pin](https://de.pinterest.com/pin/775956210819327781/)) contributes a visual language: white surfaces, a soft gray canvas, coral accents, near-black typography, Lato, rounded cards, compact product grids, and a clean admin navigation/content shell. Borrow a composition pattern only where it fits an existing EShop Verse screen, such as catalog browsing, product detail, cart, or the admin shell. The pictured analytics overview is not an EShop Verse feature. For screens without a matching reference page, use the shared visual tokens and components while preserving the flow, content hierarchy, and controls established by their product/roadmap requirements. Do not copy reference-only labels, data, controls, or pages.
 
@@ -19,7 +19,7 @@ All user-facing copy is English. Customer price and total displays use en-US USD
 - Customer browsing is available without an account. A cart belongs to a signed-in customer. Do not create or persist a guest cart. For an auth-required action, follow the existing auth and return-navigation requirements; make no cart mutation until the customer is signed in.
 - Checkout shows subtotal plus the configured sample shipping amount; do not show a tax calculation or invent a discount.
 - Payment result and order status always reflect the server response. A failed or timed-out request must not be shown as success or trigger an unsafe duplicate order.
-- Category archive/delete behavior is not fully defined: `DATABASE.md` has no category status field while the roadmap mentions category archive. Until OpenAPI and schema review resolve this, category screens support list/create/edit/reorder; destructive category actions stay hidden or disabled with an explanation.
+- Category archive/delete behavior is not fully defined: `DATABASE.md` has no category status field while Backend CAT-003 and Admin CAT-004 include category archive behavior. Until OpenAPI and schema review resolve this, category screens support list/create/edit/reorder; destructive category actions stay hidden or disabled with an explanation.
 
 ## Android customer application
 
@@ -107,4 +107,4 @@ M-03 and M-04 reuse the M-02 catalog-listing pattern as search/category result s
 
 ## Open contract alignment item
 
-`DATABASE.md` models categories with `name` and `sort_order` but no status; `ROADMAP.md` currently includes category archive behavior. FND-004 must define whether categories can be archived/deleted, how products attached to a category are handled, and what the API returns before the destructive category action is implemented. The UI specification deliberately leaves that action undefined until the contract is settled.
+`DATABASE.md` models categories with `name` and `sort_order` but no status; Backend CAT-003 and Admin CAT-004 include category archive behavior. FND-004 must define whether categories can be archived/deleted, how products attached to a category are handled, and what the API returns before the destructive category action is implemented. The UI specification deliberately leaves that action undefined until the contract is settled.

@@ -6,6 +6,8 @@ For GitHub Copilot and other IDE-integrated agents working on admin dashboard co
 
 - Primary instructions: `/AGENTS.md`
 - Admin-specific: `/admin/AGENTS.md`
+- Admin roadmap and canonical task steps: `/docs/ADMIN_ROADMAP.md`
+- Project phase gates and shared tasks: `/docs/ROADMAP.md`
 - Architecture: `/docs/ARCHITECTURE.md`
 - API Contract: `/docs/API_CONTRACT.md`
 - Security: `/docs/SECURITY.md`
