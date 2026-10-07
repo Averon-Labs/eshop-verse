@@ -1,4 +1,4 @@
-package com.AveronLabs.eshop_verse;
+package com.averonlabs.eshop_verse;
 
 import org.junit.Test;
 

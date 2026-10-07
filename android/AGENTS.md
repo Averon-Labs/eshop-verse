@@ -18,7 +18,14 @@
 | Image Loading | Glide | DECIDED |
 | Dependency Injection | Constructor injection/manual wiring for the first release | DECIDED |
 | Navigation | AndroidX Navigation | DECIDED |
-| Minimum SDK | 25 in the current Gradle scaffold | DECIDED |
+| Compile SDK | 36 (`android/app/build.gradle.kts`) | DECIDED |
+| Minimum SDK | 25 (`android/app/build.gradle.kts`) | DECIDED |
+| Target SDK | 36 (`android/app/build.gradle.kts`) | DECIDED |
+| Java source/bytecode compatibility | Java 11 (`android/app/build.gradle.kts`) | DECIDED |
+| Namespace / application ID | `com.averonlabs.eshop_verse` (`android/app/build.gradle.kts`) | DECIDED |
+| Android SDK Build Tools | AGP 8.13.2 default: 35.0.0; confirm the installed SDK tools during FND-001 | PENDING |
+| Android Gradle Plugin | 8.13.2 (`android/gradle/libs.versions.toml`) | DECIDED |
+| Gradle wrapper | 8.13 (`android/gradle/wrapper/gradle-wrapper.properties`) | DECIDED |
 
 ---
 

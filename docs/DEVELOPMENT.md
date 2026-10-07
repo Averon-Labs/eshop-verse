@@ -5,7 +5,7 @@
 ### Prerequisites
 
 - Git
-- For Android development: Android Studio, JDK 17+
+- For Android development: Android Studio Narwhal 3 Feature Drop (2025.1.3) or newer, JDK 17+, Android SDK Platform 36, and compatible SDK Build Tools (AGP 8.13.2 defaults to 35.0.0). The project uses Android Gradle Plugin 8.13.2, Gradle 8.13, `compileSdk`/`targetSdk` 36, `minSdk` 25, Java 11 source compatibility, and namespace/application ID `com.averonlabs.eshop_verse`; see `android/app/build.gradle.kts`, `android/gradle/libs.versions.toml`, and `android/gradle/wrapper/gradle-wrapper.properties`.
 - For Backend development: a PHP release supported by the selected Laravel stable release, MySQL 8.x, and Composer
 - For Admin development: Node.js LTS and npm
 
@@ -42,7 +42,7 @@ All branching, commit, PR, testing, and agent workflow conventions are defined i
 2. Sync Gradle.
 3. Run on emulator or device.
 
-> Exact commands will be documented when the Android build and test setup is verified.
+> Exact build, lint, JVM-test, and instrumentation-test commands remain to be verified and documented under FND-001 in `ROADMAP.md`.
 
 ### Backend
 

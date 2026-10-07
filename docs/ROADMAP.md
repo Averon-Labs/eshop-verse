@@ -22,12 +22,12 @@ Deliver a polished, end-to-end, single-store shopping demo for an international 
 
 ## Verified starting point
 
-Last reviewed: 2026-10-06. Recheck the repository and current branch before starting each task.
+Last reviewed: 2026-10-07. Recheck the repository and current branch before starting each task.
 
-- Android has a Java/XML Gradle scaffold with Java 8 source compatibility, `minSdk 25`, and JUnit 4. Its exact local prerequisites and verified build/test commands are not yet recorded. Some architecture documentation says `minSdk 24`; FND-001 resolves this against the checked-in Gradle configuration and updates the conflicting documentation.
+- Android uses Java/XML, Java 11 source compatibility, `compileSdk 36`, `minSdk 25`, `targetSdk 36`, AGP 8.13.2, and Gradle 8.13 as recorded in the checked-in Gradle configuration. FND-001 still needs to verify the local toolchain and exact build/lint/test commands; resolve any remaining SDK documentation conflicts there.
 - `backend/` and `admin/` contain agent guidance but no initialized applications.
 - `.github/workflows/ci.yml` is a placeholder. Its only active job checks repository structure; Android, backend, and admin checks are commented out.
-- GitHub `develop` has been created from the current pre-policy `main` baseline (`db8ff97`). The GitHub default branch, auto-delete option, and branch-protection settings still need verification/configuration under GIT-001.
+- GitHub `develop` has been created from the current pre-policy `main` baseline (`db8ff97`). The owner reports `develop` is now the GitHub default, and the automatic head-branch deletion option was enabled; branch-protection settings still need verification under GIT-001.
 - `docs/openapi.yaml` does not exist. `docs/API_CONTRACT.md` records shared conventions, but endpoint schemas and per-class rate limits remain open.
 - `docs/DATABASE.md` is a logical model, not implemented migrations. The database and seed data still need implementation.
 
@@ -62,7 +62,7 @@ Pass the builder's tested state to the independent tester. If debugging is neede
 
 ### FND-001 — Verify Android scaffold and toolchain
 
-**Status:** `[ ]`
+**Status:** `[~]`
 
 **Depends on:** none
 
@@ -70,7 +70,7 @@ Pass the builder's tested state to the independent tester. If debugging is neede
 
 **Acceptance criteria:**
 
-- [ ] Record the supported JDK, Android SDK/build-tools requirements, Gradle/Android Gradle Plugin versions, Java language level, namespace, and min/target SDK from the actual project; resolve the documented minSdk disagreement.
+- [ ] Record and verify the supported JDK, Android SDK/build-tools requirements, Gradle/Android Gradle Plugin versions, Java language level, namespace, and min/target SDK from the actual project; confirm no remaining SDK documentation mismatch.
 - [ ] Verify a clean setup, build, lint, JVM test, and any configured instrumentation-test commands; record exact commands and prerequisites in `docs/DEVELOPMENT.md`.
 - [ ] Confirm the existing scaffold tests pass or record a reproducible failure; do not treat placeholder tests as feature coverage.
 - [ ] Keep the app Java/XML and avoid changing product behavior in this foundation task.
@@ -144,8 +144,8 @@ Pass the builder's tested state to the independent tester. If debugging is neede
 **Acceptance criteria:**
 
 - [x] Create `develop` from the current `main` baseline and preserve all existing merged history; do not force-push or reset `main`.
-- [ ] Set `develop` as the GitHub default branch so new task PRs default to the integration branch.
-- [ ] Configure GitHub to automatically delete merged task branches; keep `develop` and `main`.
+- [x] Set `develop` as the GitHub default branch so new task PRs default to the integration branch; owner confirmed the setting was changed.
+- [x] Configure GitHub to automatically delete merged task branches; the enabled setting was verified in repository settings. Keep `develop` and `main`.
 - [ ] Protect `develop` and `main` from direct/force pushes and require PR review. Review `develop` → `main` as a release PR only.
 - [ ] Open/re-target current in-flight work as a PR into `develop`; do not merge it automatically.
 

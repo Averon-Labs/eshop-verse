@@ -1,4 +1,4 @@
-package com.AveronLabs.eshop_verse;
+package com.averonlabs.eshop_verse;
 
 import android.content.Context;
 
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
     public void useAppContext() {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        assertEquals("com.AveronLabs.eshop_verse", appContext.getPackageName());
+        assertEquals("com.averonlabs.eshop_verse", appContext.getPackageName());
     }
 }
