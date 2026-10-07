@@ -155,7 +155,7 @@ Name the roadmap, phase, and step (step numbering restarts at 1 in each phase), 
 
 ### Step 6 — PLAN-003 — Define assignable sub-steps and component-aware Git naming
 
-**Status:** `[~]`
+**Status:** `[x]`
 
 **Depends on:** PLAN-001, PLAN-002
 
@@ -169,7 +169,7 @@ Name the roadmap, phase, and step (step numbering restarts at 1 in each phase), 
 - [x] Keep branch type aligned with work (`feature`, `fix`, `docs`, `chore`, etc.) and define how an independently assigned sub-step maps to scope, branch, PR, and parent Task completion.
 - [x] Verify roadmap hierarchy, examples, internal links, naming consistency, and `git diff --check`; no application build or runtime test applies.
 
-**Verification:** independently review the updated instructions and roadmap examples; run documentation/link consistency checks and `git diff --check`.
+**Verification:** independently reviewed the updated instructions and roadmap examples at commit `e6dd539b9fbfd1a0fad9637ab986084efe51b7ba`; Markdown relative-link, roadmap hierarchy/naming consistency, and `git diff --check` checks passed. Application builds and runtime tests are not applicable to this documentation-only task.
 
 ## Phase 1 — Accounts and Catalog
 
