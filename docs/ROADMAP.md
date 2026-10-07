@@ -171,6 +171,23 @@ Name the roadmap, phase, and step (step numbering restarts at 1 in each phase), 
 
 **Verification:** independently reviewed the updated instructions and roadmap examples at commit `e6dd539b9fbfd1a0fad9637ab986084efe51b7ba`; Markdown relative-link, roadmap hierarchy/naming consistency, and `git diff --check` checks passed. Application builds and runtime tests are not applicable to this documentation-only task.
 
+### Step 7 — CI-001 — Refresh GitHub Actions runtimes and least-privilege permissions
+
+**Status:** `[~]`
+
+**Depends on:** none
+
+**Scope:** update active and illustrative GitHub Actions references that target deprecated Node runtimes, and limit the repository-validation workflow to the permissions and credentials it needs.
+
+**Acceptance criteria:**
+
+- [x] Upgrade active and commented first-party actions to current supported major versions that run on Node 24; retain third-party action versions that remain supported and current.
+- [x] Limit the read-only validation job's token permissions to repository contents read and prevent checkout from persisting credentials it does not use.
+- [x] Keep uninitialized component jobs disabled; do not declare or install a Node.js version for the Admin application before its package/toolchain exists.
+- [x] Validate workflow syntax and review the final diff; report that hosted CI must be observed on the next pull request if one is not created for this task.
+
+**Verification:** Python/PyYAML parsed the workflow; static assertions confirmed the intended action versions, read-only permissions, disabled component jobs, and absence of setup-node; `git diff --check` passed. `actionlint` is unavailable in this environment. Hosted CI remains to be observed on the next pull request. No application build or runtime test applies to this workflow-only change.
+
 ## Phase 1 — Accounts and Catalog
 
 **Entry criteria:** Phase 0 exit criteria are met, including acceptance of DES-001 before implementing customer/admin screens. Implement the shared contract; update and review OpenAPI before changing endpoint behavior.
@@ -319,6 +336,7 @@ Each Task ID has exactly one canonical task entry. Status, dependencies, accepta
 | PLAN-001 | [Project Roadmap — Phase 0 — Step 3](ROADMAP.md) | Split component roadmaps and define task execution and clarification workflow |
 | PLAN-002 | [Project Roadmap — Phase 0 — Step 5](ROADMAP.md) | Separate agent role workflows and remove duplicated process guidance |
 | PLAN-003 | [Project Roadmap — Phase 0 — Step 6](ROADMAP.md) | Define assignable sub-steps and component-aware Git naming |
+| CI-001 | [Project Roadmap — Phase 0 — Step 7](ROADMAP.md) | Refresh GitHub Actions runtimes and least-privilege permissions |
 
 ## Optional follow-up — Public deployment
 
