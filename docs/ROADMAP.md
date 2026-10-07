@@ -22,9 +22,9 @@ Deliver a polished, end-to-end, single-store shopping demo for an international 
 
 ## Verified starting point
 
-Last reviewed: 2026-10-06. Recheck the repository and current branch before starting each task.
+Last reviewed: 2026-10-07. Recheck the repository and current branch before starting each task.
 
-- Android has a Java/XML Gradle scaffold with Java 8 source compatibility, `minSdk 25`, and JUnit 4. Its exact local prerequisites and verified build/test commands are not yet recorded. Some architecture documentation says `minSdk 24`; FND-001 resolves this against the checked-in Gradle configuration and updates the conflicting documentation.
+- Android has a regenerated Java/XML Gradle scaffold: namespace/application ID `com.averonlabs.eshopverse`, compile SDK 36.1, `minSdk 25`, `targetSdk 36`, Java 11 source/target, AGP 9.2.1, Gradle 9.4.1, Material Components 1.10.0, and JUnit 4. Exact local prerequisites and verified build/test commands remain to be confirmed under FND-001. Android UI must follow the shared Material 3 design system in `docs/DESIGN_SYSTEM.md`.
 - `backend/` and `admin/` contain agent guidance but no initialized applications.
 - `.github/workflows/ci.yml` is a placeholder. Its only active job checks repository structure; Android, backend, and admin checks are commented out.
 - GitHub `develop` has been created from the current pre-policy `main` baseline (`db8ff97`). The GitHub default branch, auto-delete option, and branch-protection settings still need verification/configuration under GIT-001.
@@ -62,15 +62,18 @@ Pass the builder's tested state to the independent tester. If debugging is neede
 
 ### FND-001 — Verify Android scaffold and toolchain
 
-**Status:** `[ ]`
+**Status:** `[~]`
 
 **Depends on:** none
 
-**Scope:** inspect the existing Android Gradle project and reconcile its actual configuration with Android documentation.
+**Scope:** inspect the regenerated Android Gradle project, reconcile its actual configuration with Android documentation, and keep its project layout and repository guidance aligned.
 
 **Acceptance criteria:**
 
 - [ ] Record the supported JDK, Android SDK/build-tools requirements, Gradle/Android Gradle Plugin versions, Java language level, namespace, and min/target SDK from the actual project; resolve the documented minSdk disagreement.
+- [ ] Track the regenerated Android Studio project under `android/` without IDE state, local SDK paths, or generated build/cache files; preserve the rest of the repository.
+- [ ] Ensure every Android XML screen is required to use the shared Material 3 theme, tokens, components, and reusable visual/state patterns documented in `docs/DESIGN_SYSTEM.md`.
+- [ ] Remove Android Studio template-only sample content in the first implementation task before treating the scaffold as an application foundation; keep verification status open until build, lint, and test checks are run.
 - [ ] Verify a clean setup, build, lint, JVM test, and any configured instrumentation-test commands; record exact commands and prerequisites in `docs/DEVELOPMENT.md`.
 - [ ] Confirm the existing scaffold tests pass or record a reproducible failure; do not treat placeholder tests as feature coverage.
 - [ ] Keep the app Java/XML and avoid changing product behavior in this foundation task.

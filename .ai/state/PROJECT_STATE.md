@@ -1,6 +1,6 @@
 # Project State
 
-> Last updated: 2026-10-06
+> Last updated: 2026-10-07
 
 ## Current Phase
 
@@ -12,7 +12,7 @@
 |-----------|--------|-------|
 | Repository structure | ✅ Established | Android scaffold and component guidance exist |
 | Documentation | ⚠️ Foundation documented | `docs/ROADMAP.md` is the canonical phase and Task-ID backlog; exact component commands remain to be verified |
-| Android app | ⚠️ Scaffold present | Java/XML Gradle scaffold and placeholder tests exist; no customer features. Gradle declares Java 8 source and minSdk 25; `docs/ARCHITECTURE.md` has a conflicting minSdk 24 statement to resolve in FND-001 |
+| Android app | ⚠️ Scaffold regenerated | Java/XML scaffold recreated with namespace `com.averonlabs.eshopverse`, compile SDK 36.1, minSdk 25, targetSdk 36, Java 11, AGP 9.2.1, Gradle 9.4.1, Material Components 1.10.0; commands/build verification remain under FND-001 |
 | Backend API | ⬜ Not initialized | `backend/` has guidance only; Laravel setup is FND-002 |
 | Admin dashboard | ⬜ Not initialized | `admin/` has guidance only; React/TypeScript setup is FND-003 |
 | API contract | ⬜ OpenAPI missing | `docs/API_CONTRACT.md` has shared conventions; `docs/openapi.yaml` and owner review are FND-004 |
@@ -32,7 +32,8 @@
 - Sequential build/test/debug workflow documented
 - Canonical backlog and Task-ID workflow recorded in `docs/ROADMAP.md`
 - Gitflow-lite policy chosen: task PRs target `develop`; release PRs target `main`; GitHub settings still need verification/configuration (GIT-001)
-- Android scaffold configuration observed: Java 8 source compatibility, minSdk 25, JUnit 4; exact environment/build commands still need verification
+- Previous Android scaffold configuration: Java 8 source compatibility, minSdk 25, JUnit 4; superseded by the regenerated Android Studio scaffold recorded above.
+- Android scaffold regenerated from Android Studio; package ID and toolchain values recorded from its Gradle files. All screen implementations must follow the shared Material 3 design system.
 
 ## Next Steps
 

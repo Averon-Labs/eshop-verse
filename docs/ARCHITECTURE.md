@@ -41,7 +41,7 @@ EShop Verse follows a client-server architecture with clearly separated componen
 | Image Loading | Glide | DECIDED |
 | Dependency Injection | Constructor injection/manual wiring for the first release | DECIDED |
 | Navigation | AndroidX Navigation | DECIDED |
-| Min SDK | 24 for the initial target; verify against the actual Android toolchain | DECIDED |
+| Min SDK | 25, matching the checked-in Android scaffold | DECIDED |
 
 ### Backend API
 
