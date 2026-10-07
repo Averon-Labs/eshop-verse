@@ -6,6 +6,12 @@ This is the project-level index for phase gates, cross-component tasks, and Task
 
 Each component roadmap resets step numbering to Step 1 at the start of every phase. Give an agent the roadmap name, phase, and step, or the stable Task ID. If the component is not identified, ask which roadmap. Cross-component work is listed here and referenced by component roadmaps without copying its acceptance criteria.
 
+### Steps, Sub-steps, and acceptance criteria
+
+The numbered Step is the normal assignable unit and has one canonical Task ID. Use numbered Sub-steps (`Sub-step 1`, `Sub-step 2`, …) only when work has its own bounded scope, acceptance criteria and verification, can be assigned independently, and can be merged independently without leaving an incomplete or incoherent integration branch. Sub-step numbering restarts at 1 within each Step. A Sub-step stays inside its parent Task entry; do not create a second Task ID for it. Keep ordinary nested bullets and checkboxes as acceptance criteria. They describe conditions for completing the Step and are not separate assignments. Do not convert existing checklists into Sub-steps unless each proposed unit meets the rule above. If independently mergeable work needs a separate lifecycle or dependency graph, define it as a separate Task instead.
+
+Assign an explicitly defined Sub-step by its roadmap, phase, Step, Sub-step, and parent Task ID. Give each assigned unit (whole Task or Sub-step) one branch and PR; all specialist stages for that unit use the same branch. A Sub-step may be marked done once its own scope and verification pass. Its parent Task stays in progress until every Sub-step, all parent-level acceptance criteria, and the overall verification pass. See [AGENTS.md](../AGENTS.md) for the branch and commit naming format.
+
 Product boundaries are in [PRODUCT.md](PRODUCT.md), architecture choices in [ARCHITECTURE.md](ARCHITECTURE.md) and [decisions/](decisions/), shared UI rules in [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) and [SCREEN_SPECIFICATIONS.md](SCREEN_SPECIFICATIONS.md), API conventions in [API_CONTRACT.md](API_CONTRACT.md), and test/security rules in [TESTING.md](TESTING.md) and [SECURITY.md](SECURITY.md). Those documents define standards; the canonical roadmap task entry tracks implementation.
 
 Do not create a separate .ai/tasks/<TASK-ID>.md or .ai/plans/<TASK-ID>.md for ordinary work. Use those files only for substantial persistent context that cannot fit the canonical task; link them from that task and do not duplicate acceptance criteria.
@@ -16,7 +22,7 @@ Deliver a polished, end-to-end, single-store shopping demo for an international 
 
 ## Branch and release model
 
-- develop is the shared integration branch. Each Task gets one short-lived branch from develop and a PR targeting develop; builder, tester, and debugger use that Task branch sequentially.
+- develop is the shared integration branch. Each assigned unit (a whole Task or an explicitly defined, independently mergeable Sub-step) gets one short-lived branch from develop and a PR targeting develop; builder, tester, and debugger use that branch sequentially.
 - Delete a task branch after its PR is accepted and merged. Keep develop permanently.
 - At a phase/release boundary, complete phase exit criteria and run release checks on develop. Promote a release only through a reviewed develop-to-main PR; tag the released commit.
 - The current main contains earlier merged bootstrap/documentation work and has no formal release tag. Preserve that history as the one-time pre-policy baseline; do not reset or rewrite main.
@@ -45,7 +51,7 @@ This is a repository snapshot, not a promise that the state remains unchanged. C
 
 ## How to assign and execute a task
 
-Name the roadmap, phase, and step (step numbering restarts at 1 in each phase), or give the stable Task ID. `ROADMAP.md` defines project gates and shared tasks and indexes component work; `ANDROID_ROADMAP.md`, `BACKEND_ROADMAP.md`, and `ADMIN_ROADMAP.md` hold the canonical component task scopes, dependencies, acceptance criteria, and verification expectations. For assignment, reading, clarification, and execution rules, follow the root [AGENTS.md](../AGENTS.md).
+Name the roadmap, phase, and step (step numbering restarts at 1 in each phase), or give the stable Task ID; include a Sub-step number only when the canonical entry explicitly defines one. `ROADMAP.md` defines project gates and shared tasks and indexes component work; `ANDROID_ROADMAP.md`, `BACKEND_ROADMAP.md`, and `ADMIN_ROADMAP.md` hold the canonical component task scopes, dependencies, acceptance criteria, and verification expectations. Existing nested checklists are completion criteria unless explicitly promoted to independently assignable Sub-steps. For assignment, reading, clarification, and execution rules, follow the root [AGENTS.md](../AGENTS.md).
 
 ## Phase 0 — Foundation (current)
 
@@ -146,6 +152,24 @@ Name the roadmap, phase, and step (step numbering restarts at 1 in each phase), 
 - [x] Update documentation entry points and links; confirm each roadmap Task ID remains canonical in one entry and verify Markdown links and the final documentation diff.
 
 **Verification:** review the shared and role-specific instructions for conflicts, check all changed internal Markdown links and roadmap references, and run `git diff --check`. Application builds and runtime tests are not applicable to this documentation-only task.
+
+### Step 6 — PLAN-003 — Define assignable sub-steps and component-aware Git naming
+
+**Status:** `[~]`
+
+**Depends on:** PLAN-001, PLAN-002
+
+**Scope:** distinguish acceptance criteria from independently assignable roadmap sub-steps and standardize branch and commit names so they identify component, phase, step, optional sub-step, and Task ID.
+
+**Acceptance criteria:**
+
+- [x] Define when a nested roadmap item remains an acceptance criterion and when it merits a numbered, independently assignable sub-step; preserve current nested acceptance checklists unless they meet that rule.
+- [x] Define phase-local step and optional sub-step numbering consistently across the project and component roadmaps.
+- [x] Update repository Git guidance with a consistent branch and Conventional Commit format identifying component, phase, step, optional sub-step, and Task ID.
+- [x] Keep branch type aligned with work (`feature`, `fix`, `docs`, `chore`, etc.) and define how an independently assigned sub-step maps to scope, branch, PR, and parent Task completion.
+- [x] Verify roadmap hierarchy, examples, internal links, naming consistency, and `git diff --check`; no application build or runtime test applies.
+
+**Verification:** independently review the updated instructions and roadmap examples; run documentation/link consistency checks and `git diff --check`.
 
 ## Phase 1 — Accounts and Catalog
 
@@ -294,6 +318,7 @@ Each Task ID has exactly one canonical task entry. Status, dependencies, accepta
 | QUAL-005 | [Project Roadmap — Phase 3 — Step 5](ROADMAP.md) | Clean-checkout release rehearsal |
 | PLAN-001 | [Project Roadmap — Phase 0 — Step 3](ROADMAP.md) | Split component roadmaps and define task execution and clarification workflow |
 | PLAN-002 | [Project Roadmap — Phase 0 — Step 5](ROADMAP.md) | Separate agent role workflows and remove duplicated process guidance |
+| PLAN-003 | [Project Roadmap — Phase 0 — Step 6](ROADMAP.md) | Define assignable sub-steps and component-aware Git naming |
 
 ## Optional follow-up — Public deployment
 
