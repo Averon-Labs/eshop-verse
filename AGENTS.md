@@ -236,7 +236,7 @@ The following require explicit human approval before merging:
 
 ## Agent Handoff Rules
 
-When an agent cannot complete a task or is handing off to another agent:
+When a task is blocked or work must be transferred outside the planned sequential role workflow, use this procedure. It does not apply to normal build → test → debug → retest transitions; those use local commits without a handoff file or push, as described above:
 
 1. **Commit all work in progress** on the feature branch.
 2. **Create a handoff file**: `.ai/handoffs/<TASK-ID>.md` containing:
