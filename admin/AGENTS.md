@@ -24,6 +24,13 @@ Use a supported stable toolchain selected at project initialization. The SPA and
 - Admin functionality uses admin-specific API endpoints.
 - Do not embed business logic that belongs in the backend.
 
+## Visual Design
+
+- Follow [`docs/DESIGN_SYSTEM.md`](../docs/DESIGN_SYSTEM.md) and [`docs/SCREEN_SPECIFICATIONS.md`](../docs/SCREEN_SPECIFICATIONS.md) for every admin page.
+- Reuse the shared coral/neutral palette, Lato typography, spacing, shapes, status semantics, and responsive shell. Do not add a dashboard-only palette or copy Android's bottom navigation into the web layout.
+- Keep the first release within product scope: products, categories, inventory, orders, and admin sign-in. An analytics/overview page, customer administration, notifications, transaction history, CMS, and wishlist are deferred.
+- Tables, forms, dialogs, loading/empty/error states, focus behavior, and narrow-screen layouts follow the shared patterns in the design and screen specifications.
+
 ---
 
 ## First-Release Capabilities
