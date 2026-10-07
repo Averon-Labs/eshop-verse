@@ -49,4 +49,4 @@ Customer administration and analytics are deferred; see `docs/PRODUCT.md`.
 ## Testing
 
 - Use Vitest and React Testing Library for component/behavior tests unless the initialized project has a documented equivalent.
-- See `docs/TESTING.md` for shared test levels and the sequential verification workflow.
+- See `docs/TESTING.md` for shared test levels and conventions.

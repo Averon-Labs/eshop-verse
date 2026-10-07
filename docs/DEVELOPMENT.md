@@ -70,8 +70,6 @@ The current source is still the Android Studio sample (navigation demo, placehol
 
 ---
 
-## Agent Work Sequence
+## Task and Agent Guidance
 
-Assign one stable Task ID or a roadmap name, phase, and step. Use [`ANDROID_ROADMAP.md`](ANDROID_ROADMAP.md), [`BACKEND_ROADMAP.md`](BACKEND_ROADMAP.md), or [`ADMIN_ROADMAP.md`](ADMIN_ROADMAP.md) for component tasks; [`ROADMAP.md`](ROADMAP.md) contains shared tasks and project gates. Step numbering restarts at 1 for each phase. The canonical Task entry names the scope, dependencies, acceptance criteria, and verification expectations. Do not create a duplicate task file for ordinary work.
-
-An assignment starts the complete sequential workflow in [`AGENTS.md`](../AGENTS.md): build, independent test, debug only for a reproduced failure, independent retest after a fix, coordinator review, then commit/push and a PR ready for human review. If the task and linked project evidence fully specify the work, proceed without asking for confirmation. First check the repository and actual implementation for answers; ask the owner only about material missing or contradictory decisions, and continue directly after the answer without a second start confirmation. Report exact commands and outcomes. CI must run required build, lint, unit, and integration/API checks before merge; verify actual workflow and repository settings before claiming they are active.
+Follow [`AGENTS.md`](../AGENTS.md) for roadmap task selection, clarification, and agent-role assignment; it links the concise role guides. Use this document for component setup and verified commands. CI should run the required build, lint, unit, and integration/API checks; verify the checked-in workflow and repository settings before claiming they are active.
