@@ -2,6 +2,8 @@
 
 > Read the root `AGENTS.md` first. This file contains admin dashboard-specific rules.
 
+The canonical Admin task steps and acceptance criteria are in [`docs/ADMIN_ROADMAP.md`](../docs/ADMIN_ROADMAP.md). Project gates and shared tasks are in [`docs/ROADMAP.md`](../docs/ROADMAP.md).
+
 ---
 
 ## Architecture

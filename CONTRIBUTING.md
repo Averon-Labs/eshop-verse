@@ -9,6 +9,7 @@ Thank you for contributing to EShop Verse.
 1. Read [`AGENTS.md`](AGENTS.md) — all conventions, branching, commits, and PR rules.
 2. Read [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) — setup, local dev, and workflow details.
 3. Read the relevant component `AGENTS.md` (`android/`, `backend/`, or `admin/`).
+4. Select a Task ID from the matching component roadmap, or a shared task from [`docs/ROADMAP.md`](docs/ROADMAP.md); assign component work by roadmap, phase, and step.
 
 ---
 
