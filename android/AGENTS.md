@@ -59,6 +59,7 @@ Follow the checked-in Android Gradle scaffold and namespace `com.averonlabs.esho
 - Use dimension resources for spacing.
 - Use color resources defined in the design system.
 - Follow [`docs/DESIGN_SYSTEM.md`](../docs/DESIGN_SYSTEM.md) for every screen. Use the shared Material 3 theme, XML/View components, styles, and resource tokens; keep screen patterns visually consistent across the app.
+- Follow the page-level flows and states in [`docs/SCREEN_SPECIFICATIONS.md`](../docs/SCREEN_SPECIFICATIONS.md); use the same specified palette, Lato type hierarchy, and reusable patterns throughout.
 - Do not introduce one-off colors, spacing, typography, shapes, elevations, or custom component styles in individual screens. Propose changes centrally and update both the design-system guide and shared resources.
 - Support content descriptions for accessibility.
 

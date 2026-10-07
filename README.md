@@ -121,6 +121,7 @@ Supported agents include Claude Code, OpenAI Codex, Google Gemini/Antigravity, G
 | [API_CONTRACT.md](docs/API_CONTRACT.md) | API conventions and contracts |
 | [DATABASE.md](docs/DATABASE.md) | Database design |
 | [DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) | UI/UX design system |
+| [SCREEN_SPECIFICATIONS.md](docs/SCREEN_SPECIFICATIONS.md) | Page-by-page Android and admin dashboard layouts and states |
 | [SECURITY.md](docs/SECURITY.md) | Security guidelines |
 | [TESTING.md](docs/TESTING.md) | Testing strategy |
 | [DEVELOPMENT.md](docs/DEVELOPMENT.md) | Development workflow |
