@@ -1,0 +1,183 @@
+# Backend Roadmap
+
+## Purpose and authority
+
+Plan PHP/Laravel REST API and MySQL work, including contract-first implementation and isolated database checks.
+
+This file is the canonical task list for its component. Each task appears once here; stable Task IDs identify work across branches and PRs. Project-wide phase gates and cross-component tasks are canonical in [ROADMAP.md](ROADMAP.md). Follow [repository-wide agent instructions](../AGENTS.md), component guidance, authoritative documents linked by the task, and the actual implementation.
+
+A roadmap assignment must include this roadmap name, phase, and step, for example: Backend Roadmap, Phase 1, Step 1. Step numbers restart at 1 in every phase. Check dependencies before starting; a later step is not ready until its listed dependencies are complete.
+
+## Phase steps
+
+## Phase 0 — Foundation
+
+**Project phase gate:** see [Phase 0 in the Project Roadmap](ROADMAP.md).
+
+### Step 1 — FND-002 — Initialize Laravel API and local database workflow
+
+**Status:** `[ ]`
+
+**Depends on:** none
+
+**Scope:** create the backend application foundation using the accepted Laravel/PHP/MySQL stack, without implementing product endpoints.
+
+**Acceptance criteria:**
+
+- [ ] Select supported stable framework/runtime versions and commit the dependency lockfile; document the selected versions.
+- [ ] Provide safe local configuration instructions and `.env.example` placeholders; no real secrets are checked in.
+- [ ] Configure migrations and a disposable isolated test database workflow; document how a developer creates and resets local data safely.
+- [ ] Configure the backend unit/feature test runner and a minimal passing baseline test.
+- [ ] Record and verify exact install, setup, migration, style/static-check, and test commands in `docs/DEVELOPMENT.md`.
+- [ ] Do not add business endpoints before FND-004 is reviewed.
+
+**Verification:** clean dependency install, disposable-database migration, and backend baseline test/checks.
+
+### Step 2 — FND-004 — Draft and review the OpenAPI contract
+
+**Status:** `[ ]`
+
+**Depends on:** none; must finish before any endpoint or client integration Task
+
+**Scope:** create `docs/openapi.yaml` from the accepted product/API/database/security decisions and close the remaining contract decisions.
+
+**Acceptance criteria:**
+
+- [ ] Describe registration, login/logout, profile, and password-reset flows; public category/product listing, search, sorting, pagination, and product details; customer cart; order creation, history/detail, and simulated payment result; admin authentication, catalog/category/inventory management, and order-status management.
+- [ ] Define request/response schemas, required/optional fields, validation constraints, status codes, shared error envelope, pagination, USD money representation, and representative examples.
+- [ ] Define Android bearer-token and admin Sanctum session/CSRF security schemes, ownership/role expectations, and rate-limit classes/limits.
+- [ ] Define order idempotency behavior, price/stock authority, order/address snapshots, and simulated payment success/failure state semantics consistently with `PRODUCT.md` and `DATABASE.md`.
+- [ ] Resolve category lifecycle and product reassignment behavior: the roadmap mentions category archive, while the current logical category schema has no status field.
+- [ ] Validate the document with a documented OpenAPI validator and record the exact validation command; resolve all errors.
+- [ ] Obtain API-owner review/acceptance and update `API_CONTRACT.md` to link to the approved machine-readable contract without duplicating endpoint schemas.
+
+**Verification:** OpenAPI validation plus a human review against the referenced product, architecture, database, and security documents. Endpoint implementation remains blocked until acceptance.
+
+## Phase 1 — Accounts and Catalog
+
+**Project phase gate:** see [Phase 1 in the Project Roadmap](ROADMAP.md).
+
+### Step 1 — AUTH-001 — Customer account API
+
+**Status:** `[ ]`
+
+**Depends on:** FND-002, FND-004, FND-005
+
+**Scope:** customer registration, login/logout, profile, password reset, secure password storage, rate limiting/lockout controls, and revocable Android Sanctum tokens.
+
+**Acceptance criteria:**
+
+- [ ] Valid registration/login/profile/logout/reset flows match the reviewed OpenAPI schemas and security rules.
+- [ ] Invalid input, duplicate email, invalid credentials, reset-token failure/expiry, rate limits, and logout revocation return documented outcomes without leaking secrets.
+- [ ] Tests prove passwords are hashed, token lifetime/revocation rules and account lockout after repeated failures are enforced, and reset email can be safely exercised through a local mail sink.
+- [ ] Tests cover relevant validation, authentication, and abuse boundaries; no real email or external provider is required for local tests.
+
+**Verification:** backend unit and API feature/security tests for every listed success and failure path.
+
+### Step 2 — CAT-001 — Catalog read API and fictional seed data
+
+**Status:** `[ ]`
+
+**Depends on:** FND-002, FND-004, FND-005
+
+**Scope:** category/product schema, fictional seed catalog, and public read/search/sort/pagination endpoints.
+
+**Acceptance criteria:**
+
+- [ ] Migrations enforce documented relationships, valid prices, product status, and image ordering; use fixed-precision USD money.
+- [ ] Seed/reset creates useful fictional categories/products/images reproducibly and never contains real personal data.
+- [ ] Listing, detail, category, search, sort, pagination, and empty-result behavior match OpenAPI.
+- [ ] Invalid filters and pagination boundaries return documented errors; inactive/unavailable products do not leak into customer results.
+
+**Verification:** migration/seed checks and API feature tests for results, filters, pagination, validation, and public access.
+
+### Step 3 — CAT-003 — Admin catalog and inventory API
+
+**Status:** `[ ]`
+
+**Depends on:** FND-002, FND-004, AUTH-003, CAT-001
+
+**Scope:** admin-only create/read/update/archive operations for products and categories, plus validated inventory updates.
+
+**Acceptance criteria:**
+
+- [ ] CRUD and inventory operations follow OpenAPI, validation, and database constraints.
+- [ ] Guest/customer access is rejected; tests cover role enforcement, invalid values, missing resources, and inventory boundaries.
+- [ ] Public catalog changes reflect persisted admin updates; deleted/archived data follows the documented status behavior.
+- [ ] No client-supplied total or stock value bypasses server-side validation.
+
+**Verification:** backend feature tests with database state assertions and authorization tests for each protected operation.
+
+## Phase 2 — Cart, Checkout, and Orders
+
+**Project phase gate:** see [Phase 2 in the Project Roadmap](ROADMAP.md).
+
+### Step 1 — CART-001 — Customer cart API
+
+**Status:** `[ ]`
+
+**Depends on:** FND-002, FND-004, AUTH-001, CAT-001
+
+**Scope:** one persistent cart per signed-in customer with add/update/remove/read operations.
+
+**Acceptance criteria:**
+
+- [ ] Server validates product availability, positive bounded quantity, and current product/stock state on every mutation.
+- [ ] Cart totals use server-side fixed-precision money; clients cannot set authoritative prices.
+- [ ] Customer ownership is enforced on every read and mutation; tests try another customer's cart identifiers.
+- [ ] Empty cart, unavailable product, stock conflict, invalid quantity, and normal edits return the documented outcomes.
+
+**Verification:** database-backed API tests for all mutations, totals, errors, and cross-customer authorization.
+
+### Step 2 — ORD-001 — Order creation and simulated payment API
+
+**Status:** `[ ]`
+
+**Depends on:** FND-002, FND-004, AUTH-001, CAT-001, CART-001
+
+**Scope:** server-authoritative checkout quote/order creation, address and line-item snapshots, idempotency, and explicitly simulated success/failure payment outcomes.
+
+**Acceptance criteria:**
+
+- [ ] Server recalculates prices, subtotal, configured sample shipping, and total using fixed precision; it ignores client totals.
+- [ ] Order stores immutable product/address/price snapshots and follows documented state transitions.
+- [ ] Order creation and payment/stock transitions are transaction-safe under concurrent or stale-stock requests; match `DATABASE.md` by changing inventory transactionally only when simulated payment succeeds.
+- [ ] Repeating the same idempotency key/request does not create duplicate orders; conflicting reuse returns a documented result.
+- [ ] Simulation accepts no card data, calls no real provider, and clearly distinguishes success from failure; failed payment is never shown as paid.
+- [ ] Tests cover duplicate submission, stale stock, insufficient stock, transaction rollback, totals, ownership, and both payment outcomes.
+
+**Verification:** database-backed API/transaction tests, idempotency tests, and security/ownership tests.
+
+## Phase 3 — Quality and Portfolio Delivery
+
+**Project phase gate:** see [Phase 3 in the Project Roadmap](ROADMAP.md).
+
+### Step 1 — QUAL-001 — Component contribution
+
+**Canonical task:** [QUAL-001 in the Project Roadmap](ROADMAP.md). The task scope, status, acceptance criteria, and verification record live only in that canonical entry.
+
+**Component contribution:** Supply API/database-side purchase-flow regression evidence and resolve backend-specific failures.
+
+### Step 2 — QUAL-002 — Component contribution
+
+**Canonical task:** [QUAL-002 in the Project Roadmap](ROADMAP.md). The task scope, status, acceptance criteria, and verification record live only in that canonical entry.
+
+**Component contribution:** Verify API error behavior and backend-supported UI states against shared quality requirements.
+
+### Step 3 — QUAL-003 — Component contribution
+
+**Canonical task:** [QUAL-003 in the Project Roadmap](ROADMAP.md). The task scope, status, acceptance criteria, and verification record live only in that canonical entry.
+
+**Component contribution:** Review authentication, authorization, validation, rate limits, data protection, logging, and dependency risks.
+
+### Step 4 — QUAL-004 — Component contribution
+
+**Canonical task:** [QUAL-004 in the Project Roadmap](ROADMAP.md). The task scope, status, acceptance criteria, and verification record live only in that canonical entry.
+
+**Component contribution:** Verify backend setup, migrations, seed data, demo roles, reset, and limitations in the handoff guide.
+
+### Step 5 — QUAL-005 — Component contribution
+
+**Canonical task:** [QUAL-005 in the Project Roadmap](ROADMAP.md). The task scope, status, acceptance criteria, and verification record live only in that canonical entry.
+
+**Component contribution:** Run documented backend and OpenAPI checks from a clean checkout and report exact commands and outcomes.
