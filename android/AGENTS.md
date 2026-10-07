@@ -82,5 +82,5 @@ Follow the checked-in Android Gradle scaffold and namespace `com.averonlabs.esho
 - Unit tests in `app/src/test/`
 - Instrumented tests in `app/src/androidTest/`
 - See `docs/TESTING.md` for conventions.
-- Add tests for new behavior with the implementation; the independent test agent verifies them afterward.
+- Add tests for new behavior with the implementation.
 - Keep all user-visible UI and errors in English string resources.

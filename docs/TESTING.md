@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document defines the testing strategy and conventions for the EShop Verse platform.
+This document defines the testing strategy and conventions for the EShop Verse platform. Agent-stage procedures live in the role guides linked from the root [`AGENTS.md`](../AGENTS.md).
 
 > **Note:** This is the required strategy. Exact local and CI commands must be added to `docs/DEVELOPMENT.md` when each component's test runner is configured.
 
@@ -129,10 +129,5 @@ backend/tests/
 - [ ] Tests are deterministic (no flaky tests).
 - [ ] Integration tests use isolated test data.
 - [ ] API contract tests agree with the reviewed OpenAPI description when it is added.
-- [ ] The test agent reports exact commands, commit tested, and pass/fail results.
 - [ ] After a fix, a regression test fails before the fix and passes after it.
 - [ ] Required CI checks pass before merge.
-
-## Agent Verification Flow
-
-Follow the sequential ownership and debug attempt record in the root [`AGENTS.md`](../AGENTS.md): the build agent adds tests with behavior changes; the test agent independently verifies them and does not modify production code; the debug agent reproduces a failure, makes a root-cause fix, and adds a regression test; the test agent then verifies the fix. Never weaken a test or acceptance criterion simply to make the suite green.

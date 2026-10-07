@@ -106,6 +106,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/DEVELOPMENT.md](docs/DEVELOPMEN
 This repository is designed for collaborative development between human developers and AI coding agents. The multi-agent workflow is documented in:
 
 - [AGENTS.md](AGENTS.md) — Provider-neutral agent instructions
+- [Build](.agents/workflows/build.md), [independent test](.agents/workflows/test.md), and [conditional debug](.agents/workflows/debug.md) workflows
 - [.ai/README.md](.ai/README.md) — AI workspace documentation
 
 Supported agents include Claude Code, OpenAI Codex, Google Gemini/Antigravity, GitHub Copilot, and other compatible tools.
