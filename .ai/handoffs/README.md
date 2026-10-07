@@ -36,7 +36,4 @@ This directory contains handoff files created when an agent cannot complete a ta
 
 ## Guidelines
 
-- Always commit and push work before creating a handoff.
-- Include the branch name so the next contributor can find the work.
-- Be specific about what was completed and what remains.
-- Remove handoff files once the task is fully completed.
+Create a handoff only when work is blocked or transferred outside the normal build → test → debug → retest sequence. Follow the [handoff rules in `AGENTS.md`](../../AGENTS.md) for required status, commit, and push details. Remove obsolete handoff files when the transfer is complete.

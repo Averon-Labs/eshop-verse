@@ -45,13 +45,7 @@ This is a repository snapshot, not a promise that the state remains unchanged. C
 
 ## How to assign and execute a task
 
-Say the roadmap, phase, and step, such as Android Roadmap, Phase 1, Step 1; or give its stable Task ID. That assignment starts the complete task workflow in [AGENTS.md](../AGENTS.md): implementation, independent test, debugger only when a failure is reproduced, independent retest after a fix, coordinator review, then commit/push and a PR ready for human review. The owner does not need to separately ask for testing, debugging, or a PR. Never merge automatically.
-
-Before acting, read root and applicable component instructions, the exact canonical task entry, and authoritative documents linked by that task that are relevant to its scope. Inspect current Git state and implementation. Do not bulk-read unrelated Markdown or treat AI notes as authoritative unless linked.
-
-First resolve uncertainties from repository evidence. If acceptance criteria, product behavior, a required library/dependency, API/schema/security choice, or architecture decision is materially missing or contradictory, ask one focused question and include a recommended choice and its tradeoff. Pause only work that depends on that answer. After the owner answers, continue directly; do not ask for a separate start/plan confirmation. When documents and code already resolve a decision, do not ask again; Android image loading is already specified as Glide in android/AGENTS.md.
-
-Do not treat a Step as ready when its listed dependencies are incomplete. Report the exact blocking Task ID; do not silently expand scope. Continue independent work only when it does not depend on the unresolved issue.
+Name the roadmap, phase, and step (step numbering restarts at 1 in each phase), or give the stable Task ID. `ROADMAP.md` defines project gates and shared tasks and indexes component work; `ANDROID_ROADMAP.md`, `BACKEND_ROADMAP.md`, and `ADMIN_ROADMAP.md` hold the canonical component task scopes, dependencies, acceptance criteria, and verification expectations. For assignment, reading, clarification, and execution rules, follow the root [AGENTS.md](../AGENTS.md).
 
 ## Phase 0 — Foundation (current)
 
@@ -133,6 +127,25 @@ Do not treat a Step as ready when its listed dependencies are incomplete. Report
 - [ ] Remove stale “not initialized” comments/status once they are false; never claim a workflow or branch rule is active without evidence.
 
 **Verification:** run the exact documented commands locally or in CI; inspect a successful workflow run and separately report any external branch-protection setting that remains unenforced.
+
+### Step 5 — PLAN-002 — Separate agent role workflows and remove duplicated process guidance
+
+**Status:** `[x]`
+
+**Depends on:** PLAN-001
+
+**Scope:** keep shared repository policy in the root instructions, put actionable build, test, and debug procedures in role-specific workflow guides, and remove repeated process descriptions from supporting Markdown without merging distinct product or technical references.
+
+**Acceptance criteria:**
+
+- [x] Add concise build, independent-test, and conditional-debug workflow guides under `.agents/workflows/`; each defines its entry conditions, scope boundaries, required evidence, and handoff to the next stage.
+- [x] Keep `AGENTS.md` as the shared entry point and route each specialist to the correct guide; preserve the sequential same-task-branch flow, distinct builder/tester/debugger roles, independent retest, and no-repeat-without-new-evidence rule.
+- [x] Use a focused local commit as each editing stage's handoff snapshot: builder commits implementation, tester commits any test-only additions, and debugger commits a fix; report the exact SHA verified and do not push during normal stage transitions.
+- [x] Keep `docs/TESTING.md` focused on test strategy and test conventions; keep component setup details in `docs/DEVELOPMENT.md` and component-specific agent instructions in each component `AGENTS.md`.
+- [x] Remove duplicated agent-stage procedures from supporting documents while preserving unique component, test-design, setup, contribution, and handoff requirements.
+- [x] Update documentation entry points and links; confirm each roadmap Task ID remains canonical in one entry and verify Markdown links and the final documentation diff.
+
+**Verification:** review the shared and role-specific instructions for conflicts, check all changed internal Markdown links and roadmap references, and run `git diff --check`. Application builds and runtime tests are not applicable to this documentation-only task.
 
 ## Phase 1 — Accounts and Catalog
 
@@ -280,6 +293,7 @@ Each Task ID has exactly one canonical task entry. Status, dependencies, accepta
 | QUAL-004 | [Project Roadmap — Phase 3 — Step 4](ROADMAP.md) | Demo data and portfolio handoff guide |
 | QUAL-005 | [Project Roadmap — Phase 3 — Step 5](ROADMAP.md) | Clean-checkout release rehearsal |
 | PLAN-001 | [Project Roadmap — Phase 0 — Step 3](ROADMAP.md) | Split component roadmaps and define task execution and clarification workflow |
+| PLAN-002 | [Project Roadmap — Phase 0 — Step 5](ROADMAP.md) | Separate agent role workflows and remove duplicated process guidance |
 
 ## Optional follow-up — Public deployment
 
