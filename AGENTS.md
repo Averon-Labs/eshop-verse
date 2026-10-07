@@ -65,7 +65,9 @@ Debuggers must keep an attempt record and must not repeat a failed approach with
 
 ### Step Assignment and Clarification
 
-- Identify work by roadmap name, phase, and step (for example, `Android Roadmap — Phase 1 — Step 1`) or by stable Task ID. Step numbering restarts at 1 in every phase. If the owner names a phase and step without identifying a roadmap, ask which component they mean.
+- Identify work by roadmap name, phase, and step (for example, `Android Roadmap — Phase 1 — Step 1`) or by stable Task ID. Step numbering restarts at 1 in every phase. If the owner names a phase and step without identifying a roadmap, ask which component they mean. An assignment may include a numbered Sub-step when the canonical roadmap defines one.
+- Use numbered Sub-steps only for work that has its own bounded scope, acceptance criteria and verification, can be assigned independently, and can be merged independently without leaving an incomplete or incoherent integration branch. Number them `Sub-step 1`, `Sub-step 2`, etc. within their parent Step. Existing nested bullets and checkboxes are acceptance criteria; do not relabel or split them into Sub-steps unless they satisfy all of these conditions. If independently mergeable work deserves its own lifecycle or dependencies, give it a separate Task ID instead.
+- A Sub-step remains part of its parent Task entry and does not get a duplicate Task ID. Create one task branch and PR for the assigned unit: either the whole Task or one explicitly defined Sub-step. Complete a Sub-step only when its own criteria pass; mark the parent Task complete only after every Sub-step, the parent-level criteria, and the overall verification pass.
 - Read the canonical task, its dependencies, applicable component instructions, and every authoritative project document that governs the task's scope: the task-linked documents and any applicable product, architecture/ADR, API/database, design, security, and testing guidance. Inspect source, tests, and current configuration to resolve decisions already answered by repository evidence; do not bulk-read unrelated component documents or ask the owner to repeat a documented decision.
 - If scope, acceptance criteria, product behavior, architecture, API/schema/security behavior, or a consequential library/dependency choice is materially missing or contradictory, ask a focused question. State the unresolved decision, give a recommendation and tradeoff when useful, and pause only the dependent work. Once the owner answers, continue the task without asking for another start or plan confirmation.
 - If the task and authoritative evidence fully specify the work, proceed without an approval question or a redundant plan-confirmation turn. For example, Android image loading is already specified as Glide in `android/AGENTS.md`; do not ask whether to use Glide or Picasso.
@@ -180,8 +182,8 @@ Use this Gitflow-lite model:
 
 - `main` contains only approved, completed releases. Never start a feature/task branch from it or merge a task branch directly into it.
 - `develop` is the integration branch and the default base for task PRs. Create it once from the current `main` baseline; keep it after releases.
-- Create one short-lived branch per roadmap Task ID from `develop`: `feature/<TASK-ID>-<description>`, `fix/<TASK-ID>-<description>`, `refactor/<TASK-ID>-<description>`, `docs/<TASK-ID>-<description>`, or `chore/<TASK-ID>-<description>`.
-- All sequential agents for one Task share that task branch. After build/test/debug/retest and review pass, merge its PR into `develop`; delete the task branch after merge. Do not wait until the phase ends to clean already-merged branches.
+- Create one short-lived branch from `develop` for each assigned roadmap unit: a whole Task or an explicitly defined Sub-step. Use the work type, component (`android`, `backend`, `admin`, or `project` for shared work), phase, step, optional Sub-step, Task ID, and a short slug in that order. Use lowercase, hyphens, and two-digit phase/step/Sub-step numbers. The branch pattern is `<type>/<component>-pNN-sNN[-ssNN]-<task-id>-<slug>`; omit `-ssNN` when assigning the whole Step/Task. Examples: `chore/android-p00-s01-fnd-001-verify-android-scaffold` and `docs/project-p00-s06-plan-003-assignable-substeps-naming`.
+- All sequential agents for one assigned unit share that branch. After build/test/debug/retest and review pass, merge its PR into `develop`; delete the branch after merge. Do not wait until the phase ends to clean already-merged branches.
 - When a phase/release is complete, run the release checks on `develop`. Promote a release only through a reviewed `develop` → `main` PR; tag the released commit. Never delete `develop`.
 - If the repository has not yet established `develop`, the coordinator creates it once from `main`; do not create competing integration branches.
 
@@ -190,11 +192,11 @@ Branch names:
 ```
 main                                  # Released versions only
 develop                               # Shared integration branch
-feature/<TASK-ID>-<description>       # Feature Task from develop
-fix/<TASK-ID>-<description>           # Bug-fix Task from develop
-refactor/<TASK-ID>-<description>      # Refactoring Task from develop
-chore/<TASK-ID>-<description>         # Maintenance Task from develop
-docs/<TASK-ID>-<description>          # Documentation Task from develop
+feature/<component>-pNN-sNN[-ssNN]-<task-id>-<slug>
+fix/<component>-pNN-sNN[-ssNN]-<task-id>-<slug>
+refactor/<component>-pNN-sNN[-ssNN]-<task-id>-<slug>
+chore/<component>-pNN-sNN[-ssNN]-<task-id>-<slug>
+docs/<component>-pNN-sNN[-ssNN]-<task-id>-<slug>
 ```
 
 ### Commit Conventions
@@ -216,7 +218,8 @@ ci:       CI/CD changes
 - Keep commits focused and logically reversible.
 - One logical change per commit.
 - Write clear, descriptive commit messages.
-- Include the Task ID in the commit or PR title when applicable; reference a GitHub Issue if one exists.
+- Use Conventional Commit scopes to identify the same work coordinates as the branch: `<type>(<component>-pNN-sNN[-ssNN]-<task-id>): <imperative summary>`. Example: `chore(android-p00-s01-fnd-001): verify Android scaffold and toolchain`; with a Sub-step: `feat(backend-p01-s02-ss01-cat-001): add catalog listing endpoint`.
+- Include the Task ID and optional Sub-step in the commit/PR title or description as applicable; reference a GitHub Issue if one exists. The branch and commit type must describe the actual change. Map `feature/` branches to the Conventional Commit type `feat`; other types use the same name where available (`fix`, `refactor`, `docs`, `chore`, `build`, or `ci`).
 
 ### Pull Requests
 
