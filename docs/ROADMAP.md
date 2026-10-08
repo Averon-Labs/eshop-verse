@@ -4,13 +4,13 @@
 
 This is the project-level index for phase gates, cross-component tasks, and Task ID ownership. It is not the task list for Android, backend, or admin implementation. Assign component work from [ANDROID_ROADMAP.md](ANDROID_ROADMAP.md), [BACKEND_ROADMAP.md](BACKEND_ROADMAP.md), or [ADMIN_ROADMAP.md](ADMIN_ROADMAP.md); those files hold canonical task scope, dependencies, acceptance criteria, and verification expectations.
 
-Each component roadmap resets step numbering to Step 1 at the start of every phase. Give an agent the roadmap name, phase, and step, or the stable Task ID. If the component is not identified, ask which roadmap. Cross-component work is listed here and referenced by component roadmaps without copying its acceptance criteria.
+Each component roadmap resets step numbering to Step 1 at the start of every phase. Assign work by the roadmap name, phase, and step, or by the stable Task ID. If the component is not identified, ask which roadmap. Cross-component work is listed here and referenced by component roadmaps without copying its acceptance criteria. Acceptance criteria use lowercase letter labels that restart at `a` in each criteria block; these labels identify criteria for discussion and verification, not separate work assignments.
 
-### Steps, Sub-steps, and acceptance criteria
+### Steps and acceptance criteria
 
-The numbered Step is the normal assignable unit and has one canonical Task ID. Use numbered Sub-steps (`Sub-step 1`, `Sub-step 2`, …) only when work has its own bounded scope, acceptance criteria and verification, can be assigned independently, and can be merged independently without leaving an incomplete or incoherent integration branch. Sub-step numbering restarts at 1 within each Step. A Sub-step stays inside its parent Task entry; do not create a second Task ID for it. Keep ordinary nested bullets and checkboxes as acceptance criteria. They describe conditions for completing the Step and are not separate assignments. Do not convert existing checklists into Sub-steps unless each proposed unit meets the rule above. If independently mergeable work needs a separate lifecycle or dependency graph, define it as a separate Task instead.
+The numbered Step is the roadmap unit and has one canonical Task ID. Assign an agent by Task ID or roadmap/phase/step. Each acceptance criterion is labeled with a lowercase English letter, restarting at `a` for every criteria block. Use the label to refer to a requirement (for example, “criterion b”); it does not define a separate assignment. Work that needs its own lifecycle or dependency graph must have a separate Task ID.
 
-Assign an explicitly defined Sub-step by its roadmap, phase, Step, Sub-step, and parent Task ID. Give each assigned unit (whole Task or Sub-step) one branch and PR; all specialist stages for that unit use the same branch. A Sub-step may be marked done once its own scope and verification pass. Its parent Task stays in progress until every Sub-step, all parent-level acceptance criteria, and the overall verification pass. See [AGENTS.md](../AGENTS.md) for the branch and commit naming format.
+Each Task gets one branch and PR; all specialist stages for that Task use the same branch. See [AGENTS.md](../AGENTS.md) for the branch and commit naming format.
 
 Product boundaries are in [PRODUCT.md](PRODUCT.md), architecture choices in [ARCHITECTURE.md](ARCHITECTURE.md) and [decisions/](decisions/), shared UI rules in [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) and [SCREEN_SPECIFICATIONS.md](SCREEN_SPECIFICATIONS.md), API conventions in [API_CONTRACT.md](API_CONTRACT.md), and test/security rules in [TESTING.md](TESTING.md) and [SECURITY.md](SECURITY.md). Those documents define standards; the canonical roadmap task entry tracks implementation.
 
@@ -22,7 +22,7 @@ Deliver a polished, end-to-end, single-store shopping demo for an international 
 
 ## Branch and release model
 
-- develop is the shared integration branch. Each assigned unit (a whole Task or an explicitly defined, independently mergeable Sub-step) gets one short-lived branch from develop and a PR targeting develop; builder, tester, and debugger use that branch sequentially.
+- develop is the shared integration branch. Each assigned Task gets one short-lived branch from develop and a PR targeting develop; builder, tester, and debugger use that branch sequentially.
 - Delete a task branch after its PR is accepted and merged. Keep develop permanently.
 - At a phase/release boundary, complete phase exit criteria and run release checks on develop. Promote a release only through a reviewed develop-to-main PR; tag the released commit.
 - The current main contains earlier merged bootstrap/documentation work and has no formal release tag. Preserve that history as the one-time pre-policy baseline; do not reset or rewrite main.
@@ -51,7 +51,7 @@ This is a repository snapshot, not a promise that the state remains unchanged. C
 
 ## How to assign and execute a task
 
-Name the roadmap, phase, and step (step numbering restarts at 1 in each phase), or give the stable Task ID; include a Sub-step number only when the canonical entry explicitly defines one. `ROADMAP.md` defines project gates and shared tasks and indexes component work; `ANDROID_ROADMAP.md`, `BACKEND_ROADMAP.md`, and `ADMIN_ROADMAP.md` hold the canonical component task scopes, dependencies, acceptance criteria, and verification expectations. Existing nested checklists are completion criteria unless explicitly promoted to independently assignable Sub-steps. For assignment, reading, clarification, and execution rules, follow the root [AGENTS.md](../AGENTS.md).
+Name the roadmap, phase, and step (step numbering restarts at 1 in each phase), or give the stable Task ID. `ROADMAP.md` defines project gates and shared tasks and indexes component work; `ANDROID_ROADMAP.md`, `BACKEND_ROADMAP.md`, and `ADMIN_ROADMAP.md` hold the canonical component task scopes, dependencies, letter-labeled acceptance criteria, and verification expectations. Use criterion letters to refer to requirements, not to create separate assignments. For assignment, reading, clarification, and execution rules, follow the root [AGENTS.md](../AGENTS.md).
 
 ## Phase 0 — Foundation (current)
 
@@ -70,11 +70,11 @@ Name the roadmap, phase, and step (step numbering restarts at 1 in each phase), 
 
 **Acceptance criteria:**
 
-- [x] Create `develop` from the current `main` baseline and preserve all existing merged history; do not force-push or reset `main`.
-- [ ] Set `develop` as the GitHub default branch so new task PRs default to the integration branch.
-- [ ] Configure GitHub to automatically delete merged task branches; keep `develop` and `main`.
-- [ ] Protect `develop` and `main` from direct/force pushes and require PR review. Review `develop` → `main` as a release PR only.
-- [ ] Open/re-target current in-flight work as a PR into `develop`; do not merge it automatically.
+- [x] **a.** Create `develop` from the current `main` baseline and preserve all existing merged history; do not force-push or reset `main`.
+- [ ] **b.** Set `develop` as the GitHub default branch so new task PRs default to the integration branch.
+- [ ] **c.** Configure GitHub to automatically delete merged task branches; keep `develop` and `main`.
+- [ ] **d.** Protect `develop` and `main` from direct/force pushes and require PR review. Review `develop` → `main` as a release PR only.
+- [ ] **e.** Open/re-target current in-flight work as a PR into `develop`; do not merge it automatically.
 
 **Verification:** inspect live GitHub branch refs, default branch, PR base, deletion setting, and protection rules. Confirm `main` was not rewritten.
 
@@ -88,12 +88,12 @@ Name the roadmap, phase, and step (step numbering restarts at 1 in each phase), 
 
 **Acceptance criteria:**
 
-- [x] `docs/DESIGN_SYSTEM.md` defines the cross-platform coral/neutral palette, Lato typography, shared spacing/shapes/elevation, Android Material 3 rules, web dashboard patterns, responsive behavior, and accessibility requirements.
-- [x] `docs/SCREEN_SPECIFICATIONS.md` describes all first-release Android and admin screens, navigation shells, primary content/actions, and relevant loading/empty/error/success behavior.
-- [x] Screen specifications apply reference layout cues only where an existing screen has a matching role; other screens retain their product/roadmap content hierarchy and flow while using shared visual tokens.
-- [x] Screen flows respect the product/database/API boundaries: authenticated cart, sample shipping and no tax, simulated payment without card data, seeded product images, and admin-only catalog/inventory/order capabilities.
-- [x] Out-of-scope reference concepts are excluded; unresolved data/API conflicts (including category archive behavior) are explicitly recorded rather than invented.
-- [x] Android/web agent guidance, product/roadmap references, and ADR index link to the shared design documents without duplicating the page inventory.
+- [x] **a.** `docs/DESIGN_SYSTEM.md` defines the cross-platform coral/neutral palette, Lato typography, shared spacing/shapes/elevation, Android Material 3 rules, web dashboard patterns, responsive behavior, and accessibility requirements.
+- [x] **b.** `docs/SCREEN_SPECIFICATIONS.md` describes all first-release Android and admin screens, navigation shells, primary content/actions, and relevant loading/empty/error/success behavior.
+- [x] **c.** Screen specifications apply reference layout cues only where an existing screen has a matching role; other screens retain their product/roadmap content hierarchy and flow while using shared visual tokens.
+- [x] **d.** Screen flows respect the product/database/API boundaries: authenticated cart, sample shipping and no tax, simulated payment without card data, seeded product images, and admin-only catalog/inventory/order capabilities.
+- [x] **e.** Out-of-scope reference concepts are excluded; unresolved data/API conflicts (including category archive behavior) are explicitly recorded rather than invented.
+- [x] **f.** Android/web agent guidance, product/roadmap references, and ADR index link to the shared design documents without duplicating the page inventory.
 
 **Verification:** documentation review against `PRODUCT.md`, `DATABASE.md`, `API_CONTRACT.md`, `ARCHITECTURE.md`, and existing Android/admin Tasks; check internal links and `git diff --check`. No code or runtime test is applicable.
 
@@ -107,12 +107,12 @@ Name the roadmap, phase, and step (step numbering restarts at 1 in each phase), 
 
 **Acceptance criteria:**
 
-- [x] Create separate Android, Backend, and Admin roadmaps; every phase numbers its steps from Step 1.
-- [x] Keep each Task ID's scope, dependencies, acceptance criteria, and verification expectations in exactly one canonical entry; link shared work rather than copying it.
-- [x] Update repository and component instructions and developer-facing entry points to tell agents which roadmap to read and how a step assignment maps to a Task ID.
-- [x] Define when to proceed without a question, when a material ambiguity requires an owner question, and that work continues after the answer without a second confirmation.
-- [x] Define the end-to-end sequential build, independent test, conditional debug, retest, review, and PR-ready workflow.
-- [x] Verify roadmap task mapping, step numbering, internal links, and the documentation diff.
+- [x] **a.** Create separate Android, Backend, and Admin roadmaps; every phase numbers its steps from Step 1.
+- [x] **b.** Keep each Task ID's scope, dependencies, acceptance criteria, and verification expectations in exactly one canonical entry; link shared work rather than copying it.
+- [x] **c.** Update repository and component instructions and developer-facing entry points to tell agents which roadmap to read and how a step assignment maps to a Task ID.
+- [x] **d.** Define when to proceed without a question, when a material ambiguity requires an owner question, and that work continues after the answer without a second confirmation.
+- [x] **e.** Define the end-to-end sequential build, independent test, conditional debug, retest, review, and PR-ready workflow.
+- [x] **f.** Verify roadmap task mapping, step numbering, internal links, and the documentation diff.
 
 **Verification:** inspect the generated roadmaps and all updated references; run documentation link/Task ID consistency checks and git diff --check. Application build and runtime tests are not applicable.
 
@@ -126,11 +126,11 @@ Name the roadmap, phase, and step (step numbering restarts at 1 in each phase), 
 
 **Acceptance criteria:**
 
-- [ ] `docs/DEVELOPMENT.md` contains copyable setup/build/lint/static-check/test commands for Android, backend, admin, and OpenAPI validation; each command is verified against the checked-in tooling.
-- [ ] Update `.github/workflows/ci.yml` to run the documented required checks for each initialized component on task PRs to `develop` and release PRs to `main`, using isolated test data and no committed secrets.
-- [ ] Preserve failures as failures: do not skip, disable, or mask a required check to make CI green.
-- [ ] Verify the workflow on a pull request or equivalent run and record its result. Inspect repository default-branch, auto-delete, and branch-protection settings against GIT-001; configure required status checks only after verifying their names, and document any setting that is not enforced.
-- [ ] Remove stale “not initialized” comments/status once they are false; never claim a workflow or branch rule is active without evidence.
+- [ ] **a.** `docs/DEVELOPMENT.md` contains copyable setup/build/lint/static-check/test commands for Android, backend, admin, and OpenAPI validation; each command is verified against the checked-in tooling.
+- [ ] **b.** Update `.github/workflows/ci.yml` to run the documented required checks for each initialized component on task PRs to `develop` and release PRs to `main`, using isolated test data and no committed secrets.
+- [ ] **c.** Preserve failures as failures: do not skip, disable, or mask a required check to make CI green.
+- [ ] **d.** Verify the workflow on a pull request or equivalent run and record its result. Inspect repository default-branch, auto-delete, and branch-protection settings against GIT-001; configure required status checks only after verifying their names, and document any setting that is not enforced.
+- [ ] **e.** Remove stale “not initialized” comments/status once they are false; never claim a workflow or branch rule is active without evidence.
 
 **Verification:** run the exact documented commands locally or in CI; inspect a successful workflow run and separately report any external branch-protection setting that remains unenforced.
 
@@ -144,18 +144,20 @@ Name the roadmap, phase, and step (step numbering restarts at 1 in each phase), 
 
 **Acceptance criteria:**
 
-- [x] Add concise build, independent-test, and conditional-debug workflow guides under `.agents/workflows/`; each defines its entry conditions, scope boundaries, required evidence, and handoff to the next stage.
-- [x] Keep `AGENTS.md` as the shared entry point and route each specialist to the correct guide; preserve the sequential same-task-branch flow, distinct builder/tester/debugger roles, independent retest, and no-repeat-without-new-evidence rule.
-- [x] Use a focused local commit as each editing stage's handoff snapshot: builder commits implementation, tester commits any test-only additions, and debugger commits a fix; report the exact SHA verified and do not push during normal stage transitions.
-- [x] Keep `docs/TESTING.md` focused on test strategy and test conventions; keep component setup details in `docs/DEVELOPMENT.md` and component-specific agent instructions in each component `AGENTS.md`.
-- [x] Remove duplicated agent-stage procedures from supporting documents while preserving unique component, test-design, setup, contribution, and handoff requirements.
-- [x] Update documentation entry points and links; confirm each roadmap Task ID remains canonical in one entry and verify Markdown links and the final documentation diff.
+- [x] **a.** Add concise build, independent-test, and conditional-debug workflow guides under `.agents/workflows/`; each defines its entry conditions, scope boundaries, required evidence, and handoff to the next stage.
+- [x] **b.** Keep `AGENTS.md` as the shared entry point and route each specialist to the correct guide; preserve the sequential same-task-branch flow, distinct builder/tester/debugger roles, independent retest, and no-repeat-without-new-evidence rule.
+- [x] **c.** Use a focused local commit as each editing stage's handoff snapshot: builder commits implementation, tester commits any test-only additions, and debugger commits a fix; report the exact SHA verified and do not push during normal stage transitions.
+- [x] **d.** Keep `docs/TESTING.md` focused on test strategy and test conventions; keep component setup details in `docs/DEVELOPMENT.md` and component-specific agent instructions in each component `AGENTS.md`.
+- [x] **e.** Remove duplicated agent-stage procedures from supporting documents while preserving unique component, test-design, setup, contribution, and handoff requirements.
+- [x] **f.** Update documentation entry points and links; confirm each roadmap Task ID remains canonical in one entry and verify Markdown links and the final documentation diff.
 
 **Verification:** review the shared and role-specific instructions for conflicts, check all changed internal Markdown links and roadmap references, and run `git diff --check`. Application builds and runtime tests are not applicable to this documentation-only task.
 
-### Step 6 — PLAN-003 — Define assignable sub-steps and component-aware Git naming
+### Step 6 — PLAN-003 — Define assignable sub-steps and component-aware Git naming (superseded)
 
 **Status:** `[x]`
+
+**Historical note:** Superseded by PLAN-004. The Sub-step assignment model below is retained only as the record of the earlier approach; it is no longer active guidance. Component-aware branch and commit naming remains in effect, with the format defined by current `AGENTS.md`.
 
 **Depends on:** PLAN-001, PLAN-002
 
@@ -163,17 +165,17 @@ Name the roadmap, phase, and step (step numbering restarts at 1 in each phase), 
 
 **Acceptance criteria:**
 
-- [x] Define when a nested roadmap item remains an acceptance criterion and when it merits a numbered, independently assignable sub-step; preserve current nested acceptance checklists unless they meet that rule.
-- [x] Define phase-local step and optional sub-step numbering consistently across the project and component roadmaps.
-- [x] Update repository Git guidance with a consistent branch and Conventional Commit format identifying component, phase, step, optional sub-step, and Task ID.
-- [x] Keep branch type aligned with work (`feature`, `fix`, `docs`, `chore`, etc.) and define how an independently assigned sub-step maps to scope, branch, PR, and parent Task completion.
-- [x] Verify roadmap hierarchy, examples, internal links, naming consistency, and `git diff --check`; no application build or runtime test applies.
+- [x] **a.** Define when a nested roadmap item remains an acceptance criterion and when it merits a numbered, independently assignable sub-step; preserve current nested acceptance checklists unless they meet that rule.
+- [x] **b.** Define phase-local step and optional sub-step numbering consistently across the project and component roadmaps.
+- [x] **c.** Update repository Git guidance with a consistent branch and Conventional Commit format identifying component, phase, step, optional sub-step, and Task ID.
+- [x] **d.** Keep branch type aligned with work (`feature`, `fix`, `docs`, `chore`, etc.) and define how an independently assigned sub-step maps to scope, branch, PR, and parent Task completion.
+- [x] **e.** Verify roadmap hierarchy, examples, internal links, naming consistency, and `git diff --check`; no application build or runtime test applies.
 
 **Verification:** independently reviewed the updated instructions and roadmap examples at commit `e6dd539b9fbfd1a0fad9637ab986084efe51b7ba`; Markdown relative-link, roadmap hierarchy/naming consistency, and `git diff --check` checks passed. Application builds and runtime tests are not applicable to this documentation-only task.
 
 ### Step 7 — CI-001 — Refresh GitHub Actions runtimes and least-privilege permissions
 
-**Status:** `[~]`
+**Status:** `[x]`
 
 **Depends on:** none
 
@@ -181,12 +183,30 @@ Name the roadmap, phase, and step (step numbering restarts at 1 in each phase), 
 
 **Acceptance criteria:**
 
-- [x] Upgrade active and commented first-party actions to current supported major versions that run on Node 24; retain third-party action versions that remain supported and current.
-- [x] Limit the read-only validation job's token permissions to repository contents read and prevent checkout from persisting credentials it does not use.
-- [x] Keep uninitialized component jobs disabled; do not declare or install a Node.js version for the Admin application before its package/toolchain exists.
-- [x] Validate workflow syntax and review the final diff; report that hosted CI must be observed on the next pull request if one is not created for this task.
+- [x] **a.** Upgrade active and commented first-party actions to current supported major versions that run on Node 24; retain third-party action versions that remain supported and current.
+- [x] **b.** Limit the read-only validation job's token permissions to repository contents read and prevent checkout from persisting credentials it does not use.
+- [x] **c.** Keep uninitialized component jobs disabled; do not declare or install a Node.js version for the Admin application before its package/toolchain exists.
+- [x] **d.** Validate workflow syntax and review the final diff; report that hosted CI must be observed on the next pull request if one is not created for this task.
 
-**Verification:** Python/PyYAML parsed the workflow; static assertions confirmed the intended action versions, read-only permissions, disabled component jobs, and absence of setup-node; `git diff --check` passed. `actionlint` is unavailable in this environment. Hosted CI remains to be observed on the next pull request. No application build or runtime test applies to this workflow-only change.
+**Verification:** Python/PyYAML parsed the workflow; static assertions confirmed the intended action versions, read-only permissions, disabled component jobs, and absence of setup-node; `git diff --check` passed. `actionlint` was unavailable. The hosted `Validate Repository` check passed on PR #13. No application build or runtime test applies to this workflow-only change.
+
+### Step 8 — PLAN-004 — Label roadmap acceptance criteria and remove Sub-step assignment rules
+
+**Status:** `[x]`
+
+**Depends on:** PLAN-003, CI-001
+
+**Scope:** make every roadmap acceptance criterion addressable by a lowercase English letter within its Task, remove Sub-step as an assignment or branch-naming concept, and retain Phase/Step/Task as the roadmap hierarchy.
+
+**Acceptance criteria:**
+
+- [x] **a.** Label every acceptance criterion in the project and component roadmaps `a`, `b`, `c`, and so on; restart at `a` for each Task's acceptance-criteria section.
+- [x] **b.** Update shared instructions and roadmap introductions so assignments can reference Task criteria by their letters without introducing Sub-steps.
+- [x] **c.** Remove optional Sub-step coordinates from branch and Conventional Commit formats; retain component, phase, step, Task ID, and change type.
+- [x] **d.** Mark PLAN-003's Sub-step approach as superseded while preserving its historical record and the component-aware naming guidance that remains valid.
+- [x] **e.** Verify labels restart correctly for every acceptance-criteria block, no active Sub-step rules remain, roadmap/task references and Markdown links are valid, and `git diff --check` passes.
+
+**Verification:** independently reviewed all roadmap acceptance criteria and assignment/Git rules; checked Markdown links, criterion-label consistency, and `git diff --check`. The CI-001 dependency and its hosted CI check have also been confirmed. No application build or runtime test applies.
 
 ## Phase 1 — Accounts and Catalog
 
@@ -223,10 +243,10 @@ Task steps are component-specific: see [Android](ANDROID_ROADMAP.md), [Backend](
 
 **Acceptance criteria:**
 
-- [ ] A clean seeded customer can browse, add/update cart items, complete simulated success, and view the resulting order.
-- [ ] Simulated failure, duplicate submission, and at least one authorization boundary are covered by automated integration/regression checks at the most appropriate layer.
-- [ ] Tests use isolated disposable data and cannot charge/contact a real provider.
-- [ ] The suite runs locally and in CI with documented commands and actionable failure output.
+- [ ] **a.** A clean seeded customer can browse, add/update cart items, complete simulated success, and view the resulting order.
+- [ ] **b.** Simulated failure, duplicate submission, and at least one authorization boundary are covered by automated integration/regression checks at the most appropriate layer.
+- [ ] **c.** Tests use isolated disposable data and cannot charge/contact a real provider.
+- [ ] **d.** The suite runs locally and in CI with documented commands and actionable failure output.
 
 **Verification:** run the smoke/regression suite from a clean database state and verify its CI job.
 
@@ -240,9 +260,9 @@ Task steps are component-specific: see [Android](ANDROID_ROADMAP.md), [Backend](
 
 **Acceptance criteria:**
 
-- [ ] Critical Android and admin flows have labels, focus/keyboard behavior, readable contrast/text, and usable narrow-screen layouts.
-- [ ] Screens consistently handle loading, empty, error, success, and retry states without dead ends.
-- [ ] Findings are recorded with a reproducible check or screenshot where useful; no unrelated redesign is introduced.
+- [ ] **a.** Critical Android and admin flows have labels, focus/keyboard behavior, readable contrast/text, and usable narrow-screen layouts.
+- [ ] **b.** Screens consistently handle loading, empty, error, success, and retry states without dead ends.
+- [ ] **c.** Findings are recorded with a reproducible check or screenshot where useful; no unrelated redesign is introduced.
 
 **Verification:** repeatable manual checklist plus focused automated accessibility/UI checks where supported by existing tooling.
 
@@ -256,10 +276,10 @@ Task steps are component-specific: see [Android](ANDROID_ROADMAP.md), [Backend](
 
 **Acceptance criteria:**
 
-- [ ] Review object/function-level authorization, authentication, input validation, rate limiting, CSRF/CORS, secret handling, logging, and dependency advisories.
-- [ ] Record each finding with severity, evidence, and resolution or an explicitly accepted non-production limitation; fix in-scope high-risk findings before release.
-- [ ] Regression tests cover every fixed authorization/security defect; no secrets or real personal/payment data exist in repository history or demo seeds.
-- [ ] The demo notice accurately states simulated payment and non-production limits.
+- [ ] **a.** Review object/function-level authorization, authentication, input validation, rate limiting, CSRF/CORS, secret handling, logging, and dependency advisories.
+- [ ] **b.** Record each finding with severity, evidence, and resolution or an explicitly accepted non-production limitation; fix in-scope high-risk findings before release.
+- [ ] **c.** Regression tests cover every fixed authorization/security defect; no secrets or real personal/payment data exist in repository history or demo seeds.
+- [ ] **d.** The demo notice accurately states simulated payment and non-production limits.
 
 **Verification:** security test matrix, dependency audit commands from `docs/DEVELOPMENT.md`, and reviewed findings record.
 
@@ -273,10 +293,10 @@ Task steps are component-specific: see [Android](ANDROID_ROADMAP.md), [Backend](
 
 **Acceptance criteria:**
 
-- [ ] Document clean setup, migrations/seeding, running all components, available demo roles, and reset procedure.
-- [ ] Demo credentials are generated or local-only and clearly marked; no reusable public secrets or real user data are committed.
-- [ ] Include concise architecture/flow explanation, screenshots or a short visual walkthrough, and known limitations.
-- [ ] Explain that payment is simulated and no production readiness is claimed.
+- [ ] **a.** Document clean setup, migrations/seeding, running all components, available demo roles, and reset procedure.
+- [ ] **b.** Demo credentials are generated or local-only and clearly marked; no reusable public secrets or real user data are committed.
+- [ ] **c.** Include concise architecture/flow explanation, screenshots or a short visual walkthrough, and known limitations.
+- [ ] **d.** Explain that payment is simulated and no production readiness is claimed.
 
 **Verification:** a person unfamiliar with the repository follows the guide from a clean checkout without undocumented steps.
 
@@ -290,10 +310,10 @@ Task steps are component-specific: see [Android](ANDROID_ROADMAP.md), [Backend](
 
 **Acceptance criteria:**
 
-- [ ] From a clean checkout, install/setup instructions work and all documented required builds, static checks, tests, OpenAPI validation, and CI checks pass.
-- [ ] No placeholder instructions, false CI claims, unreviewed API-contract changes, committed secrets, or unexplained known failures remain.
-- [ ] Record tested commit, exact commands, results, limitations, and any follow-up task IDs.
-- [ ] The phase exit criteria are reviewed; mark the roadmap tasks complete only with evidence.
+- [ ] **a.** From a clean checkout, install/setup instructions work and all documented required builds, static checks, tests, OpenAPI validation, and CI checks pass.
+- [ ] **b.** No placeholder instructions, false CI claims, unreviewed API-contract changes, committed secrets, or unexplained known failures remain.
+- [ ] **c.** Record tested commit, exact commands, results, limitations, and any follow-up task IDs.
+- [ ] **d.** The phase exit criteria are reviewed; mark the roadmap tasks complete only with evidence.
 
 **Verification:** independent reviewer repeats the documented clean-checkout procedure and checks the CI run and final task evidence.
 
@@ -337,6 +357,7 @@ Each Task ID has exactly one canonical task entry. Status, dependencies, accepta
 | PLAN-002 | [Project Roadmap — Phase 0 — Step 5](ROADMAP.md) | Separate agent role workflows and remove duplicated process guidance |
 | PLAN-003 | [Project Roadmap — Phase 0 — Step 6](ROADMAP.md) | Define assignable sub-steps and component-aware Git naming |
 | CI-001 | [Project Roadmap — Phase 0 — Step 7](ROADMAP.md) | Refresh GitHub Actions runtimes and least-privilege permissions |
+| PLAN-004 | [Project Roadmap — Phase 0 — Step 8](ROADMAP.md) | Label roadmap acceptance criteria and remove Sub-step assignment rules |
 
 ## Optional follow-up — Public deployment
 
