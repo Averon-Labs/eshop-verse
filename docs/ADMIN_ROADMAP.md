@@ -6,7 +6,7 @@ Plan React/TypeScript dashboard work through the REST API, following shared dash
 
 This file is the canonical task list for its component. Each task appears once here; stable Task IDs identify work across branches and PRs. Project-wide phase gates and cross-component tasks are canonical in [ROADMAP.md](ROADMAP.md). Follow [repository-wide agent instructions](../AGENTS.md), component guidance, authoritative documents linked by the task, and the actual implementation.
 
-A roadmap assignment must include this roadmap name, phase, and step, for example: Admin Roadmap, Phase 1, Step 1; include a Sub-step only when the canonical task explicitly defines one. Step numbers restart at 1 in every phase, and Sub-step numbering restarts within its parent Step. Nested acceptance checklists remain criteria, not separate assignments. Check dependencies before starting; a later step is not ready until its listed dependencies are complete. See [the project roadmap](ROADMAP.md) for the Sub-step rule and [repository Git naming conventions](../AGENTS.md).
+A roadmap assignment uses this roadmap name, phase, and step, for example: Admin Roadmap, Phase 1, Step 1; a stable Task ID may also identify the work. Step numbers restart at 1 in every phase. Lowercase letter labels restart at `a` in each acceptance-criteria block and identify individual criteria for discussion or verification, not separate assignments. Check dependencies before starting; a later step is not ready until its listed dependencies are complete. See [the project roadmap](ROADMAP.md) and [repository Git naming conventions](../AGENTS.md).
 
 ## Phase steps
 
@@ -24,11 +24,11 @@ A roadmap assignment must include this roadmap name, phase, and step, for exampl
 
 **Acceptance criteria:**
 
-- [ ] Select supported stable tooling and commit the package lockfile; use the agreed Vitest and React Testing Library strategy or document a reviewed equivalent.
-- [ ] Configure the API origin without committing credentials and document the local SPA/API origin arrangement needed for Sanctum cookies and CSRF.
-- [ ] Provide a minimal app and a passing behavior-oriented test.
-- [ ] Record and verify exact install, development, type-check/lint, test, and production-build commands in `docs/DEVELOPMENT.md`.
-- [ ] Do not call or implement product endpoints before FND-004 is reviewed.
+- [ ] **a.** Select supported stable tooling and commit the package lockfile; use the agreed Vitest and React Testing Library strategy or document a reviewed equivalent.
+- [ ] **b.** Configure the API origin without committing credentials and document the local SPA/API origin arrangement needed for Sanctum cookies and CSRF.
+- [ ] **c.** Provide a minimal app and a passing behavior-oriented test.
+- [ ] **d.** Record and verify exact install, development, type-check/lint, test, and production-build commands in `docs/DEVELOPMENT.md`.
+- [ ] **e.** Do not call or implement product endpoints before FND-004 is reviewed.
 
 **Verification:** clean dependency install, baseline UI test, static checks, and production build.
 
@@ -46,10 +46,10 @@ A roadmap assignment must include this roadmap name, phase, and step, for exampl
 
 **Acceptance criteria:**
 
-- [ ] Admin login/logout and session/CSRF behavior work with the documented local SPA/API origins and reviewed contract.
-- [ ] Admin routes reject guests and customer accounts; tests verify role checks server-side, not only hidden UI controls.
-- [ ] Session cookies use secure settings appropriate to local vs. HTTPS environments; no bearer token is stored in browser local storage for the admin SPA.
-- [ ] Failure and expired-session UI states are visible and recoverable.
+- [ ] **a.** Admin login/logout and session/CSRF behavior work with the documented local SPA/API origins and reviewed contract.
+- [ ] **b.** Admin routes reject guests and customer accounts; tests verify role checks server-side, not only hidden UI controls.
+- [ ] **c.** Session cookies use secure settings appropriate to local vs. HTTPS environments; no bearer token is stored in browser local storage for the admin SPA.
+- [ ] **d.** Failure and expired-session UI states are visible and recoverable.
 
 **Verification:** backend authentication/authorization feature tests and admin UI tests for login, logout, CSRF/session expiry, and rejected access.
 
@@ -63,10 +63,10 @@ A roadmap assignment must include this roadmap name, phase, and step, for exampl
 
 **Acceptance criteria:**
 
-- [ ] Admin can list, create, edit, archive, and validate product/category data and update stock through documented APIs.
-- [ ] Loading, empty, validation, conflict, unauthorized/session-expired, and network-error states are understandable and recoverable.
-- [ ] Forms are keyboard accessible, have labels, and behave at supported narrow and desktop widths.
-- [ ] Tests cover critical form behavior and API error mapping without depending on backend internals.
+- [ ] **a.** Admin can list, create, edit, archive, and validate product/category data and update stock through documented APIs.
+- [ ] **b.** Loading, empty, validation, conflict, unauthorized/session-expired, and network-error states are understandable and recoverable.
+- [ ] **c.** Forms are keyboard accessible, have labels, and behave at supported narrow and desktop widths.
+- [ ] **d.** Tests cover critical form behavior and API error mapping without depending on backend internals.
 
 **Verification:** admin component/behavior tests and production build/type checks.
 
@@ -84,10 +84,10 @@ A roadmap assignment must include this roadmap name, phase, and step, for exampl
 
 **Acceptance criteria:**
 
-- [ ] Admin can inspect order snapshots and apply only documented valid state transitions.
-- [ ] Server rejects unauthorized users and invalid transitions; tests cover both.
-- [ ] Dashboard shows loading, empty, conflict, error, and updated status states.
-- [ ] Admin tests verify behavior through API responses, not implementation details.
+- [ ] **a.** Admin can inspect order snapshots and apply only documented valid state transitions.
+- [ ] **b.** Server rejects unauthorized users and invalid transitions; tests cover both.
+- [ ] **c.** Dashboard shows loading, empty, conflict, error, and updated status states.
+- [ ] **d.** Admin tests verify behavior through API responses, not implementation details.
 
 **Verification:** backend transition/authorization feature tests and admin behavior tests.
 
