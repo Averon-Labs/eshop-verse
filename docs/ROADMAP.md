@@ -173,9 +173,26 @@ Name the roadmap, phase, and step (step numbering restarts at 1 in each phase), 
 
 **Verification:** independently reviewed the updated instructions and roadmap examples at commit `e6dd539b9fbfd1a0fad9637ab986084efe51b7ba`; Markdown relative-link, roadmap hierarchy/naming consistency, and `git diff --check` checks passed. Application builds and runtime tests are not applicable to this documentation-only task.
 
+### Step 7 — CI-001 — Refresh GitHub Actions runtimes and least-privilege permissions
+
+**Status:** `[x]`
+
+**Depends on:** none
+
+**Scope:** update active and illustrative GitHub Actions references that target deprecated Node runtimes, and limit the repository-validation workflow to the permissions and credentials it needs.
+
+**Acceptance criteria:**
+
+- [x] **a.** Upgrade active and commented first-party actions to current supported major versions that run on Node 24; retain third-party action versions that remain supported and current.
+- [x] **b.** Limit the read-only validation job's token permissions to repository contents read and prevent checkout from persisting credentials it does not use.
+- [x] **c.** Keep uninitialized component jobs disabled; do not declare or install a Node.js version for the Admin application before its package/toolchain exists.
+- [x] **d.** Validate workflow syntax and review the final diff; report that hosted CI must be observed on the next pull request if one is not created for this task.
+
+**Verification:** Python/PyYAML parsed the workflow; static assertions confirmed the intended action versions, read-only permissions, disabled component jobs, and absence of setup-node; `git diff --check` passed. `actionlint` was unavailable. The hosted `Validate Repository` check passed on PR #13. No application build or runtime test applies to this workflow-only change.
+
 ### Step 8 — PLAN-004 — Label roadmap acceptance criteria and remove Sub-step assignment rules
 
-**Status:** `[~]`
+**Status:** `[x]`
 
 **Depends on:** PLAN-003, CI-001
 
@@ -187,9 +204,9 @@ Name the roadmap, phase, and step (step numbering restarts at 1 in each phase), 
 - [x] **b.** Update shared instructions and roadmap introductions so assignments can reference Task criteria by their letters without introducing Sub-steps.
 - [x] **c.** Remove optional Sub-step coordinates from branch and Conventional Commit formats; retain component, phase, step, Task ID, and change type.
 - [x] **d.** Mark PLAN-003's Sub-step approach as superseded while preserving its historical record and the component-aware naming guidance that remains valid.
-- [ ] **e.** Verify labels restart correctly for every acceptance-criteria block, no active Sub-step rules remain, roadmap/task references and Markdown links are valid, and `git diff --check` passes.
+- [x] **e.** Verify labels restart correctly for every acceptance-criteria block, no active Sub-step rules remain, roadmap/task references and Markdown links are valid, and `git diff --check` passes.
 
-**Verification:** independently inspect all roadmap acceptance criteria and assignment/Git rules; run a Markdown link and criterion-label consistency check plus `git diff --check`. No application build or runtime test applies.
+**Verification:** independently reviewed all roadmap acceptance criteria and assignment/Git rules; checked Markdown links, criterion-label consistency, and `git diff --check`. The CI-001 dependency and its hosted CI check have also been confirmed. No application build or runtime test applies.
 
 ## Phase 1 — Accounts and Catalog
 
