@@ -45,7 +45,7 @@ hs_err_pid*
 replay_pid*
 
 # Android Studio / Gradle
-EShopVerse/
+/EShopVerse/
 android/.idea/
 android/.gradle/
 android/build/

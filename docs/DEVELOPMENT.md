@@ -58,7 +58,7 @@ Current scaffold configuration (recheck when build files change): Java/XML; name
 
 All Android UI is Java/XML using the shared Material 3 design system in [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md). Use the common app theme and shared resource tokens for each screen.
 
-The launcher currently contains only an empty app host. Product screens and behavior are not implemented yet. The documented Gradle commands were run against this scaffold: `clean assembleDebug` and `lint` passed; `test` completed with `NO-SOURCE` because no test source files exist. A clean-environment checkout and device-backed instrumentation run remain unverified.
+The launcher currently contains a clean application host (`HomeFragment`). Product screens and behavior are not implemented yet. The documented Gradle commands were run against this scaffold: `clean assembleDebug`, `lint`, and `test` passed (`test` completed with `NO-SOURCE` because no test source files exist). The Gradle Wrapper JAR is tracked in Git.
 
 ### Backend
 
