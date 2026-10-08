@@ -32,6 +32,10 @@ Deliver a polished, end-to-end, single-store shopping demo for an international 
 
 Last reviewed: 2026-10-07. Recheck source and Git state before starting each Task.
 
+## Authority and component scope
+
+This roadmap is for explicitly cross-component work and final project/release validation. It does not replace or extend a component's execution backlog. When an owner assigns Android work, use `ANDROID_ROADMAP.md` as the sole source for Android tasks, statuses, scopes, acceptance criteria, and progress reports; similarly, use `BACKEND_ROADMAP.md` or `ADMIN_ROADMAP.md` for those components. Do not report another component's open tasks as work remaining in the assigned component. A dependency owned by another component can block a task; report only that dependency and its effect on the assigned task. Review this project roadmap when coordinating cross-component work or deciding whether the full project/release gate is met.
+
 - Android has a regenerated Java/XML Gradle scaffold: namespace/application ID com.averonlabs.eshopverse, compile SDK 36.1, minSdk 25, targetSdk 36, Java 11 source/target, AGP 9.2.1, Gradle 9.4.1, Material Components 1.10.0, and JUnit 4. Exact setup/build/test commands remain to be confirmed under Android FND-001.
 - backend/ and admin/ contain agent guidance but no initialized applications.
 - .github/workflows/ci.yml is a placeholder. Its active job checks repository structure; component checks are not active.
@@ -55,7 +59,7 @@ Name the roadmap, phase, and step (step numbering restarts at 1 in each phase), 
 
 ## Phase 0 — Foundation (current)
 
-**Exit criteria:** all three components have repeatable, verified setup and check commands; the OpenAPI contract has been reviewed before endpoint work; CI runs the agreed component checks; GitHub's integration/release branch settings match GIT-001; the shared first-release UI specification is accepted before screen implementation; remaining choices that block the first customer-to-order flow are recorded and resolved.
+**Final project validation gate (not a component task list):** all three components have repeatable, verified setup and check commands; the OpenAPI contract has been reviewed before endpoint work; CI runs the agreed component checks; GitHub's integration/release branch settings match GIT-001; the shared first-release UI specification is accepted before screen implementation; remaining choices that block the first customer-to-order flow are recorded and resolved. Component agents execute and report their own work from their respective component roadmaps. Evaluate this gate only during cross-component coordination or final project validation.
 
 
 **Android steps:** [Android Roadmap — Phase 0](ANDROID_ROADMAP.md). **Backend steps:** [Backend Roadmap — Phase 0](BACKEND_ROADMAP.md). **Admin steps:** [Admin Roadmap — Phase 0](ADMIN_ROADMAP.md).

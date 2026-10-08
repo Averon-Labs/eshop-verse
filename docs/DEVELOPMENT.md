@@ -38,17 +38,27 @@ All branching, commit, PR, testing, and agent workflow conventions are defined i
 
 ### Android
 
-1. Open `android/` directory in Android Studio.
-2. Sync Gradle.
-3. Run on emulator or device.
+Prerequisites: JDK 17 or later, Android SDK Platform 36.1 (API 36 extension level 1), and the Android SDK Build Tools version selected by Android Gradle Plugin 9.2.1. The Gradle Wrapper files in `android/gradle/wrapper/` must be present in the checkout.
+
+From PowerShell at the repository root, verify the wrapper and run the scaffold checks:
+
+```powershell
+Set-Location android
+.\gradlew.bat --version
+.\gradlew.bat clean assembleDebug
+.\gradlew.bat lint
+.\gradlew.bat test
+```
+
+For a connected-device instrumentation run, use `.\gradlew.bat connectedDebugAndroidTest` from `android/` with an emulator or device available. The repository currently contains no JVM or instrumentation test source files, so `test` reports `NO-SOURCE`; instrumentation execution is not feature coverage and should be added with the first behavior that needs it.
+
+To use Android Studio, open the `android/` directory and sync Gradle. Run the app on an emulator or device after the local checks pass.
 
 Current scaffold configuration (recheck when build files change): Java/XML; namespace and application ID `com.averonlabs.eshopverse`; compile SDK 36.1; min SDK 25; target SDK 36; Java source/target 11; Android Gradle Plugin 9.2.1; Gradle wrapper 9.4.1; Material Components 1.10.0. AGP 9.2 requires JDK 17 and Gradle 9.4.1; its documented maximum API is 37.0. Install Android SDK Platform 36 and Build Tools 36.0.0 or the version required by the project. The regenerated scaffold also declares AppCompat 1.6.1, ConstraintLayout 2.1.4, Navigation 2.6.0, and AndroidX test dependencies from 2023; review their compatibility and whether they are all needed before implementation.
 
 All Android UI is Java/XML using the shared Material 3 design system in [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md). Use the common app theme and shared resource tokens for each screen.
 
-The current source is still the Android Studio sample (navigation demo, placeholder fragments, and sample strings); it is not a completed customer app and its checks have not yet been verified.
-
-> Exact commands will be documented when the Android build and test setup is verified.
+The launcher currently contains only an empty app host. Product screens and behavior are not implemented yet. The documented Gradle commands were run against this scaffold: `clean assembleDebug` and `lint` passed; `test` completed with `NO-SOURCE` because no test source files exist. A clean-environment checkout and device-backed instrumentation run remain unverified.
 
 ### Backend
 

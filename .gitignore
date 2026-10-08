@@ -56,6 +56,8 @@ android/captures/
 android/.externalNativeBuild/
 android/.cxx/
 android/google-services.json
+# The Gradle Wrapper JAR is required to run the checked-in wrapper from a clean checkout.
+!android/gradle/wrapper/gradle-wrapper.jar
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/

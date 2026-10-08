@@ -25,7 +25,7 @@ The platform is developed collaboratively by human developers and AI coding agen
 3. **Automated tests** — verified behavior
 4. **Git history** — commit log and branch state
 5. **Architecture Decision Records** — `docs/decisions/`
-6. **Project documentation and canonical backlog** — `docs/ROADMAP.md` for project phase gates and shared tasks, plus the relevant component roadmap (`docs/ANDROID_ROADMAP.md`, `docs/BACKEND_ROADMAP.md`, or `docs/ADMIN_ROADMAP.md`) for that component's canonical Task entries, dependencies, scope, and acceptance criteria
+6. **Project documentation and canonical backlog** — the relevant component roadmap (`docs/ANDROID_ROADMAP.md`, `docs/BACKEND_ROADMAP.md`, or `docs/ADMIN_ROADMAP.md`) is the sole execution backlog for work assigned to that component. `docs/ROADMAP.md` owns only explicitly cross-component tasks and final project/release validation; it is not an extra component task list.
 7. **Supplementary task context** — `.ai/tasks/` only when a roadmap task links to it
 8. **AI-generated plans and notes** — `.ai/plans/`, `.ai/handoffs/`
 
@@ -45,7 +45,7 @@ Each specialist reads only the workflow guide for its assigned role, in addition
 3. **Debugger:** [`.agents/workflows/debug.md`](.agents/workflows/debug.md) — a third, distinct agent, used only after a failure is reproduced.
 4. **Independent retest:** the tester or another independent tester verifies a debug fix. The coordinator reviews evidence and the final diff before completion.
 
-Every agent must inspect the current git status, branch, recent commits, assigned Task entry in its canonical component roadmap (or `docs/ROADMAP.md` for a shared task), any linked supplementary context, and relevant component guidance before editing. Agents must respect the assigned file/scope boundary and preserve untracked or unrelated work.
+Every agent must inspect the current git status, branch, recent commits, and the assigned Task entry in its canonical component roadmap; for explicitly cross-component work, use `docs/ROADMAP.md`. Read linked supplementary context and relevant component guidance before editing. When assigned Android work, do not execute or report backend/admin tasks. An incomplete external dependency may block the assigned Android task; report only the dependency ID and its blocking effect, then coordinate with its owner. Agents must respect the assigned file/scope boundary and preserve untracked or unrelated work.
 
 Debuggers must keep an attempt record and must not repeat a failed approach without new evidence; follow the limits and evidence format in the debug guide. The coordinator passes that record between stages. A tester commits any test-only additions and reports the exact SHA verified; if it makes no changes, it reports the builder's SHA. Normal build → test → debug → retest transitions need no handoff file or intermediate push; use the handoff procedure below only when work is blocked or transferred outside this sequence. After independent verification and coordinator review, the coordinator publishes the task branch and prepares a PR; never merge automatically.
 
@@ -59,25 +59,25 @@ Debuggers must keep an attempt record and must not repeat a failed approach with
 2. **Read the relevant component AGENTS.md** (`android/AGENTS.md`, `backend/AGENTS.md`, or `admin/AGENTS.md`).
 3. **Inspect git status** — check for uncommitted changes, current branch, recent commits.
 4. **Inspect existing code** — understand the current state before modifying.
-5. **Read the assigned Step and canonical Task entry** in the matching component roadmap, or `docs/ROADMAP.md` for cross-component work; inspect any supplementary `.ai/tasks/` file explicitly linked by that entry.
+5. **Read the assigned Step and canonical Task entry** in the matching component roadmap; use `docs/ROADMAP.md` only when the assignment is explicitly cross-component or for final project/release validation. Inspect any supplementary `.ai/tasks/` file explicitly linked by the entry.
 6. **Follow Ponytail principles** — see [`.agents/skills/ponytail/SKILL.md`](.agents/skills/ponytail/SKILL.md) (minimal code, strict YAGNI, reuse existing libs/code).
 7. For substantial work, plan from the roadmap entry before implementing; keep the plan in the task discussion unless durable extra context is genuinely needed.
 
 ### Step Assignment and Clarification
 
-- Identify work by roadmap name, phase, and step (for example, `Android Roadmap — Phase 1 — Step 1`) or by stable Task ID. Step numbering restarts at 1 in every phase. If the owner names a phase and step without identifying a roadmap, ask which component they mean.
+- Identify work by roadmap name, phase, and step (for example, `Android Roadmap — Phase 1 — Step 1`) or by stable Task ID. Step numbering restarts at 1 in every phase. If the owner names a phase and step without identifying a roadmap, ask which component they mean. An Android assignment means Android Roadmap only; never expand it to backend/admin work because those tasks appear in a project-level gate or dependency list.
 - Acceptance criteria are labeled with lowercase English letters restarting at `a` in each criteria block. Use a letter to point to a specific criterion in discussion or verification; a criterion label does not create a separately assignable work unit. Assign work by Task ID or roadmap/phase/step.
 - Read the canonical task, its dependencies, applicable component instructions, and every authoritative project document that governs the task's scope: the task-linked documents and any applicable product, architecture/ADR, API/database, design, security, and testing guidance. Inspect source, tests, and current configuration to resolve decisions already answered by repository evidence; do not bulk-read unrelated component documents or ask the owner to repeat a documented decision.
 - If scope, acceptance criteria, product behavior, architecture, API/schema/security behavior, or a consequential library/dependency choice is materially missing or contradictory, ask a focused question. State the unresolved decision, give a recommendation and tradeoff when useful, and pause only the dependent work. Once the owner answers, continue the task without asking for another start or plan confirmation.
 - If the task and authoritative evidence fully specify the work, proceed without an approval question or a redundant plan-confirmation turn. For example, Android image loading is already specified as Glide in `android/AGENTS.md`; do not ask whether to use Glide or Picasso.
 - Do not silently guess at material requirements or mark uncertainty as resolved. If dependencies are incomplete, report the exact blocking Task ID and do not expand the assigned scope to bypass it.
-- Run `git fetch --prune origin` before creating a task branch and again before staging, committing, or pushing. This refreshes local remote-tracking refs, including remote branch deletions. Create new work from the latest `origin/develop`; before publishing, compare local and fetched refs, fast-forward a clean local `develop` when safe, and incorporate newer `origin/develop` and same-task-branch commits into the task branch without rewriting published commits. Delete a local task branch only after verifying its PR merged and the worktree is clean. Preserve unrelated local work, never force-push shared branches, and stop to report conflicts or divergence you cannot safely resolve.
+- Follow the canonical remote synchronization lifecycle in [Git Rules](#remote-synchronization-and-task-branch-lifecycle): fetch at task start before creating a branch, again before staging/committing, and again before pushing.
 - Never merge a PR automatically.
 
 ### For Non-Trivial Features
 
-- Select one existing Task ID from the applicable component roadmap or [`docs/ROADMAP.md`](docs/ROADMAP.md) for a shared task; do not assign a whole phase as one implementation task.
-- The Task entry is canonical in exactly one roadmap and contains scope, dependencies, acceptance criteria, and verification expectations. `docs/ROADMAP.md` indexes component tasks and owns cross-component tasks; do not copy criteria into another roadmap or per-task file.
+- Select one existing Task ID from the applicable component roadmap, or [`docs/ROADMAP.md`](docs/ROADMAP.md) only for an explicitly cross-component task; do not assign a whole phase as one implementation task.
+- The Task entry is canonical in exactly one roadmap and contains scope, dependencies, acceptance criteria, and verification expectations. Component tasks are executed and reported from their own roadmap. `docs/ROADMAP.md` owns cross-component tasks and final integration/release validation; do not copy criteria into another roadmap or per-task file.
 - If planned work is missing from the roadmap, add and review a Task entry there before implementation. Link a GitHub Issue if one exists.
 - Create an optional `.ai/tasks/<TASK-ID>.md` or `.ai/plans/<TASK-ID>.md` only for substantial persistent context that cannot fit in the roadmap; link it from the Task entry and avoid duplicating acceptance criteria.
 
@@ -163,15 +163,15 @@ Debuggers must keep an attempt record and must not repeat a failed approach with
 
 ## Git Rules
 
-### Branch Synchronization Before Commit and Push
+### Remote Synchronization and Task Branch Lifecycle
 
-Every agent must refresh and inspect remote state before staging/committing work and again before pushing. Do not assume local refs or conversation history reflect GitHub.
+Every agent must inspect current remote state at three checkpoints: task start, before staging/committing, and before pushing. Do not assume local refs or conversation history reflect GitHub. `git fetch` refreshes remote-tracking refs; it does not update local branches or delete local branches.
 
-1. Run `git fetch --prune origin` and `git remote set-head origin -a`, then inspect `git status --short --branch`, `git branch -vv`, and the relevant remote refs. This updates remote-tracking refs, prunes refs for deleted remote branches, and refreshes the local `origin/HEAD` pointer; it does not update local branches or delete local branches.
-2. Keep local integration branches current only by fast-forward: create a missing local `develop` with `git switch --track -c develop origin/develop`; update an existing clean `develop` or `main` with `git pull --ff-only origin <branch>`. Never commit or push directly from them. Create each new task branch from the latest `origin/develop`. For an existing shared task branch, if the working tree is clean and its upstream advanced, fast-forward with `git pull --ff-only` before editing. Never pull/rebase over uncommitted work; preserve it and reconcile deliberately.
-3. Before staging/committing, fetch again and check whether the task branch's upstream moved. If it did, preserve the work in progress, fast-forward from the upstream, restore the work, resolve any conflicts, then review the diff and stage only task-scoped files. Do not include unrelated user changes.
-4. Before pushing, fetch and confirm the current branch and upstream. If GitHub deleted that task branch, check whether its commits are already in `origin/develop`: if merged, do not recreate or push it; if not merged, stop and ask the coordinator before restoring/recreating the branch. If the remote branch advanced, integrate its commits explicitly before retrying the push.
-5. After a task PR merges, run `git fetch --prune origin`. Delete its local branch only after confirming it is merged and is not the current branch, using `git branch -d <branch>`. Never use `git reset --hard` or force-push as routine synchronization or cleanup.
+1. **At task start, before creating a branch:** run `git fetch --prune origin` and `git remote set-head origin -a`, then inspect `git status --short --branch`, `git branch -vv`, recent commits, and relevant remote refs. Create each new task branch from the latest `origin/develop`. For an existing shared task branch, confirm its upstream state before editing.
+2. **Keep integration branches current only by fast-forward:** create a missing local `develop` with `git switch --track -c develop origin/develop`; update an existing clean `develop` or `main` with `git pull --ff-only origin <branch>`. Never commit or push directly from them. Never pull/rebase over uncommitted work; preserve it and reconcile deliberately.
+3. **Before staging/committing:** fetch again and check whether the task branch's upstream moved. If it did, preserve the work in progress, integrate the newer commits deliberately, resolve conflicts, then review the diff and stage only task-scoped files. Do not include unrelated user changes.
+4. **Before pushing:** fetch again and confirm the current branch and upstream. If GitHub deleted that task branch, check whether its commits are already in `origin/develop`: if merged, do not recreate or push it; if not merged, stop and ask the coordinator before restoring/recreating the branch. If the remote branch advanced, integrate its commits explicitly before retrying the push.
+5. **After a task PR merges:** run `git fetch --prune origin`. Delete its local branch only after confirming it is merged and is not the current branch, using `git branch -d <branch>`. Never use `git reset --hard` or force-push as routine synchronization or cleanup.
 
 If fetch, fast-forward, or push fails, capture the exact output, inspect divergence and branch protection, and resolve the cause; do not repeat an unchanged command without new evidence.
 
@@ -268,7 +268,7 @@ When a task is blocked or work must be transferred outside the planned sequentia
 ## Context Management
 
 - Use `.ai/state/PROJECT_STATE.md` for high-level project status (updated periodically, not after every change).
-- Use `docs/ROADMAP.md` for project phase gates, shared tasks, and the Task ID index; use the applicable component roadmap for canonical component Task entries and acceptance criteria.
+- Use the applicable component roadmap as the execution and progress-reporting source for that component. Use `docs/ROADMAP.md` only for explicitly cross-component tasks and final project/release validation; its phase gates do not add backend/admin work to an Android assignment.
 - Use `.ai/tasks/<TASK-ID>.md` or `.ai/plans/<TASK-ID>.md` only for linked supplementary context that would otherwise be lost or make the roadmap unwieldy.
 - Use `.ai/reviews/<PR-ID>.md` for code review notes.
 - **Do not create files in `.ai/` unless they contain genuinely useful persistent information.**
