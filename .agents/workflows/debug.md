@@ -17,5 +17,5 @@ Use this guide only when the independent tester has supplied evidence of a repro
 ## Fix and retest handoff
 
 - Make the smallest in-scope root-cause fix and add a regression test, following [`../../docs/TESTING.md`](../../docs/TESTING.md). Do not edit unrelated behavior or weaken a check.
-- Run `git fetch --prune origin` before staging or committing; create a focused local fix commit on the shared task branch and do not push during the normal transition.
+- Follow the pre-commit checkpoint in the [canonical Git synchronization lifecycle](../../AGENTS.md#remote-synchronization-and-task-branch-lifecycle); create a focused local fix commit on the shared task branch and do not push during the normal transition.
 - Report the fix, changed files, fix commit SHA, regression test, exact commands and outcomes, and the complete attempt record. Hand the branch back to the independent tester for retesting; do not claim success until the required checks pass.
