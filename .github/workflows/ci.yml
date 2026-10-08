@@ -47,7 +47,8 @@ jobs:
           test -d docs/           && echo "✓ docs/"
           echo "Repository structure is valid."
 
-  # Uncomment and configure when Android project is initialized:
+  # Enable Android CI after FND-001 verifies the scaffold commands and runner prerequisites;
+  # keep the exact build, lint, and test commands documented in docs/DEVELOPMENT.md.
   # android:
   #   name: Android Build & Test
   #   runs-on: ubuntu-latest
