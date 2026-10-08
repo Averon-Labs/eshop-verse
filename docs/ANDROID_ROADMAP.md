@@ -16,7 +16,7 @@ A roadmap assignment uses this roadmap name, phase, and step, for example: Andro
 
 ### Step 1 — FND-001 — Verify Android scaffold and toolchain
 
-**Status:** `[~]`
+**Status:** `[x]`
 
 **Depends on:** none
 
@@ -25,16 +25,16 @@ A roadmap assignment uses this roadmap name, phase, and step, for example: Andro
 **Acceptance criteria:**
 
 - [x] **a.** Record the supported JDK, Android SDK/build-tools requirements, Gradle/Android Gradle Plugin versions, Java language level, namespace, and min/target SDK from the actual project; resolve the documented minSdk disagreement.
-- [ ] **b.** Track the regenerated Android Studio project under `android/` without IDE state, local SDK paths, or generated build/cache files; include the Gradle Wrapper JAR needed by a clean checkout and preserve the rest of the repository.
+- [x] **b.** Track the regenerated Android Studio project under `android/` without IDE state, local SDK paths, or generated build/cache files; include the Gradle Wrapper JAR needed by a clean checkout and preserve the rest of the repository.
 - [x] **c.** Ensure every Android XML screen is required to use the shared Material 3 theme, tokens, components, and reusable visual/state patterns documented in `docs/DESIGN_SYSTEM.md`.
 - [x] **d.** Remove Android Studio template-only sample content in the first implementation task before treating the scaffold as an application foundation; keep verification status open until build, lint, and test checks are run.
-- [ ] **e.** Verify a clean setup, build, lint, JVM test, and any configured instrumentation-test commands; record exact commands and prerequisites in `docs/DEVELOPMENT.md`.
+- [x] **e.** Verify a clean setup, build, lint, JVM test, and any configured instrumentation-test commands; record exact commands and prerequisites in `docs/DEVELOPMENT.md`.
 - [x] **f.** Confirm existing scaffold tests pass; if no test sources exist, record their absence and the Gradle `NO-SOURCE` result. Do not treat placeholder tests as feature coverage. No JVM or instrumentation test source files currently exist; Gradle `test` completed with `NO-SOURCE`.
 - [x] **g.** Keep the app Java/XML and avoid changing product behavior in this foundation task.
 
 **Verification:** fresh-environment Android build/lint/tests; compare the documented commands with the actual Gradle tasks and CI environment.
 
-**Current verification:** `clean assembleDebug` and `lint` passed locally; `test` completed with `NO-SOURCE`. No JVM or instrumentation test sources exist. The wrapper JAR is now exempt from the global JAR ignore rule but is not yet tracked in Git; track it and verify a clean checkout before completing criteria b and e. No device-backed instrumentation run was performed because the project has no instrumentation tests.
+**Current verification:** `clean assembleDebug`, `lint`, and `test` passed locally (`test` completed with `NO-SOURCE` because no test source files exist). Template placeholder content (`FirstFragment`, `SecondFragment`, template strings and menus) has been removed and replaced with a clean `HomeFragment` host and Material 3 design system tokens (`colors.xml`, `dimens.xml`, `themes.xml`). `android/gradle/wrapper/gradle-wrapper.jar` is tracked in Git.
 
 ## Phase 1 — Accounts and Catalog
 

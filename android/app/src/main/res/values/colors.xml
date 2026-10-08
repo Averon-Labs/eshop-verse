@@ -1,5 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Brand Palette (from DESIGN_SYSTEM.md) -->
+    <color name="brand_coral">#F7767E</color>
+    <color name="brand_coral_strong">#B92F3D</color>
+    <color name="brand_coral_tint">#FFF0F1</color>
+    <color name="canvas_background">#F5F6F7</color>
+    <color name="surface_color">#FFFFFF</color>
+    <color name="text_primary_ink">#161616</color>
+    <color name="text_secondary">#777777</color>
+    <color name="neutral_dark">#505050</color>
+    <color name="outline_color">#E7E8EA</color>
+    <color name="success_color">#256B4B</color>
+    <color name="warning_color">#8A5300</color>
+    <color name="error_color">#B3261E</color>
+
+    <!-- Basic Colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 </resources>
