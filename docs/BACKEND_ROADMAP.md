@@ -6,7 +6,7 @@ Plan PHP/Laravel REST API and MySQL work, including contract-first implementatio
 
 This file is the canonical task list for its component. Each task appears once here; stable Task IDs identify work across branches and PRs. Project-wide phase gates and cross-component tasks are canonical in [ROADMAP.md](ROADMAP.md). Follow [repository-wide agent instructions](../AGENTS.md), component guidance, authoritative documents linked by the task, and the actual implementation.
 
-A roadmap assignment must include this roadmap name, phase, and step, for example: Backend Roadmap, Phase 1, Step 1; include a Sub-step only when the canonical task explicitly defines one. Step numbers restart at 1 in every phase, and Sub-step numbering restarts within its parent Step. Nested acceptance checklists remain criteria, not separate assignments. Check dependencies before starting; a later step is not ready until its listed dependencies are complete. See [the project roadmap](ROADMAP.md) for the Sub-step rule and [repository Git naming conventions](../AGENTS.md).
+A roadmap assignment uses this roadmap name, phase, and step, for example: Backend Roadmap, Phase 1, Step 1; a stable Task ID may also identify the work. Step numbers restart at 1 in every phase. Lowercase letter labels restart at `a` in each acceptance-criteria block and identify individual criteria for discussion or verification, not separate assignments. Check dependencies before starting; a later step is not ready until its listed dependencies are complete. See [the project roadmap](ROADMAP.md) and [repository Git naming conventions](../AGENTS.md).
 
 ## Phase steps
 
@@ -24,12 +24,12 @@ A roadmap assignment must include this roadmap name, phase, and step, for exampl
 
 **Acceptance criteria:**
 
-- [ ] Select supported stable framework/runtime versions and commit the dependency lockfile; document the selected versions.
-- [ ] Provide safe local configuration instructions and `.env.example` placeholders; no real secrets are checked in.
-- [ ] Configure migrations and a disposable isolated test database workflow; document how a developer creates and resets local data safely.
-- [ ] Configure the backend unit/feature test runner and a minimal passing baseline test.
-- [ ] Record and verify exact install, setup, migration, style/static-check, and test commands in `docs/DEVELOPMENT.md`.
-- [ ] Do not add business endpoints before FND-004 is reviewed.
+- [ ] **a.** Select supported stable framework/runtime versions and commit the dependency lockfile; document the selected versions.
+- [ ] **b.** Provide safe local configuration instructions and `.env.example` placeholders; no real secrets are checked in.
+- [ ] **c.** Configure migrations and a disposable isolated test database workflow; document how a developer creates and resets local data safely.
+- [ ] **d.** Configure the backend unit/feature test runner and a minimal passing baseline test.
+- [ ] **e.** Record and verify exact install, setup, migration, style/static-check, and test commands in `docs/DEVELOPMENT.md`.
+- [ ] **f.** Do not add business endpoints before FND-004 is reviewed.
 
 **Verification:** clean dependency install, disposable-database migration, and backend baseline test/checks.
 
@@ -43,13 +43,13 @@ A roadmap assignment must include this roadmap name, phase, and step, for exampl
 
 **Acceptance criteria:**
 
-- [ ] Describe registration, login/logout, profile, and password-reset flows; public category/product listing, search, sorting, pagination, and product details; customer cart; order creation, history/detail, and simulated payment result; admin authentication, catalog/category/inventory management, and order-status management.
-- [ ] Define request/response schemas, required/optional fields, validation constraints, status codes, shared error envelope, pagination, USD money representation, and representative examples.
-- [ ] Define Android bearer-token and admin Sanctum session/CSRF security schemes, ownership/role expectations, and rate-limit classes/limits.
-- [ ] Define order idempotency behavior, price/stock authority, order/address snapshots, and simulated payment success/failure state semantics consistently with `PRODUCT.md` and `DATABASE.md`.
-- [ ] Resolve category lifecycle and product reassignment behavior: the roadmap mentions category archive, while the current logical category schema has no status field.
-- [ ] Validate the document with a documented OpenAPI validator and record the exact validation command; resolve all errors.
-- [ ] Obtain API-owner review/acceptance and update `API_CONTRACT.md` to link to the approved machine-readable contract without duplicating endpoint schemas.
+- [ ] **a.** Describe registration, login/logout, profile, and password-reset flows; public category/product listing, search, sorting, pagination, and product details; customer cart; order creation, history/detail, and simulated payment result; admin authentication, catalog/category/inventory management, and order-status management.
+- [ ] **b.** Define request/response schemas, required/optional fields, validation constraints, status codes, shared error envelope, pagination, USD money representation, and representative examples.
+- [ ] **c.** Define Android bearer-token and admin Sanctum session/CSRF security schemes, ownership/role expectations, and rate-limit classes/limits.
+- [ ] **d.** Define order idempotency behavior, price/stock authority, order/address snapshots, and simulated payment success/failure state semantics consistently with `PRODUCT.md` and `DATABASE.md`.
+- [ ] **e.** Resolve category lifecycle and product reassignment behavior: the roadmap mentions category archive, while the current logical category schema has no status field.
+- [ ] **f.** Validate the document with a documented OpenAPI validator and record the exact validation command; resolve all errors.
+- [ ] **g.** Obtain API-owner review/acceptance and update `API_CONTRACT.md` to link to the approved machine-readable contract without duplicating endpoint schemas.
 
 **Verification:** OpenAPI validation plus a human review against the referenced product, architecture, database, and security documents. Endpoint implementation remains blocked until acceptance.
 
@@ -67,10 +67,10 @@ A roadmap assignment must include this roadmap name, phase, and step, for exampl
 
 **Acceptance criteria:**
 
-- [ ] Valid registration/login/profile/logout/reset flows match the reviewed OpenAPI schemas and security rules.
-- [ ] Invalid input, duplicate email, invalid credentials, reset-token failure/expiry, rate limits, and logout revocation return documented outcomes without leaking secrets.
-- [ ] Tests prove passwords are hashed, token lifetime/revocation rules and account lockout after repeated failures are enforced, and reset email can be safely exercised through a local mail sink.
-- [ ] Tests cover relevant validation, authentication, and abuse boundaries; no real email or external provider is required for local tests.
+- [ ] **a.** Valid registration/login/profile/logout/reset flows match the reviewed OpenAPI schemas and security rules.
+- [ ] **b.** Invalid input, duplicate email, invalid credentials, reset-token failure/expiry, rate limits, and logout revocation return documented outcomes without leaking secrets.
+- [ ] **c.** Tests prove passwords are hashed, token lifetime/revocation rules and account lockout after repeated failures are enforced, and reset email can be safely exercised through a local mail sink.
+- [ ] **d.** Tests cover relevant validation, authentication, and abuse boundaries; no real email or external provider is required for local tests.
 
 **Verification:** backend unit and API feature/security tests for every listed success and failure path.
 
@@ -84,10 +84,10 @@ A roadmap assignment must include this roadmap name, phase, and step, for exampl
 
 **Acceptance criteria:**
 
-- [ ] Migrations enforce documented relationships, valid prices, product status, and image ordering; use fixed-precision USD money.
-- [ ] Seed/reset creates useful fictional categories/products/images reproducibly and never contains real personal data.
-- [ ] Listing, detail, category, search, sort, pagination, and empty-result behavior match OpenAPI.
-- [ ] Invalid filters and pagination boundaries return documented errors; inactive/unavailable products do not leak into customer results.
+- [ ] **a.** Migrations enforce documented relationships, valid prices, product status, and image ordering; use fixed-precision USD money.
+- [ ] **b.** Seed/reset creates useful fictional categories/products/images reproducibly and never contains real personal data.
+- [ ] **c.** Listing, detail, category, search, sort, pagination, and empty-result behavior match OpenAPI.
+- [ ] **d.** Invalid filters and pagination boundaries return documented errors; inactive/unavailable products do not leak into customer results.
 
 **Verification:** migration/seed checks and API feature tests for results, filters, pagination, validation, and public access.
 
@@ -101,10 +101,10 @@ A roadmap assignment must include this roadmap name, phase, and step, for exampl
 
 **Acceptance criteria:**
 
-- [ ] CRUD and inventory operations follow OpenAPI, validation, and database constraints.
-- [ ] Guest/customer access is rejected; tests cover role enforcement, invalid values, missing resources, and inventory boundaries.
-- [ ] Public catalog changes reflect persisted admin updates; deleted/archived data follows the documented status behavior.
-- [ ] No client-supplied total or stock value bypasses server-side validation.
+- [ ] **a.** CRUD and inventory operations follow OpenAPI, validation, and database constraints.
+- [ ] **b.** Guest/customer access is rejected; tests cover role enforcement, invalid values, missing resources, and inventory boundaries.
+- [ ] **c.** Public catalog changes reflect persisted admin updates; deleted/archived data follows the documented status behavior.
+- [ ] **d.** No client-supplied total or stock value bypasses server-side validation.
 
 **Verification:** backend feature tests with database state assertions and authorization tests for each protected operation.
 
@@ -122,10 +122,10 @@ A roadmap assignment must include this roadmap name, phase, and step, for exampl
 
 **Acceptance criteria:**
 
-- [ ] Server validates product availability, positive bounded quantity, and current product/stock state on every mutation.
-- [ ] Cart totals use server-side fixed-precision money; clients cannot set authoritative prices.
-- [ ] Customer ownership is enforced on every read and mutation; tests try another customer's cart identifiers.
-- [ ] Empty cart, unavailable product, stock conflict, invalid quantity, and normal edits return the documented outcomes.
+- [ ] **a.** Server validates product availability, positive bounded quantity, and current product/stock state on every mutation.
+- [ ] **b.** Cart totals use server-side fixed-precision money; clients cannot set authoritative prices.
+- [ ] **c.** Customer ownership is enforced on every read and mutation; tests try another customer's cart identifiers.
+- [ ] **d.** Empty cart, unavailable product, stock conflict, invalid quantity, and normal edits return the documented outcomes.
 
 **Verification:** database-backed API tests for all mutations, totals, errors, and cross-customer authorization.
 
@@ -139,12 +139,12 @@ A roadmap assignment must include this roadmap name, phase, and step, for exampl
 
 **Acceptance criteria:**
 
-- [ ] Server recalculates prices, subtotal, configured sample shipping, and total using fixed precision; it ignores client totals.
-- [ ] Order stores immutable product/address/price snapshots and follows documented state transitions.
-- [ ] Order creation and payment/stock transitions are transaction-safe under concurrent or stale-stock requests; match `DATABASE.md` by changing inventory transactionally only when simulated payment succeeds.
-- [ ] Repeating the same idempotency key/request does not create duplicate orders; conflicting reuse returns a documented result.
-- [ ] Simulation accepts no card data, calls no real provider, and clearly distinguishes success from failure; failed payment is never shown as paid.
-- [ ] Tests cover duplicate submission, stale stock, insufficient stock, transaction rollback, totals, ownership, and both payment outcomes.
+- [ ] **a.** Server recalculates prices, subtotal, configured sample shipping, and total using fixed precision; it ignores client totals.
+- [ ] **b.** Order stores immutable product/address/price snapshots and follows documented state transitions.
+- [ ] **c.** Order creation and payment/stock transitions are transaction-safe under concurrent or stale-stock requests; match `DATABASE.md` by changing inventory transactionally only when simulated payment succeeds.
+- [ ] **d.** Repeating the same idempotency key/request does not create duplicate orders; conflicting reuse returns a documented result.
+- [ ] **e.** Simulation accepts no card data, calls no real provider, and clearly distinguishes success from failure; failed payment is never shown as paid.
+- [ ] **f.** Tests cover duplicate submission, stale stock, insufficient stock, transaction rollback, totals, ownership, and both payment outcomes.
 
 **Verification:** database-backed API/transaction tests, idempotency tests, and security/ownership tests.
 
