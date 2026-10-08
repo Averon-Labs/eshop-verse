@@ -127,8 +127,8 @@ Supported agents include Claude Code, OpenAI Codex, Google Gemini/Antigravity, G
 | [TESTING.md](docs/TESTING.md) | Testing strategy |
 | [DEVELOPMENT.md](docs/DEVELOPMENT.md) | Development workflow |
 | [DECISIONS.md](docs/DECISIONS.md) | Architecture decisions index |
-| [ROADMAP.md](docs/ROADMAP.md) | Project phase gates, shared tasks, and Task ID index |
-| [ANDROID_ROADMAP.md](docs/ANDROID_ROADMAP.md) | Android phases, numbered steps, and canonical task criteria |
+| [ROADMAP.md](docs/ROADMAP.md) | Cross-component tasks and final project/release validation |
+| [ANDROID_ROADMAP.md](docs/ANDROID_ROADMAP.md) | Sole Android execution roadmap: phases, numbered steps, status, and canonical task criteria |
 | [BACKEND_ROADMAP.md](docs/BACKEND_ROADMAP.md) | Backend phases, numbered steps, and canonical task criteria |
 | [ADMIN_ROADMAP.md](docs/ADMIN_ROADMAP.md) | Admin phases, numbered steps, and canonical task criteria |
 
@@ -140,7 +140,7 @@ Supported agents include Claude Code, OpenAI Codex, Google Gemini/Antigravity, G
 
 The first-release product scope and engineering workflow are documented. Feature completion has not yet been verified.
 
-See [docs/ROADMAP.md](docs/ROADMAP.md) for project gates and shared tasks, and the component roadmaps for numbered implementation steps.
+Use the relevant component roadmap to execute and report component work. Use [docs/ROADMAP.md](docs/ROADMAP.md) for cross-component tasks and final project/release validation only.
 
 ---
 

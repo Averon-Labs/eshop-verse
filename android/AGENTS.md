@@ -2,7 +2,7 @@
 
 > Read the root `AGENTS.md` first. This file contains Android-specific rules.
 
-The canonical Android task steps and acceptance criteria are in [`docs/ANDROID_ROADMAP.md`](../docs/ANDROID_ROADMAP.md). Project gates and shared tasks are in [`docs/ROADMAP.md`](../docs/ROADMAP.md).
+The canonical Android task steps, status, scope, dependencies, acceptance criteria, and verification are in [`docs/ANDROID_ROADMAP.md`](../docs/ANDROID_ROADMAP.md). Android assignments are executed and reported from that roadmap only; do not take on or list backend/admin work. Use [`docs/ROADMAP.md`](../docs/ROADMAP.md) only for explicitly cross-component work and final project/release validation. If an external task is a dependency, report it only as a blocker for the affected Android task.
 
 ---
 

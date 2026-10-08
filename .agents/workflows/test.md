@@ -13,7 +13,7 @@ Use this guide only when assigned independent verification or retesting. The sha
 - Independently inspect the acceptance criteria and relevant implementation, then run the task's required checks and appropriate neighboring/regression checks.
 - You may add or improve tests within the task scope. Do not change production code, weaken acceptance criteria, or disable, skip, or mask a failing check.
 - Preserve failures. For each failure, capture the tested commit, exact command and inputs, environment details needed to reproduce it, and observed output.
-- If you add or change tests, run `git fetch --prune origin` before staging or committing; create a focused local test-only commit, then verify the required checks against that commit. Do not push during this stage.
+- If you add or change tests, follow the pre-commit checkpoint in the [canonical Git synchronization lifecycle](../../AGENTS.md#remote-synchronization-and-task-branch-lifecycle); create a focused local test-only commit, then verify the required checks against that commit. Do not push during this stage.
 
 ## Handoff
 

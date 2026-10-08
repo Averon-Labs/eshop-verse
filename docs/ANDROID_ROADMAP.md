@@ -4,15 +4,15 @@
 
 Plan Android customer-app work in Java/XML using the documented MVVM, Repository, Material 3, and API boundaries.
 
-This file is the canonical task list for its component. Each task appears once here; stable Task IDs identify work across branches and PRs. Project-wide phase gates and cross-component tasks are canonical in [ROADMAP.md](ROADMAP.md). Follow [repository-wide agent instructions](../AGENTS.md), component guidance, authoritative documents linked by the task, and the actual implementation.
+This file is the sole execution roadmap for Android work. Every Android task, its status, scope, dependencies, acceptance criteria, and verification belongs here. When assigned an Android phase, step, or Task ID, work from this file and Android-specific guidance; do not take on or report backend/admin tasks. [ROADMAP.md](ROADMAP.md) is reserved for cross-component tasks and final project/release validation, not as an additional Android task list.
 
-A roadmap assignment uses this roadmap name, phase, and step, for example: Android Roadmap, Phase 1, Step 1; a stable Task ID may also identify the work. Step numbers restart at 1 in every phase. Lowercase letter labels restart at `a` in each acceptance-criteria block and identify individual criteria for discussion or verification, not separate assignments. Check dependencies before starting; a later step is not ready until its listed dependencies are complete. See [the project roadmap](ROADMAP.md) and [repository Git naming conventions](../AGENTS.md).
+A roadmap assignment uses this roadmap name, phase, and step, for example: Android Roadmap, Phase 1, Step 1; a stable Task ID may also identify the work. Step numbers restart at 1 in every phase. Lowercase letter labels restart at `a` in each acceptance-criteria block and identify individual criteria for discussion or verification, not separate assignments. Check only the assigned Android task's dependencies before starting. If an external backend/admin/shared dependency is incomplete, report that dependency as a blocker for the Android task and do not adopt or report the external task as Android work. The project roadmap is used for final cross-component/release validation. Follow [repository-wide agent instructions](../AGENTS.md) for implementation workflow and Git conventions.
 
 ## Phase steps
 
 ## Phase 0 — Foundation
 
-**Project phase gate:** see [Phase 0 in the Project Roadmap](ROADMAP.md).
+**Cross-component release check:** see [Phase 0 in the Project Roadmap](ROADMAP.md) during final project validation. This is not an additional Android task assignment.
 
 ### Step 1 — FND-001 — Verify Android scaffold and toolchain
 
@@ -24,19 +24,21 @@ A roadmap assignment uses this roadmap name, phase, and step, for example: Andro
 
 **Acceptance criteria:**
 
-- [ ] **a.** Record the supported JDK, Android SDK/build-tools requirements, Gradle/Android Gradle Plugin versions, Java language level, namespace, and min/target SDK from the actual project; resolve the documented minSdk disagreement.
-- [ ] **b.** Track the regenerated Android Studio project under `android/` without IDE state, local SDK paths, or generated build/cache files; preserve the rest of the repository.
-- [ ] **c.** Ensure every Android XML screen is required to use the shared Material 3 theme, tokens, components, and reusable visual/state patterns documented in `docs/DESIGN_SYSTEM.md`.
-- [ ] **d.** Remove Android Studio template-only sample content in the first implementation task before treating the scaffold as an application foundation; keep verification status open until build, lint, and test checks are run.
+- [x] **a.** Record the supported JDK, Android SDK/build-tools requirements, Gradle/Android Gradle Plugin versions, Java language level, namespace, and min/target SDK from the actual project; resolve the documented minSdk disagreement.
+- [ ] **b.** Track the regenerated Android Studio project under `android/` without IDE state, local SDK paths, or generated build/cache files; include the Gradle Wrapper JAR needed by a clean checkout and preserve the rest of the repository.
+- [x] **c.** Ensure every Android XML screen is required to use the shared Material 3 theme, tokens, components, and reusable visual/state patterns documented in `docs/DESIGN_SYSTEM.md`.
+- [x] **d.** Remove Android Studio template-only sample content in the first implementation task before treating the scaffold as an application foundation; keep verification status open until build, lint, and test checks are run.
 - [ ] **e.** Verify a clean setup, build, lint, JVM test, and any configured instrumentation-test commands; record exact commands and prerequisites in `docs/DEVELOPMENT.md`.
-- [ ] **f.** Confirm the existing scaffold tests pass or record a reproducible failure; do not treat placeholder tests as feature coverage.
-- [ ] **g.** Keep the app Java/XML and avoid changing product behavior in this foundation task.
+- [x] **f.** Confirm existing scaffold tests pass; if no test sources exist, record their absence and the Gradle `NO-SOURCE` result. Do not treat placeholder tests as feature coverage. No JVM or instrumentation test source files currently exist; Gradle `test` completed with `NO-SOURCE`.
+- [x] **g.** Keep the app Java/XML and avoid changing product behavior in this foundation task.
 
 **Verification:** fresh-environment Android build/lint/tests; compare the documented commands with the actual Gradle tasks and CI environment.
 
+**Current verification:** `clean assembleDebug` and `lint` passed locally; `test` completed with `NO-SOURCE`. No JVM or instrumentation test sources exist. The wrapper JAR is now exempt from the global JAR ignore rule but is not yet tracked in Git; track it and verify a clean checkout before completing criteria b and e. No device-backed instrumentation run was performed because the project has no instrumentation tests.
+
 ## Phase 1 — Accounts and Catalog
 
-**Project phase gate:** see [Phase 1 in the Project Roadmap](ROADMAP.md).
+**Cross-component release check:** see [Phase 1 in the Project Roadmap](ROADMAP.md) during final project validation. This is not an additional Android task assignment.
 
 ### Step 1 — AUTH-002 — Android customer authentication and profile
 
@@ -74,7 +76,7 @@ A roadmap assignment uses this roadmap name, phase, and step, for example: Andro
 
 ## Phase 2 — Cart, Checkout, and Orders
 
-**Project phase gate:** see [Phase 2 in the Project Roadmap](ROADMAP.md).
+**Cross-component release check:** see [Phase 2 in the Project Roadmap](ROADMAP.md) during final project validation. This is not an additional Android task assignment.
 
 ### Step 1 — CART-002 — Android cart experience
 
@@ -127,7 +129,7 @@ A roadmap assignment uses this roadmap name, phase, and step, for example: Andro
 
 ## Phase 3 — Quality and Portfolio Delivery
 
-**Project phase gate:** see [Phase 3 in the Project Roadmap](ROADMAP.md).
+**Cross-component release check:** see [Phase 3 in the Project Roadmap](ROADMAP.md) during final project validation. This is not an additional Android task assignment.
 
 ### Step 1 — QUAL-001 — Component contribution
 
