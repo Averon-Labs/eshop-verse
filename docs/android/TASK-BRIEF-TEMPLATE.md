@@ -110,6 +110,12 @@ Rules:
   repository, ViewModel, adapter, and test classes under `com.averonlabs.eshopverse.<feature>`.
 - **No new colors or dimensions outside UI-002.** Design tokens are centralized; a screen task that
   needs a token does not have one, it has a bug report for UI-002.
+- **Use the shared tokens for everything every screen already has.** Screen gutters use
+  `@dimen/screen_horizontal_margin`; corner radii use the `corner_*` tokens; card elevation uses the
+  shared elevation token; text uses a `TextAppearance.EShopVerse.*` style. A literal `dp` value, a
+  literal `"#RRGGBB"`, or an unqualified `app:cardElevation` in a screen layout is a defect, not a
+  shortcut. (The scaffold's sample card in `fragment_home.xml` violates this and is replaced by
+  CAT-002; do not copy its pattern.)
 - **One writer per file at a time.** If a brief's whitelist overlaps a file already under
   construction on another branch, the coordinator serializes the two tasks.
 
