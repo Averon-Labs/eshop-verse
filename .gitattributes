@@ -1,0 +1,24 @@
+# Line-ending normalization for a mixed Windows/Linux project.
+# Without this, `core.autocrlf` converts android/gradlew to CRLF on Windows
+# and the checked-in wrapper fails under Linux CI with "bad interpreter".
+* text=auto eol=lf
+
+# Shell entry points must always be LF.
+*.sh text eol=lf
+gradlew text eol=lf
+android/gradlew text eol=lf
+
+# Windows batch files must always be CRLF.
+*.bat text eol=crlf
+
+# Binary assets must never be normalized.
+*.jar binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.zip binary
