@@ -18,6 +18,12 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // API base URL configuration
+        buildConfigField("String", "API_BASE_URL",
+            project.findProperty("apiBaseUrl") as String?
+                ?: if (it.name == "debug") "\"http://10.0.2.2:8081/api/v1\""
+                else "\"https://api.eshopverse.example.com/api/v1\"")
     }
 
     buildTypes {
@@ -29,23 +35,42 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 }
 
 dependencies {
-    implementation(libs.activity.ktx)
+    implementation(libs.activity)
     implementation(libs.appcompat)
     implementation(libs.constraintlayout)
+    implementation(libs.core)
+    implementation(libs.fragment)
     implementation(libs.material)
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
+    implementation(libs.recyclerview)
+    implementation(libs.lifecycle.viewmodel)
+    implementation(libs.lifecycle.livedata)
+    implementation(libs.swiperefreshlayout)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging.interceptor)
+    implementation(libs.glide)
+
     testImplementation(libs.junit)
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockwebserver)
+    testImplementation(libs.arch.core.testing)
+
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ext.junit)
 }
