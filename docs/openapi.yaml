@@ -28,6 +28,12 @@ info:
       provider is contacted.
     - Prices, stock, and order totals are server-authoritative. Client-supplied totals are
       ignored.
+    - Every failure uses the shared error envelope with a stable `error.code` from
+      `x-error-codes`. Operations below document the errors a client must handle explicitly;
+      `INTERNAL_ERROR` (`500`) is the documented fallback for anything not listed and carries no
+      internal detail. A client must never infer that a request was applied from a failure.
+    - Operations that require the customer bearer token declare it explicitly rather than relying
+      on the document-level default, so a reader of a single operation can see its requirements.
   contact:
     name: EShop Verse maintainers
   license:
@@ -129,7 +135,9 @@ paths:
                     items: { $ref: '#/components/schemas/ProductSummary' }
                   pagination: { $ref: '#/components/schemas/Pagination' }
         '422':
-          description: Invalid filter or pagination value.
+          description: |
+            `VALIDATION_ERROR` for an invalid filter or pagination value, or
+            `CATEGORY_NOT_FOUND` when `categoryId` references an unknown or archived category.
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Error' }
@@ -180,7 +188,7 @@ paths:
                 properties:
                   data: { $ref: '#/components/schemas/AuthSession' }
         '409':
-          description: The email is already registered.
+          description: '`EMAIL_ALREADY_REGISTERED` — the email is already registered.'
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Error' }
@@ -221,6 +229,8 @@ paths:
     post:
       tags: [Customer auth]
       operationId: logoutCustomer
+      security:
+        - bearerAuth: []
       summary: Revoke the current bearer token
       description: Revokes only the presented token. Other devices stay signed in.
       responses:
@@ -231,6 +241,8 @@ paths:
     get:
       tags: [Customer auth]
       operationId: getCustomerProfile
+      security:
+        - bearerAuth: []
       summary: Read the signed-in customer profile
       responses:
         '200':
@@ -246,6 +258,8 @@ paths:
     patch:
       tags: [Customer auth]
       operationId: updateCustomerProfile
+      security:
+        - bearerAuth: []
       summary: Update the signed-in customer profile
       description: Only `firstName` and `lastName` are editable. Email and role are not.
       requestBody:
@@ -333,6 +347,8 @@ paths:
     get:
       tags: [Cart]
       operationId: getCart
+      security:
+        - bearerAuth: []
       summary: Read the signed-in customer's cart
       description: |
         Anonymous access is rejected; a cart always belongs to a signed-in customer. Every
@@ -354,6 +370,8 @@ paths:
     post:
       tags: [Cart]
       operationId: addCartItem
+      security:
+        - bearerAuth: []
       summary: Add a product to the cart
       description: |
         Adding a product that is already in the cart increases its quantity. The whole cart
@@ -393,6 +411,8 @@ paths:
     delete:
       tags: [Cart]
       operationId: clearCart
+      security:
+        - bearerAuth: []
       summary: Remove every line from the cart
       responses:
         '200':
@@ -412,6 +432,8 @@ paths:
     patch:
       tags: [Cart]
       operationId: updateCartItem
+      security:
+        - bearerAuth: []
       summary: Set the quantity of one cart line
       requestBody:
         required: true
@@ -448,6 +470,8 @@ paths:
     delete:
       tags: [Cart]
       operationId: removeCartItem
+      security:
+        - bearerAuth: []
       summary: Remove one cart line
       responses:
         '200':
@@ -472,6 +496,8 @@ paths:
     post:
       tags: [Checkout]
       operationId: createCheckoutQuote
+      security:
+        - bearerAuth: []
       summary: Validate a shipping address and price the current cart
       description: |
         Side-effect free. Returns the exact item lines, subtotal, configured sample shipping,
@@ -509,6 +535,8 @@ paths:
     post:
       tags: [Checkout]
       operationId: createOrder
+      security:
+        - bearerAuth: []
       summary: Create an order from the cart in `pending_payment`
       description: |
         The server recalculates every amount; client totals are ignored. The cart is converted
@@ -554,9 +582,12 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/Error' }
         '422': { $ref: '#/components/responses/ValidationError' }
+        '500': { $ref: '#/components/responses/ServerError' }
     get:
       tags: [Orders]
       operationId: listOrders
+      security:
+        - bearerAuth: []
       summary: List the signed-in customer's orders, newest first
       parameters:
         - $ref: '#/components/parameters/Page'
@@ -580,6 +611,8 @@ paths:
     get:
       tags: [Orders]
       operationId: getOrder
+      security:
+        - bearerAuth: []
       summary: Read one of the caller's orders
       description: |
         Another customer's order id returns `404`, never `403`: the server must not confirm the
@@ -603,6 +636,8 @@ paths:
     post:
       tags: [Orders]
       operationId: submitSimulatedPayment
+      security:
+        - bearerAuth: []
       summary: Submit an explicitly simulated payment outcome
       description: |
         Demo-only outcome selector. The request carries an outcome flag, never card data.
@@ -652,6 +687,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/Error' }
         '422': { $ref: '#/components/responses/ValidationError' }
+        '500': { $ref: '#/components/responses/ServerError' }
 
   # --------------------------------------------------------------- Admin auth
 
@@ -718,6 +754,7 @@ paths:
                 properties:
                   data: { $ref: '#/components/schemas/AdminSession' }
         '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
 
   /admin/auth/logout:
     post:
@@ -1242,6 +1279,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/Error' }
         '422': { $ref: '#/components/responses/ValidationError' }
+        '500': { $ref: '#/components/responses/ServerError' }
 
 components:
 
@@ -1306,12 +1344,16 @@ components:
 
   responses:
     ValidationError:
-      description: One or more fields are invalid. No field value is echoed back.
+      description: |
+        `VALIDATION_ERROR` — one or more fields are invalid. `error.details` lists the offending
+        fields. No field value is echoed back.
       content:
         application/json:
           schema: { $ref: '#/components/schemas/Error' }
     Unauthenticated:
-      description: '`UNAUTHENTICATED` — the token is missing, revoked, or expired.'
+      description: |
+        `UNAUTHENTICATED` — the credential is missing, revoked, expired, or not a valid
+        administrator session.
       content:
         application/json:
           schema: { $ref: '#/components/schemas/Error' }
@@ -1330,6 +1372,20 @@ components:
       description: |
         `NOT_FOUND` — the resource does not exist **or** is not owned by the caller. Ownership
         failures must not be distinguishable from missing resources.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: |
+        `FORBIDDEN` — the caller is authenticated but not permitted. Returned when a session
+        exists for an account that is no longer an administrator.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    ServerError:
+      description: |
+        `INTERNAL_ERROR` — an unexpected server failure. The response never contains a stack trace,
+        SQL, or a file path, and does not reveal whether the request was applied.
       content:
         application/json:
           schema: { $ref: '#/components/schemas/Error' }
