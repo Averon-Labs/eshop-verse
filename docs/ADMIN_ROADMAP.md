@@ -20,6 +20,13 @@ A roadmap assignment uses this roadmap name, phase, and step, for example: Admin
 
 **Depends on:** none
 
+**Prerequisites to start:**
+- Node.js 18+ available locally
+- Package manager (npm/yarn/pnpm) available
+- React 18+, TypeScript, Vite tooling decided
+- Vitest and React Testing Library selected
+- Local development CORS/origin strategy for Sanctum planned
+
 **Scope:** create the React/TypeScript admin foundation; do not implement product workflows yet.
 
 **Acceptance criteria:**
@@ -42,6 +49,19 @@ A roadmap assignment uses this roadmap name, phase, and step, for example: Admin
 
 **Depends on:** FND-002, FND-003, FND-004, FND-005, DES-001
 
+**Prerequisites to start:**
+- **FND-002 complete** (Backend: Laravel app with Sanctum configured)
+- FND-003 complete (Admin: React app initialized)
+- **FND-004 complete** (Backend: OpenAPI contract with admin auth endpoints)
+- **FND-005 complete** (Project: CI and documentation ready)
+- **DES-001 complete** (Project: Admin login screen design finalized)
+- Sanctum session/CSRF flow understood
+- Local SPA/API origin arrangement documented
+- Admin role enforcement rules defined in backend
+- Session cookie secure settings defined
+
+**BACKEND PORTION:** This task has a backend implementation component (admin auth endpoints, role middleware). Backend colleague must implement that part.
+
 **Scope:** secure first-party admin sign-in/session lifecycle, Sanctum CSRF flow, and server-enforced admin role checks.
 
 **Acceptance criteria:**
@@ -58,6 +78,17 @@ A roadmap assignment uses this roadmap name, phase, and step, for example: Admin
 **Status:** `[ ]`
 
 **Depends on:** FND-003, FND-004, AUTH-003, CAT-003, DES-001
+
+**Prerequisites to start:**
+- FND-003 complete (Admin: React app ready)
+- **FND-004 complete** (Backend: OpenAPI contract with admin catalog endpoints)
+- AUTH-003 complete (Admin: authentication/session working)
+- **CAT-003 complete** (Backend: admin catalog/inventory API implemented)
+- **DES-001 complete** (Project: Admin catalog/inventory screen designs finalized)
+- Admin dashboard layout/navigation structure defined
+- Form validation strategy decided
+- Error state UI patterns defined
+- Keyboard accessibility requirements understood
 
 **Scope:** React admin screens for product, category, and stock management through the REST API.
 
@@ -79,6 +110,16 @@ A roadmap assignment uses this roadmap name, phase, and step, for example: Admin
 **Status:** `[ ]`
 
 **Depends on:** FND-003, FND-004, AUTH-003, ORD-001, DES-001
+
+**Prerequisites to start:**
+- FND-003 complete (Admin: React app ready)
+- **FND-004 complete** (Backend: OpenAPI contract with admin order endpoints)
+- AUTH-003 complete (Admin: authentication/session working)
+- **ORD-001 complete** (Backend: order API with admin endpoints implemented)
+- **DES-001 complete** (Project: Admin order management screen designs finalized)
+- Order status transition rules defined in backend
+- Admin order authorization rules defined
+- Order snapshot display patterns defined
 
 **Scope:** admin order list/detail and permitted status updates.
 

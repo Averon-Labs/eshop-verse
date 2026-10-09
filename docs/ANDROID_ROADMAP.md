@@ -70,6 +70,12 @@ Phase 0 supplies every cross-cutting layer the screen tasks depend on, so Phase 
 
 **Depends on:** FND-001
 
+**Prerequisites to start:**
+- FND-001 verification complete (configuration reconciliation done)
+- JDK 17+ available locally
+- Android SDK Platform 36.1 installed
+- Build Tools 36.0.0 installed
+
 **Spec:** [`android/PHASE-0-FOUNDATION-SPEC.md`](android/PHASE-0-FOUNDATION-SPEC.md) §B and §D
 
 **Scope:** bring the Android build, dependency set, test harness, and CI job up to the toolchain the project actually uses, and produce the missing build/test evidence.
@@ -93,6 +99,13 @@ Phase 0 supplies every cross-cutting layer the screen tasks depend on, so Phase 
 
 **Depends on:** FND-006
 
+**Prerequisites to start:**
+- FND-006 complete (dependency set and test harness ready)
+- `docs/DESIGN_SYSTEM.md` finalized and reviewed
+- Lato font files available (decision OPEN-11)
+- Supporting-text contrast value decided (decision OPEN-7)
+- Lato weight for "600" decided (decision OPEN-8)
+
 **Spec:** [`android/PHASE-0-FOUNDATION-SPEC.md`](android/PHASE-0-FOUNDATION-SPEC.md) §E
 
 **Scope:** materialize `docs/DESIGN_SYSTEM.md` into Android resources — the complete Material 3 colour role set, Lato typography at the required weights, spacing/shape/status tokens, component styles, and the four shared custom views — and close the theme and contrast defects.
@@ -113,6 +126,11 @@ Phase 0 supplies every cross-cutting layer the screen tasks depend on, so Phase 
 **Status:** `[ ]`
 
 **Depends on:** FND-006, UI-002
+
+**Prerequisites to start:**
+- FND-006 complete (dependencies ready)
+- UI-002 complete (Material 3 theme, tokens, and shared views available)
+- Design system tokens and component styles exist
 
 **Spec:** [`android/PHASE-0-FOUNDATION-SPEC.md`](android/PHASE-0-FOUNDATION-SPEC.md) §F
 
@@ -135,6 +153,12 @@ Phase 0 supplies every cross-cutting layer the screen tasks depend on, so Phase 
 
 **Depends on:** FND-006, FND-004
 
+**Prerequisites to start:**
+- FND-006 complete (dependency set ready)
+- **FND-004 complete** (Backend: `docs/openapi.yaml` reviewed and accepted)
+- All contract decisions closed (OPEN-1 through OPEN-4)
+- API schemas defined for all Phase 1-2 models
+
 **Spec:** [`android/PHASE-0-FOUNDATION-SPEC.md`](android/PHASE-0-FOUNDATION-SPEC.md) §G
 
 **Scope:** one implementation of fixed-precision money, en-US formatting, the complete Phase 1–2 API model set derived from the contract, the shared UI state/event primitives, and error-code messaging.
@@ -155,6 +179,12 @@ Phase 0 supplies every cross-cutting layer the screen tasks depend on, so Phase 
 
 **Depends on:** FND-006
 
+**Prerequisites to start:**
+- FND-006 complete (dependency set ready)
+- Token storage mechanism decided (decision OPEN-6)
+- Backup policy decided (decision OPEN-9)
+- Room persistence strategy decided (decision OPEN-10)
+
 **Spec:** [`android/PHASE-0-FOUNDATION-SPEC.md`](android/PHASE-0-FOUNDATION-SPEC.md) §H
 
 **Scope:** platform-protected token storage with backup exclusion, plus an explicit, documented decision on local persistence instead of the current contradiction in `docs/ARCHITECTURE.md`.
@@ -174,6 +204,14 @@ Phase 0 supplies every cross-cutting layer the screen tasks depend on, so Phase 
 **Status:** `[ ]`
 
 **Depends on:** FND-006, FND-004, DOM-002, DATA-002
+
+**Prerequisites to start:**
+- FND-006 complete (Retrofit, OkHttp, Gson dependencies ready)
+- **FND-004 complete** (Backend: OpenAPI contract accepted)
+- DOM-002 complete (API models, error codes, Money class exist)
+- DATA-002 complete (token storage ready)
+- Mock server runner decided (decision OPEN-5)
+- Fixture directory structure planned
 
 **Spec:** [`android/PHASE-0-FOUNDATION-SPEC.md`](android/PHASE-0-FOUNDATION-SPEC.md) §I and [`android/API-MOCK-STRATEGY.md`](android/API-MOCK-STRATEGY.md)
 
@@ -207,6 +245,16 @@ Both steps in this phase may run concurrently: they own disjoint packages, graph
 
 **Contract dependency:** FND-004 (accepted `openapi.yaml`). **Runtime integration:** AUTH-001 — exercised by QUAL-001, not blocking this task.
 
+**Prerequisites to start:**
+- All Phase 0 steps complete (FND-006, UI-002, APP-002, DOM-002, DATA-002, NET-002)
+- **FND-004 complete** (Backend: OpenAPI contract accepted)
+- **DES-001 complete** (Project: Screen specifications with M-06, M-07, M-08, M-09, M-17 finalized)
+- Shell navigation and auth graph defined in APP-002
+- Design tokens, Material 3 components ready from UI-002
+- Token storage API ready from DATA-002
+- API client with auth endpoints ready from NET-002
+- Mock server or real API available for testing
+
 **Screens:** M-06, M-07, M-08, M-09, M-17
 
 **Spec:** [`android/PHASE-1-SPEC.md`](android/PHASE-1-SPEC.md) §D
@@ -230,6 +278,16 @@ Both steps in this phase may run concurrently: they own disjoint packages, graph
 **Depends on:** FND-001, FND-006, UI-002, APP-002, DOM-002, NET-002, DES-001
 
 **Contract dependency:** FND-004 (accepted `openapi.yaml`). **Runtime integration:** CAT-001 — exercised by QUAL-001, not blocking this task.
+
+**Prerequisites to start:**
+- All Phase 0 steps complete (FND-006, UI-002, APP-002, DOM-002, NET-002)
+- **FND-004 complete** (Backend: OpenAPI contract accepted)
+- **DES-001 complete** (Project: Screen specifications with M-01, M-02, M-03, M-04, M-05 finalized)
+- Shell navigation ready (Home/Explore fragments) from APP-002
+- Design tokens, product card styles, image loading ready from UI-002
+- Money formatting, Product/Category models ready from DOM-002
+- API client with catalog endpoints ready from NET-002
+- Mock server or real API available for testing
 
 **Screens:** M-01, M-02, M-03, M-04, M-05
 
@@ -263,6 +321,17 @@ All three steps in this phase may run concurrently: they own disjoint packages, 
 
 **Contract dependency:** FND-004. **Runtime integration:** CART-001 — exercised by QUAL-001, not blocking this task.
 
+**Prerequisites to start:**
+- All Phase 0 and Phase 1 foundation complete
+- AUTH-002 complete (authentication screens, token management working)
+- **FND-004 complete** (Backend: OpenAPI cart endpoints defined)
+- **DES-001 complete** (Project: Screen M-10 finalized)
+- Cart navigation graph defined in APP-002
+- QuantityStepperView ready from UI-002
+- Cart models, Money formatting ready from DOM-002
+- API client with cart endpoints ready from NET-002
+- Shell cart badge API available from APP-002
+
 **Screen:** M-10
 
 **Spec:** [`android/PHASE-2-SPEC.md`](android/PHASE-2-SPEC.md) §D
@@ -285,6 +354,16 @@ All three steps in this phase may run concurrently: they own disjoint packages, 
 **Depends on:** FND-001, FND-006, UI-002, APP-002, DOM-002, NET-002, AUTH-002, DES-001
 
 **Contract dependency:** FND-004. **Runtime integration:** ORD-001 — exercised by QUAL-001, not blocking this task.
+
+**Prerequisites to start:**
+- All Phase 0 and Phase 1 foundation complete
+- AUTH-002 complete (authentication working, user context available)
+- **FND-004 complete** (Backend: OpenAPI order/checkout endpoints defined)
+- **DES-001 complete** (Project: Screens M-11, M-12, M-13, M-14 finalized)
+- Checkout navigation graph defined in APP-002
+- Form styles, StateContainerView ready from UI-002
+- Order models, Address models, Money formatting ready from DOM-002
+- API client with order endpoints, idempotency interceptor ready from NET-002
 
 **Screens:** M-11, M-12, M-13, M-14
 
@@ -309,6 +388,16 @@ All three steps in this phase may run concurrently: they own disjoint packages, 
 **Depends on:** FND-001, FND-006, UI-002, APP-002, DOM-002, NET-002, AUTH-002, DES-001
 
 **Contract dependency:** FND-004. **Runtime integration:** ORD-001 — exercised by QUAL-001, not blocking this task.
+
+**Prerequisites to start:**
+- All Phase 0 and Phase 1 foundation complete
+- AUTH-002 complete (authentication working, user context available)
+- **FND-004 complete** (Backend: OpenAPI order history/detail endpoints defined)
+- **DES-001 complete** (Project: Screens M-15, M-16 finalized)
+- Account navigation graph defined in APP-002
+- StatusBadgeView, order list styles ready from UI-002
+- Order models, OrderStatus enums, Money formatting ready from DOM-002
+- API client with order history endpoints ready from NET-002
 
 **Screens:** M-15, M-16
 
