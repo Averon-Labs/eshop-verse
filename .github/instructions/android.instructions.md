@@ -7,6 +7,9 @@ For GitHub Copilot and other IDE-integrated agents working on Android code.
 - Primary instructions: `/AGENTS.md`
 - Android-specific: `/android/AGENTS.md`
 - Android roadmap and canonical task steps: `/docs/ANDROID_ROADMAP.md`
+- Android task brief format, reading sets, and file ownership: `/docs/android/TASK-BRIEF-TEMPLATE.md`
+- Android phase implementation specs: `/docs/android/PHASE-0-FOUNDATION-SPEC.md`, `/docs/android/PHASE-1-SPEC.md`, `/docs/android/PHASE-2-SPEC.md`
+- Machine-readable API contract: `/docs/openapi.yaml`; contract mock strategy: `/docs/android/API-MOCK-STRATEGY.md`
 - Project phase gates and shared tasks: `/docs/ROADMAP.md`
 - Architecture: `/docs/ARCHITECTURE.md`
 - API Contract: `/docs/API_CONTRACT.md`
@@ -19,6 +22,10 @@ For GitHub Copilot and other IDE-integrated agents working on Android code.
 - Language: Java
 - UI: XML layouts with Material 3
 - Architecture: MVVM + Repository Pattern
-- All user-visible strings in `strings.xml`
+- All user-visible strings in `strings.xml`; feature screens add their own `values/strings_<feature>.xml`
 - Follow naming conventions in `android/AGENTS.md`
-- API communication only through defined API contract
+- API communication only through `docs/openapi.yaml`, the reviewed contract
+- Read only the reading set your task brief names; do not read the whole `docs/` tree
+- Never edit a file owned by another task (shell, Gradle, manifest, theme/colour/dimension/style tokens, or another feature's package)
+- Never parse money into a `double`; use the shared fixed-precision money type and formatter
+- No new colours, dimensions, styles, or typography in a screen; report a missing token instead

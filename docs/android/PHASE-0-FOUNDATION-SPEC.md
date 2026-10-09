@@ -533,6 +533,9 @@ explicit.
 | 13 | `android/gradlew` not executable in the Git index — breaks Linux CI | Git index | fixed in this planning commit; verified by FND-006 |
 | 14 | No LF normalization rules — wrapper script breaks on Linux CI | `.gitattributes` | fixed in this planning commit |
 | 15 | Room asserted as decided but unimplemented and unowned | `ARCHITECTURE.md`, `README.md` | DATA-002 (§H.3) |
+| 16 | Responsive gutter token declared in four resource files with no consumer, so the documented 16/24/32dp gutter is not wired to anything | `values/dimens.xml` and its `-land`, `-w600dp`, `-w1240dp` variants | UI-002 (§E.6) owns the token; every screen task must consume it |
+| 17 | Sample card hardcodes `app:cardElevation="1dp"` instead of a shared elevation token, violating the design system's no-hardcoded-elevation rule | `layout/fragment_home.xml` | UI-002 defines the token; CAT-002 replaces the sample screen |
+| 18 | Unused Android Studio template colours `black` and `white` duplicate brand tokens and have no consumer | `values/colors.xml` | FND-006 (§D.3) |
 
 ---
 
