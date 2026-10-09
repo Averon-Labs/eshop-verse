@@ -20,6 +20,12 @@ A roadmap assignment uses this roadmap name, phase, and step, for example: Backe
 
 **Depends on:** none
 
+**Prerequisites to start:**
+- PHP 8.1+ available locally
+- Composer installed
+- MySQL 8.0+ available
+- Development environment ready
+
 **Scope:** create the backend application foundation using the accepted Laravel/PHP/MySQL stack, without implementing product endpoints.
 
 **Acceptance criteria:**
@@ -38,6 +44,16 @@ A roadmap assignment uses this roadmap name, phase, and step, for example: Backe
 **Status:** `[ ]`
 
 **Depends on:** none; must finish before any endpoint or client integration Task
+
+**Prerequisites to start:**
+- `docs/PRODUCT.md` finalized
+- `docs/API_CONTRACT.md` base version exists
+- `docs/DATABASE.md` logical schema defined
+- `docs/SECURITY.md` authentication/authorization rules defined
+- OpenAPI 3.x validator tool available
+- Close decisions OPEN-1 through OPEN-4 (category lifecycle, etc.)
+
+**CRITICAL:** This task **blocks** all Android Phase 1-2 client integration and all Backend Phase 1-2 endpoint implementation. Complete and get acceptance before any team proceeds with API-consuming work.
 
 **Scope:** create `docs/openapi.yaml` from the accepted product/API/database/security decisions and close the remaining contract decisions.
 
@@ -63,6 +79,16 @@ A roadmap assignment uses this roadmap name, phase, and step, for example: Backe
 
 **Depends on:** FND-002, FND-004, FND-005
 
+**Prerequisites to start:**
+- FND-002 complete (Laravel app initialized, migrations working)
+- **FND-004 complete** (OpenAPI contract accepted with auth endpoints)
+- **FND-005 complete** (Project: CI and documentation structure ready)
+- Database schema for users table defined
+- Password hashing strategy decided
+- Sanctum token configuration decided
+- Rate limiting strategy defined
+- Local mail sink configured for testing password reset
+
 **Scope:** customer registration, login/logout, profile, password reset, secure password storage, rate limiting/lockout controls, and revocable Android Sanctum tokens.
 
 **Acceptance criteria:**
@@ -80,6 +106,15 @@ A roadmap assignment uses this roadmap name, phase, and step, for example: Backe
 
 **Depends on:** FND-002, FND-004, FND-005
 
+**Prerequisites to start:**
+- FND-002 complete (Laravel app, migrations ready)
+- **FND-004 complete** (OpenAPI contract accepted with catalog endpoints)
+- **FND-005 complete** (Project: CI and documentation ready)
+- Database schema for categories, products, product_images defined
+- Fixed-precision USD money representation decided
+- Product status enum values defined
+- Fictional seed data prepared (no real personal data)
+
 **Scope:** category/product schema, fictional seed catalog, and public read/search/sort/pagination endpoints.
 
 **Acceptance criteria:**
@@ -96,6 +131,14 @@ A roadmap assignment uses this roadmap name, phase, and step, for example: Backe
 **Status:** `[ ]`
 
 **Depends on:** FND-002, FND-004, AUTH-003, CAT-001
+
+**Prerequisites to start:**
+- FND-002, FND-004 complete
+- **AUTH-003 complete** (Admin: admin authentication working - backend portion)
+- CAT-001 complete (catalog read API and schema exist)
+- Admin role authorization middleware ready
+- Category archive/status behavior decided (resolve OPEN-5 mentioned in FND-004)
+- Inventory update validation rules defined
 
 **Scope:** admin-only create/read/update/archive operations for products and categories, plus validated inventory updates.
 
@@ -118,6 +161,15 @@ A roadmap assignment uses this roadmap name, phase, and step, for example: Backe
 
 **Depends on:** FND-002, FND-004, AUTH-001, CAT-001
 
+**Prerequisites to start:**
+- FND-002, FND-004 complete
+- AUTH-001 complete (customer authentication working, token verification ready)
+- CAT-001 complete (products available, stock tracking exists)
+- Database schema for carts, cart_items defined
+- Cart ownership authorization rules defined
+- Product availability validation rules defined
+- Fixed-precision money calculations for totals
+
 **Scope:** one persistent cart per signed-in customer with add/update/remove/read operations.
 
 **Acceptance criteria:**
@@ -134,6 +186,17 @@ A roadmap assignment uses this roadmap name, phase, and step, for example: Backe
 **Status:** `[ ]`
 
 **Depends on:** FND-002, FND-004, AUTH-001, CAT-001, CART-001
+
+**Prerequisites to start:**
+- FND-002, FND-004, AUTH-001, CAT-001 complete
+- CART-001 complete (cart API working, cart totals calculated)
+- Database schema for orders, order_items, addresses defined
+- Order state machine and status transitions defined in contract
+- Idempotency key handling strategy defined
+- Simulated payment success/failure logic defined
+- Transaction-safe inventory decrement strategy defined
+- Shipping calculation (sample) strategy defined
+- Immutable snapshot strategy for products/prices/addresses
 
 **Scope:** server-authoritative checkout quote/order creation, address and line-item snapshots, idempotency, and explicitly simulated success/failure payment outcomes.
 
