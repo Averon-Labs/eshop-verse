@@ -58,7 +58,11 @@ Current scaffold configuration (recheck when build files change): Java/XML; name
 
 All Android UI is Java/XML using the shared Material 3 design system in [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md). Use the common app theme and shared resource tokens for each screen.
 
-The launcher currently contains a clean application host (`HomeFragment`). Product screens and behavior are not implemented yet. The documented Gradle commands were run against this scaffold: `clean assembleDebug`, `lint`, and `test` passed (`test` completed with `NO-SOURCE` because no test source files exist). The Gradle Wrapper JAR is tracked in Git.
+The launcher currently contains a clean application host (`HomeFragment`). Product screens and behavior are not implemented yet. The Gradle Wrapper JAR is tracked in Git.
+
+**Correction (2026-10-09):** `clean assembleDebug`, `lint`, and `test` were reported as passing when `FND-001` was completed, with `test` reporting `NO-SOURCE`. Those commands are **not reproducible in the current checkout**, which has only JDK 8 and no Android SDK (`ANDROID_HOME` unset); AGP 9.2 requires JDK 17. Treat the earlier result as unverified: no Android test has ever executed in this repository. Android `FND-006` re-verifies the toolchain and produces a real command transcript, and Android `FND-006` is authoritative for the commands below until then.
+
+Android Phase 0 also adds the layers the screen tasks depend on; their prerequisites are in [`android/PHASE-0-FOUNDATION-SPEC.md`](android/PHASE-0-FOUNDATION-SPEC.md) §B, and the per-task brief format is in [`android/TASK-BRIEF-TEMPLATE.md`](android/TASK-BRIEF-TEMPLATE.md).
 
 ### Backend
 
@@ -69,6 +73,8 @@ The launcher currently contains a clean application host (`HomeFragment`). Produ
 5. Start the development server.
 
 > Exact commands will be documented when the Laravel application and test configuration are initialized.
+
+> The OpenAPI contract draft lives at [`openapi.yaml`](openapi.yaml). It must be reviewed and accepted by the API owner before any endpoint, client integration, or migration is implemented.
 
 ### Admin Dashboard
 

@@ -30,13 +30,15 @@ Deliver a polished, end-to-end, single-store shopping demo for an international 
 
 ## Verified starting point
 
-Last reviewed: 2026-10-07. Recheck source and Git state before starting each Task.
+Last reviewed: 2026-10-09. Recheck source and Git state before starting each Task.
 
 ## Authority and component scope
 
 This roadmap is for explicitly cross-component work and final project/release validation. It does not replace or extend a component's execution backlog. When an owner assigns Android work, use `ANDROID_ROADMAP.md` as the sole source for Android tasks, statuses, scopes, acceptance criteria, and progress reports; similarly, use `BACKEND_ROADMAP.md` or `ADMIN_ROADMAP.md` for those components. Do not report another component's open tasks as work remaining in the assigned component. A dependency owned by another component can block a task; report only that dependency and its effect on the assigned task. Review this project roadmap when coordinating cross-component work or deciding whether the full project/release gate is met.
 
-- Android has a regenerated Java/XML Gradle scaffold: namespace/application ID com.averonlabs.eshopverse, compile SDK 36.1, minSdk 25, targetSdk 36, Java 11 source/target, AGP 9.2.1, Gradle 9.4.1, Material Components 1.10.0, and JUnit 4. Exact setup/build/test commands remain to be confirmed under Android FND-001.
+- Android has a regenerated Java/XML Gradle scaffold: namespace/application ID com.averonlabs.eshopverse, compile SDK 36.1, minSdk 25, targetSdk 36, Java 11 source/target, AGP 9.2.1, Gradle 9.4.1, Material Components 1.10.0, and JUnit 4. The commands are documented in `docs/DEVELOPMENT.md`, but they are not reproducible in the current checkout (JDK 8 only, no Android SDK, no `ANDROID_HOME`) and no Android test has ever executed, so Android FND-001's evidence is not independently verified. Android FND-006 carries the re-verification and the dependency modernization.
+- Android Phase 0 was expanded by PLAN-005 with six cross-cutting foundation steps (FND-006, UI-002, APP-002, DOM-002, DATA-002, NET-002) that must complete before the Phase 1 screen tasks; `docs/openapi.yaml` now exists as a draft for FND-004 owner review, and contract-derived fixtures plus a local mock server let the Android tasks be verified without a running backend.
+- Android Phase 1 and Phase 2 steps depend only on Android and shared steps. Their backend dependencies are recorded once, in the coordination table in `docs/ANDROID_ROADMAP.md`, with integration deferred to QUAL-001.
 - backend/ and admin/ contain agent guidance but no initialized applications.
 - .github/workflows/ci.yml is a placeholder. Its active job checks repository structure; component checks are not active.
 - GitHub develop was created from the current pre-policy main baseline. Default branch, auto-delete, and branch protection must be verified under GIT-001.
@@ -212,6 +214,28 @@ Name the roadmap, phase, and step (step numbering restarts at 1 in each phase), 
 
 **Verification:** independently reviewed all roadmap acceptance criteria and assignment/Git rules; checked Markdown links, criterion-label consistency, and `git diff --check`. The CI-001 dependency and its hosted CI check have also been confirmed. No application build or runtime test applies.
 
+### Step 9 — PLAN-005 — Plan the Android execution structure and phase specifications
+
+**Status:** `[~]`
+
+**Depends on:** PLAN-001, PLAN-002, DES-001, FND-001
+
+**Scope:** make the Android backlog executable phase by phase by a sequence of independent agents: add the missing cross-cutting foundation steps, freeze file ownership and the navigation interface, define the contract and its local mock, and write the phase-level implementation specifications.
+
+**Rationale.** The Android backlog previously moved from a verified empty scaffold directly to customer-authentication screens. Five cross-cutting layers that every screen depends on — dependencies and test harness, design tokens and component styles, app shell and navigation, network and API client, money/models/secure storage — had no owning step, so screen tasks would each have re-implemented them and two parallel tasks would have edited the same files. The Phase 1–2 steps were also blocked on backend implementations they do not actually need, because the integration boundary is the reviewed contract rather than a running server.
+
+**Acceptance criteria:**
+
+- [x] **a.** Every cross-cutting layer the Phase 1–2 screen tasks depend on has a canonical Android step with an owning scope and no file overlap with a concurrent step.
+- [x] **b.** Android Phase 1 and Phase 2 steps list only Android and shared steps as blocking dependencies; external backend/admin dependencies are recorded once in a coordination table with their integration point.
+- [x] **c.** A machine-readable contract draft exists for owner review, resolves the recorded open contract decisions (including category lifecycle), and passes structural validation.
+- [x] **d.** A task-brief format exists that defines the per-task reading set, file ownership, and definition of done, so an agent does not read the whole documentation tree.
+- [x] **e.** Phase implementation specifications exist for Android Phases 0, 1, and 2 and reference, without duplicating, the canonical acceptance criteria in the component roadmap.
+- [x] **f.** Contract-derived fixture and local mock behaviour is specified so client steps can be verified and demonstrated before the backend exists.
+- [ ] **g.** The Task ID index, component guidance, and stale status statements are consistent with the restructured roadmaps, and the owner has reviewed and accepted the contract draft.
+
+**Verification:** structural validation of the contract draft (no tabs, no duplicate keys, no unresolved `$ref`), Markdown link and Task-ID consistency checks, and owner review of the contract and the open decisions listed in `docs/openapi.yaml`. No application build or runtime test applies to this planning task.
+
 ## Phase 1 — Accounts and Catalog
 
 **Entry criteria:** Phase 0 exit criteria are met, including acceptance of DES-001 before implementing customer/admin screens. Implement the shared contract; update and review OpenAPI before changing endpoint behavior.
@@ -333,6 +357,12 @@ Each Task ID has exactly one canonical task entry. Status, dependencies, accepta
 | Task ID | Canonical location | Task |
 |---------|--------------------|------|
 | FND-001 | [Android Roadmap — Phase 0 — Step 1](ANDROID_ROADMAP.md) | Verify Android scaffold and toolchain |
+| FND-006 | [Android Roadmap — Phase 0 — Step 2](ANDROID_ROADMAP.md) | Toolchain, dependency, and test-harness modernization |
+| UI-002 | [Android Roadmap — Phase 0 — Step 3](ANDROID_ROADMAP.md) | Android design token and component style layer |
+| APP-002 | [Android Roadmap — Phase 0 — Step 4](ANDROID_ROADMAP.md) | App shell and navigation |
+| DOM-002 | [Android Roadmap — Phase 0 — Step 5](ANDROID_ROADMAP.md) | Money, API models, and shared UI state |
+| DATA-002 | [Android Roadmap — Phase 0 — Step 6](ANDROID_ROADMAP.md) | Secure token storage and local persistence decision |
+| NET-002 | [Android Roadmap — Phase 0 — Step 7](ANDROID_ROADMAP.md) | Network and API client core |
 | FND-002 | [Backend Roadmap — Phase 0 — Step 1](BACKEND_ROADMAP.md) | Initialize Laravel API and local database workflow |
 | FND-003 | [Admin Roadmap — Phase 0 — Step 1](ADMIN_ROADMAP.md) | Initialize the admin application and local workflow |
 | FND-004 | [Backend Roadmap — Phase 0 — Step 2](BACKEND_ROADMAP.md) | Draft and review the OpenAPI contract |
@@ -362,6 +392,7 @@ Each Task ID has exactly one canonical task entry. Status, dependencies, accepta
 | PLAN-003 | [Project Roadmap — Phase 0 — Step 6](ROADMAP.md) | Define assignable sub-steps and component-aware Git naming |
 | CI-001 | [Project Roadmap — Phase 0 — Step 7](ROADMAP.md) | Refresh GitHub Actions runtimes and least-privilege permissions |
 | PLAN-004 | [Project Roadmap — Phase 0 — Step 8](ROADMAP.md) | Label roadmap acceptance criteria and remove Sub-step assignment rules |
+| PLAN-005 | [Project Roadmap — Phase 0 — Step 9](ROADMAP.md) | Plan the Android execution structure and phase specifications |
 
 ## Optional follow-up — Public deployment
 

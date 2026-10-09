@@ -55,6 +55,8 @@ All user-facing copy is English. Customer price and total displays use en-US USD
 
 M-03 and M-04 reuse the M-02 catalog-listing pattern as search/category result states; they do not require extra bottom-navigation destinations or new features.
 
+M-17 Account belongs to AUTH-002 together with M-06–M-09: it presents only the account/profile basics that PRODUCT.md and the customer API support, and it is the destination that hosts sign-out.
+
 ### Android interaction and state details
 
 - Product card tap opens M-05. The product-detail **Add to cart** action updates the signed-in cart once and announces success accessibly. Rejected/insufficient-stock responses update availability inline and keep the customer on the current page.
@@ -95,7 +97,7 @@ M-03 and M-04 reuse the M-02 catalog-listing pattern as search/category result s
 
 | Screens | Primary Tasks |
 |---------|---------------|
-| M-06–M-09 | AUTH-002 |
+| M-06–M-09, M-17 | AUTH-002 |
 | M-01–M-05 | CAT-002 |
 | A-01 | AUTH-003 |
 | A-02–A-05 | CAT-004 |

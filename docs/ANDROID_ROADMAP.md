@@ -8,11 +8,37 @@ This file is the sole execution roadmap for Android work. Every Android task, it
 
 A roadmap assignment uses this roadmap name, phase, and step, for example: Android Roadmap, Phase 1, Step 1; a stable Task ID may also identify the work. Step numbers restart at 1 in every phase. Lowercase letter labels restart at `a` in each acceptance-criteria block and identify individual criteria for discussion or verification, not separate assignments. Check only the assigned Android task's dependencies before starting. If an external backend/admin/shared dependency is incomplete, report that dependency as a blocker for the Android task and do not adopt or report the external task as Android work. The project roadmap is used for final cross-component/release validation. Follow [repository-wide agent instructions](../AGENTS.md) for implementation workflow and Git conventions.
 
+### How an Android task is executed
+
+1. Read the assignment brief, which follows [`android/TASK-BRIEF-TEMPLATE.md`](android/TASK-BRIEF-TEMPLATE.md).
+2. Read **only** the reading set that brief names. The template defines it per task type; reading the whole `docs/` tree is not required and is not wanted.
+3. The acceptance criteria below are the definition of truth. The linked phase specification supplies the implementation detail (files, operations, validation, tests) and never restates these criteria.
+4. Do not edit a file owned by another task. The ownership table is in the brief template.
+
+| Phase | Implementation spec |
+|-------|---------------------|
+| Phase 0 | [`android/PHASE-0-FOUNDATION-SPEC.md`](android/PHASE-0-FOUNDATION-SPEC.md) |
+| Phase 1 | [`android/PHASE-1-SPEC.md`](android/PHASE-1-SPEC.md) |
+| Phase 2 | [`android/PHASE-2-SPEC.md`](android/PHASE-2-SPEC.md) |
+| All phases | [`android/API-MOCK-STRATEGY.md`](android/API-MOCK-STRATEGY.md) |
+
+### Contract dependency
+
+Android tasks consume operations defined in [`openapi.yaml`](openapi.yaml). That contract is drafted under Backend FND-004 and must be **reviewed and accepted before any Android Phase 1 or Phase 2 client integration starts**. Because the Android client is verified against contract-conformant fixtures and a local mock server, a task does not wait for the corresponding backend implementation; the real API is exercised by the cross-component regression task QUAL-001.
+
 ## Phase steps
 
 ## Phase 0 — Foundation
 
 **Cross-component release check:** see [Phase 0 in the Project Roadmap](ROADMAP.md) during final project validation. This is not an additional Android task assignment.
+
+Phase 0 supplies every cross-cutting layer the screen tasks depend on, so Phase 1 and Phase 2 tasks are additive and parallel-safe. Waves are sequential; tasks inside a wave may run concurrently.
+
+| Wave | Steps | Parallel-safe because |
+|------|-------|-----------------------|
+| 1 | 2 | Owns the only Gradle and CI files |
+| 2 | 3, 5, 6 | Disjoint resource and `core/` packages |
+| 3 | 4, 7 | Disjoint shell and network packages |
 
 ### Step 1 — FND-001 — Verify Android scaffold and toolchain
 
@@ -34,98 +60,269 @@ A roadmap assignment uses this roadmap name, phase, and step, for example: Andro
 
 **Verification:** fresh-environment Android build/lint/tests; compare the documented commands with the actual Gradle tasks and CI environment.
 
-**Current verification:** `clean assembleDebug`, `lint`, and `test` passed locally (`test` completed with `NO-SOURCE` because no test source files exist). Template placeholder content (`FirstFragment`, `SecondFragment`, template strings and menus) has been removed and replaced with a clean `HomeFragment` host and Material 3 design system tokens (`colors.xml`, `dimens.xml`, `themes.xml`). `android/gradle/wrapper/gradle-wrapper.jar` is tracked in Git.
+**Historical verification record:** `clean assembleDebug`, `lint`, and `test` were reported as passing when this step was completed (`test` with `NO-SOURCE`). Template placeholder content was removed and replaced with a clean `HomeFragment` host and Material 3 design tokens. `android/gradle/wrapper/gradle-wrapper.jar` is tracked.
+
+**Correction (2026-10-09, recorded during PLAN-005):** that evidence is **not reproducible in the current checkout**, which has only JDK 8, no `ANDROID_HOME`, and no Android SDK; AGP 9.2 requires JDK 17. Criterion `e` and `f` therefore rest on an unverifiable run, and no test has ever actually executed in this repository. This step stays `[x]` for the configuration reconciliation it performed; independent re-verification is carried by FND-006, which is designed to produce a real transcript.
+
+### Step 2 — FND-006 — Toolchain, dependency, and test-harness modernization
+
+**Status:** `[ ]`
+
+**Depends on:** FND-001
+
+**Spec:** [`android/PHASE-0-FOUNDATION-SPEC.md`](android/PHASE-0-FOUNDATION-SPEC.md) §B and §D
+
+**Scope:** bring the Android build, dependency set, test harness, and CI job up to the toolchain the project actually uses, and produce the missing build/test evidence.
+
+**Acceptance criteria:**
+
+- [ ] **a.** Prerequisites are satisfied and recorded: JDK 17 or newer, Android SDK Platform 36.1, Build Tools 36.0.0, and a working Gradle wrapper; the environment gap recorded in §B is closed with a real command transcript.
+- [ ] **b.** Every AndroidX, Material, networking, image, and test dependency named in the spec's target table is declared at a current stable version in `gradle/libs.versions.toml`; each chosen version is recorded. No Kotlin artifact replaces a Java API (`activity-ktx` is replaced by `androidx.activity:activity`).
+- [ ] **c.** The dependency set declared here covers all of Phases 1 and 2, so no later task needs to edit a Gradle file.
+- [ ] **d.** A real JVM test exists and passes, proving JUnit, the mocking dependency, and the fixture loader work; the `NO-SOURCE` gap recorded by FND-001 is closed.
+- [ ] **e.** The dead `values-v23/themes.xml` is removed and the build configuration changes in §D.2 are applied.
+- [ ] **f.** `.github/workflows/ci.yml` gains an Android job that runs the documented build, lint, and unit-test commands on a JDK 17 runner, without weakening or disabling the existing repository-validation job.
+- [ ] **g.** `android/gradlew` is executable in the Git index (`100755`), line endings are normalized (`.gitattributes`), and a clean checkout can run the wrapper.
+- [ ] **h.** `docs/DEVELOPMENT.md` records the exact verified commands, prerequisites, and any accepted limitation such as an unminified release build; the stale statement that the Android commands are unconfirmed is removed from `docs/ROADMAP.md`.
+
+**Verification:** `clean assembleDebug`, `lintDebug`, `testDebugUnitTest`, and `connectedDebugAndroidTest` (local, device required) with recorded output; `git ls-files -s android/gradlew` shows `100755`; the CI job is observed on a pull request or its exact configuration is reported as unverified.
+
+### Step 3 — UI-002 — Android design token and component style layer
+
+**Status:** `[ ]`
+
+**Depends on:** FND-006
+
+**Spec:** [`android/PHASE-0-FOUNDATION-SPEC.md`](android/PHASE-0-FOUNDATION-SPEC.md) §E
+
+**Scope:** materialize `docs/DESIGN_SYSTEM.md` into Android resources — the complete Material 3 colour role set, Lato typography at the required weights, spacing/shape/status tokens, component styles, and the four shared custom views — and close the theme and contrast defects.
+
+**Acceptance criteria:**
+
+- [ ] **a.** Every Material 3 colour role, status semantic, spacing, shape, and typography value the first-release screens use exists as a resource token; no screen task needs to invent a colour, dimension, style, or text appearance.
+- [ ] **b.** The supporting-text contrast failure is fixed and the value is updated in `docs/DESIGN_SYSTEM.md` and `values/colors.xml` together, with a measured contrast table covering every foreground/background pair the app uses.
+- [ ] **c.** Lato is bundled locally with its licence notice at the weights the typography table names; the weight used for "600" is decided and recorded, and each weight is selected without relying on `res/font` family parsing on API 25.
+- [ ] **d.** Component styles and the shared `QuantityStepperView`, `PriceTextView`, `StateContainerView`, and `StatusBadgeView` exist and are the only custom views the first release adds.
+- [ ] **e.** The night-mode/status-bar defect is closed and the light baseline is explicit rather than incidental; the dark-mode deferral is preserved.
+- [ ] **f.** Tests cover the shared views' logic and rendering, and `lint` is clean.
+
+**Verification:** unit and instrumentation tests for the shared views, the measured contrast table, and screenshots of the styled components.
+
+### Step 4 — APP-002 — App shell and navigation
+
+**Status:** `[ ]`
+
+**Depends on:** FND-006, UI-002
+
+**Spec:** [`android/PHASE-0-FOUNDATION-SPEC.md`](android/PHASE-0-FOUNDATION-SPEC.md) §F
+
+**Scope:** own the shared shell — manifest and permissions, single activity, top app bar, four-destination bottom navigation, the navigation interface (graph ids and arguments), shell host fragments, and the debug/release cleartext policy — and close the insets defect.
+
+**Acceptance criteria:**
+
+- [ ] **a.** The app boots into a working shell with Home, Explore, Cart, and Account reachable, and the cart badge API exists and stays hidden until a cart count is supplied.
+- [ ] **b.** The manifest declares the networking permissions the app needs, and the release configuration permits no cleartext while the debug configuration permits it only for the local development hosts.
+- [ ] **c.** System-bar and keyboard insets are applied once, to the correct views, and nothing is clipped on gesture navigation at 360dp.
+- [ ] **d.** The shell defines fixed nested-graph ids and navigation arguments so no feature task edits `nav_main.xml` or `MainActivity`, and the bottom navigation hides on focused steps through one shared rule.
+- [ ] **e.** The shell contains no business logic and adds no product behavior beyond navigation.
+- [ ] **f.** A focused UI test proves the app boots, all four destinations are reachable, and back navigation behaves.
+
+**Verification:** instrumentation test, screenshots at phone and tablet widths, clean `lint`, and a `git status --short` limited to the shell whitelist.
+
+### Step 5 — DOM-002 — Money, API models, and shared UI state
+
+**Status:** `[ ]`
+
+**Depends on:** FND-006, FND-004
+
+**Spec:** [`android/PHASE-0-FOUNDATION-SPEC.md`](android/PHASE-0-FOUNDATION-SPEC.md) §G
+
+**Scope:** one implementation of fixed-precision money, en-US formatting, the complete Phase 1–2 API model set derived from the contract, the shared UI state/event primitives, and error-code messaging.
+
+**Acceptance criteria:**
+
+- [ ] **a.** Money is a fixed-precision decimal type parsed from strings and formatted for en-US USD; no code path converts money to or from a binary floating-point value, and a test proves it.
+- [ ] **b.** All Phase 1 and Phase 2 API models and enums exist, match the contract schema names, and are documented as contract-derived; no screen task needs to fork a model.
+- [ ] **c.** Every documented error code maps to a user-visible English message with a generic fallback, and a test proves the mapping is total.
+- [ ] **d.** Shared loading/content/empty/error state and one-shot event primitives exist for the ViewModels, and no screen re-implements them.
+- [ ] **e.** Tests avoid Android framework dependencies where practical.
+
+**Verification:** unit tests for money boundaries, formatting, model parsing, error mapping, and state primitives; a checked model-to-schema mapping list.
+
+### Step 6 — DATA-002 — Secure token storage and local persistence decision
+
+**Status:** `[ ]`
+
+**Depends on:** FND-006
+
+**Spec:** [`android/PHASE-0-FOUNDATION-SPEC.md`](android/PHASE-0-FOUNDATION-SPEC.md) §H
+
+**Scope:** platform-protected token storage with backup exclusion, plus an explicit, documented decision on local persistence instead of the current contradiction in `docs/ARCHITECTURE.md`.
+
+**Acceptance criteria:**
+
+- [ ] **a.** A token store exists that uses platform-protected storage only, exposes save/read/clear/expiry, and never writes the token to a log, crash report, or `toString()`.
+- [ ] **b.** The store is excluded from cloud backup and device-to-device transfer, and the backup attributes or rules used are recorded as evidence.
+- [ ] **c.** The storage mechanism decision is recorded as an ADR, including why the alternative was rejected.
+- [ ] **d.** The Room/local-persistence contradiction is resolved: either Room is deferred for the first release and `docs/ARCHITECTURE.md` and `README.md` are corrected, or Room is scoped into a named task with a stated offline requirement.
+- [ ] **e.** Tests cover expiry, clear-on-logout, and redaction; a device test proves the store works on both the minimum and current API levels.
+
+**Verification:** unit tests, an instrumentation test on API 25 and API 36, and the backup-exclusion evidence.
+
+### Step 7 — NET-002 — Network and API client core
+
+**Status:** `[ ]`
+
+**Depends on:** FND-006, FND-004, DOM-002, DATA-002
+
+**Spec:** [`android/PHASE-0-FOUNDATION-SPEC.md`](android/PHASE-0-FOUNDATION-SPEC.md) §I and [`android/API-MOCK-STRATEGY.md`](android/API-MOCK-STRATEGY.md)
+
+**Scope:** one API client for the whole app — base URL per build type, retrofit routes for the Phase 1–2 operations, bearer-token interceptor, idempotency-key interceptor, error-envelope mapping, the single 401 hook, and fixture-driven tests.
+
+**Acceptance criteria:**
+
+- [ ] **a.** The client is built from a build-time base URL; debug and release origins differ, and switching to the real backend is a base-URL change with no production-code edit.
+- [ ] **b.** The bearer token is attached from protected storage, is never logged, and debug logging redacts it; the client never logs request bodies.
+- [ ] **c.** Mutations carry a stable idempotency key per logical attempt, and no mutation is retried automatically.
+- [ ] **d.** Every documented error envelope is mapped to a typed error carrying the stable code and field errors; a `401` invokes one shared session hook.
+- [ ] **e.** Pagination and collection envelopes are modelled once and reused.
+- [ ] **f.** MockWebServer tests using the shared fixtures prove success and failure parsing, the auth header, the no-retry rule, the 401 hook, and idempotency-key behaviour.
+- [ ] **g.** The local mock server described in the mock strategy runs from the shared fixture directory and honours idempotency, so Phases 1 and 2 can be verified before the backend exists.
+
+**Verification:** full test run output plus a recorded note of the base URL used.
 
 ## Phase 1 — Accounts and Catalog
 
 **Cross-component release check:** see [Phase 1 in the Project Roadmap](ROADMAP.md) during final project validation. This is not an additional Android task assignment.
 
+**Entry criteria:** Phase 0 complete; `openapi.yaml` reviewed and accepted; the mock server or a real API reachable at the build's base URL.
+
+Both steps in this phase may run concurrently: they own disjoint packages, graphs, and string files.
+
 ### Step 1 — AUTH-002 — Android customer authentication and profile
 
 **Status:** `[ ]`
 
-**Depends on:** FND-001, AUTH-001, DES-001
+**Depends on:** FND-001, FND-006, UI-002, APP-002, DOM-002, DATA-002, NET-002, DES-001
 
-**Scope:** English registration, sign-in, sign-out, profile, password-reset screens, API integration, and protected token persistence.
+**Contract dependency:** FND-004 (accepted `openapi.yaml`). **Runtime integration:** AUTH-001 — exercised by QUAL-001, not blocking this task.
+
+**Screens:** M-06, M-07, M-08, M-09, M-17
+
+**Spec:** [`android/PHASE-1-SPEC.md`](android/PHASE-1-SPEC.md) §D
+
+**Scope:** English registration, sign-in, sign-out, profile, and password-reset screens with API integration and protected token persistence.
 
 **Acceptance criteria:**
 
-- [ ] **a.** Forms show field validation, loading, server errors, network errors, and success states in English.
-- [ ] **b.** Tokens use platform-protected storage, are never logged, and are cleared on logout or rejected/expired session.
+- [ ] **a.** Forms show field validation, loading, server errors, network errors, and success states in English, and map every documented error code to the specified behaviour rather than a generic message.
+- [ ] **b.** Tokens use platform-protected storage, are never logged, and are cleared on logout or on a rejected/expired session; a failed sign-out still ends the local session.
 - [ ] **c.** Repository/ViewModel behavior is testable without Android framework dependencies where practical; critical UI flow has a focused UI test.
-- [ ] **d.** UI uses XML/Material 3 and supports accessibility labels and keyboard/input types.
+- [ ] **d.** UI uses XML/Material 3, existing design-system styles, accessibility labels, and correct keyboard/input types; the task adds no new colour, dimension, or style.
+- [ ] **e.** Auth-required navigation returns the customer to the originating destination after a successful sign-in, and no guest cart or guest checkout path is created.
 
-**Verification:** Android unit tests for state and storage behavior, API-client tests for mapped responses, and a focused instrumentation/UI test for the critical auth path.
+**Verification:** Android unit tests for state, storage, and error mapping; fixture-driven API-client tests; a focused instrumentation test for the critical auth path; a logcat excerpt showing no credential or token leakage.
 
 ### Step 2 — CAT-002 — Android catalog browsing
 
 **Status:** `[ ]`
 
-**Depends on:** FND-001, FND-004, CAT-001, DES-001
+**Depends on:** FND-001, FND-006, UI-002, APP-002, DOM-002, NET-002, DES-001
 
-**Scope:** home/category browsing, product list/detail, search/sort, and API-backed image display.
+**Contract dependency:** FND-004 (accepted `openapi.yaml`). **Runtime integration:** CAT-001 — exercised by QUAL-001, not blocking this task.
+
+**Screens:** M-01, M-02, M-03, M-04, M-05
+
+**Spec:** [`android/PHASE-1-SPEC.md`](android/PHASE-1-SPEC.md) §E
+
+**Scope:** home and category browsing, product list and detail, search, sort, pagination, and API-backed image display.
 
 **Acceptance criteria:**
 
-- [ ] **a.** Customer can browse seeded products, open details, search, sort, and navigate categories using the reviewed API contract.
-- [ ] **b.** Loading, empty, image failure, offline/server error, and retry states are handled.
+- [ ] **a.** A customer can browse products, open details, search, sort, and navigate categories using the reviewed API contract, and filter changes reset pagination correctly.
+- [ ] **b.** Loading, empty, image-failure, offline/server-error, and retry states are handled; a failed image never breaks the surrounding layout.
 - [ ] **c.** USD amounts are formatted consistently without binary floating-point calculations; all user-facing copy is English.
-- [ ] **d.** ViewModel/repository mapping has unit tests and the main browse-to-detail path has a focused UI test.
+- [ ] **d.** The screen set contains no ratings, favourites or heart actions, discount stickers, product variants, or promotional hero content, matching the exclusion rules in the screen specification.
+- [ ] **e.** ViewModel/repository mapping has unit tests and the browse-to-detail path has a focused UI test.
 
-**Verification:** Android unit/API mapping tests and a focused UI smoke test with deterministic responses or seed data.
+**Verification:** unit and API-mapping tests, a focused UI smoke test against deterministic fixtures, and screenshots of the list, detail, empty, and error states.
 
 ## Phase 2 — Cart, Checkout, and Orders
 
 **Cross-component release check:** see [Phase 2 in the Project Roadmap](ROADMAP.md) during final project validation. This is not an additional Android task assignment.
 
+**Entry criteria:** Phase 1 complete; the cart and order state machine in the accepted contract understood and matched.
+
+All three steps in this phase may run concurrently: they own disjoint packages, graphs, and string files, and they navigate only to the graph ids and arguments frozen by APP-002. Fixture-driven verification is what removes the earlier task-to-task dependency.
+
 ### Step 1 — CART-002 — Android cart experience
 
 **Status:** `[ ]`
 
-**Depends on:** FND-001, FND-004, AUTH-002, CAT-002, CART-001, DES-001
+**Depends on:** FND-001, FND-006, UI-002, APP-002, DOM-002, NET-002, AUTH-002, DES-001
 
-**Scope:** display and edit the signed-in customer's cart and recover from server conflicts.
+**Contract dependency:** FND-004. **Runtime integration:** CART-001 — exercised by QUAL-001, not blocking this task.
+
+**Screen:** M-10
+
+**Spec:** [`android/PHASE-2-SPEC.md`](android/PHASE-2-SPEC.md) §D
+
+**Scope:** display and edit the signed-in customer's cart, render server-confirmed totals, and recover from stock and ownership conflicts.
 
 **Acceptance criteria:**
 
-- [ ] **a.** Customer can inspect items, update quantity, remove items, and see server-confirmed totals.
-- [ ] **b.** Empty/loading/offline/error/stock-changed states are handled; retry does not silently duplicate a mutation.
-- [ ] **c.** Cart state and money formatting are covered by unit tests; critical add/update/remove UI actions have focused UI coverage.
+- [ ] **a.** The customer can inspect items, update quantity, remove items, and see server-confirmed totals; no screen computes a subtotal, shipping amount, or total.
+- [ ] **b.** Empty, loading, offline, error, and stock-changed states are handled, and a retry does not silently duplicate a mutation; a line whose price changed or became unavailable is explained rather than silently changed.
+- [ ] **c.** Cart state and money presentation are covered by unit tests, and the critical add/update/remove actions have focused UI coverage.
+- [ ] **d.** The cart count supplied to the shell badge comes from the server response, not from local state.
 
-**Verification:** Android unit/API mapping tests and cart UI flow tests.
+**Verification:** unit and API-mapping tests, cart flow UI tests, and screenshots of the populated, conflict, and empty states.
 
 ### Step 2 — CHECK-001 — Android checkout and simulated payment flow
 
 **Status:** `[ ]`
 
-**Depends on:** FND-001, FND-004, AUTH-002, CART-002, ORD-001, DES-001
+**Depends on:** FND-001, FND-006, UI-002, APP-002, DOM-002, NET-002, AUTH-002, DES-001
 
-**Scope:** signed-in address capture, order review, explicit demo outcome selection, and result display.
+**Contract dependency:** FND-004. **Runtime integration:** ORD-001 — exercised by QUAL-001, not blocking this task.
+
+**Screens:** M-11, M-12, M-13, M-14
+
+**Spec:** [`android/PHASE-2-SPEC.md`](android/PHASE-2-SPEC.md) §E
+
+**Scope:** signed-in address capture, server-priced order review, explicit demo outcome selection, idempotent order creation, and result display.
 
 **Acceptance criteria:**
 
-- [ ] **a.** Checkout validates required address fields, displays server-confirmed USD totals, and clearly labels the payment step as simulated.
-- [ ] **b.** UI collects no card number, security code, or live payment credential.
-- [ ] **c.** Success, failure, timeout, retry, and duplicate-submit states map correctly to server order state.
-- [ ] **d.** Tests cover validation, state transitions, and safe retry/idempotency behavior.
+- [ ] **a.** Checkout validates required address fields against the contract, displays server-confirmed USD totals, and clearly labels the payment step as simulated.
+- [ ] **b.** The UI collects no card number, security code, expiry, or live payment credential, and no provider branding is shown.
+- [ ] **c.** Success, failure, timeout, retry, and duplicate-submit states map correctly to server order state; a timeout is never presented as success, and a new user attempt uses a new idempotency key while a transport retry reuses the existing one.
+- [ ] **d.** A failed simulated payment leaves the order retryable and is never presented as paid.
+- [ ] **e.** Tests cover validation, state transitions, idempotency behaviour, and safe retry; the double-tap case creates no second order.
 
-**Verification:** Android unit/API mapping tests and a focused UI smoke test for success and failure outcomes.
+**Verification:** unit and API-mapping tests, focused UI smoke tests for the success and failure outcomes, and evidence of one deliberately interrupted request that created no duplicate order.
 
 ### Step 3 — ORD-002 — Android order history and details
 
 **Status:** `[ ]`
 
-**Depends on:** FND-001, FND-004, AUTH-002, ORD-001, DES-001
+**Depends on:** FND-001, FND-006, UI-002, APP-002, DOM-002, NET-002, AUTH-002, DES-001
 
-**Scope:** customer-owned order list/detail and status display.
+**Contract dependency:** FND-004. **Runtime integration:** ORD-001 — exercised by QUAL-001, not blocking this task.
+
+**Screens:** M-15, M-16
+
+**Spec:** [`android/PHASE-2-SPEC.md`](android/PHASE-2-SPEC.md) §F
+
+**Scope:** customer-owned order list and detail with immutable snapshots and server-supplied status.
 
 **Acceptance criteria:**
 
-- [ ] **a.** Customer can view only their own orders and sees immutable item, address, USD total, payment result, and current status snapshots.
-- [ ] **b.** Empty/loading/network/error states are handled with accessible English copy.
-- [ ] **c.** Tests cover parsing, status display, and authorization/error handling.
+- [ ] **a.** A customer can view only their own orders and sees immutable item, address, USD total, payment result, and current status snapshots; no snapshot field is editable.
+- [ ] **b.** Empty, loading, network, error, and not-found states are handled with accessible English copy, and a not-owned order is indistinguishable from a missing one.
+- [ ] **c.** Tests cover parsing, status and payment-status display, pagination, and authorization/error handling.
 
-**Verification:** backend ownership tests remain green; Android repository/ViewModel tests and order-history UI smoke test pass.
+**Verification:** unit and API-mapping tests, an order-history UI smoke test, and screenshots of populated, empty, completed-payment, failed-payment, and not-found states.
 
 ## Phase 3 — Quality and Portfolio Delivery
 
@@ -135,7 +332,7 @@ A roadmap assignment uses this roadmap name, phase, and step, for example: Andro
 
 **Canonical task:** [QUAL-001 in the Project Roadmap](ROADMAP.md). The task scope, status, acceptance criteria, and verification record live only in that canonical entry.
 
-**Component contribution:** Supply Android-side deterministic purchase-flow regression evidence and resolve Android-specific failures.
+**Component contribution:** Supply Android-side deterministic purchase-flow regression evidence and resolve Android-specific failures. This is the step that exercises the app against the **real** backend instead of the mock.
 
 ### Step 2 — QUAL-002 — Component contribution
 
@@ -160,3 +357,31 @@ A roadmap assignment uses this roadmap name, phase, and step, for example: Andro
 **Canonical task:** [QUAL-005 in the Project Roadmap](ROADMAP.md). The task scope, status, acceptance criteria, and verification record live only in that canonical entry.
 
 **Component contribution:** Run documented Android checks from a clean checkout and report exact commands and outcomes.
+
+## External dependencies owned by other components
+
+These are the only cross-component items the Android tasks depend on. They are listed here **once** for
+coordination; their canonical scope, status, and criteria live in their own roadmaps and must not be
+reported as Android work.
+
+| Dependency | Canonical location | Effect on Android |
+|------------|--------------------|-------------------|
+| FND-004 — OpenAPI contract | [Backend Roadmap — Phase 0 — Step 2](BACKEND_ROADMAP.md) | Blocks starting any Phase 1/2 client integration until accepted |
+| AUTH-001 — Customer account API | [Backend Roadmap — Phase 1 — Step 1](BACKEND_ROADMAP.md) | Deferred to QUAL-001 integration; not a build blocker thanks to the mock strategy |
+| CAT-001 — Catalog read API and seed data | [Backend Roadmap — Phase 1 — Step 2](BACKEND_ROADMAP.md) | Deferred to QUAL-001 integration |
+| CART-001 — Customer cart API | [Backend Roadmap — Phase 2 — Step 1](BACKEND_ROADMAP.md) | Deferred to QUAL-001 integration |
+| ORD-001 — Order creation and simulated payment API | [Backend Roadmap — Phase 2 — Step 2](BACKEND_ROADMAP.md) | Deferred to QUAL-001 integration |
+| FND-005 — Setup documentation and CI | [Project Roadmap — Phase 0 — Step 4](ROADMAP.md) | Owns cross-component CI consolidation after FND-006 adds the Android job |
+
+## Open decisions affecting Android
+
+| ID | Question | Owner decision needed before |
+|----|----------|------------------------------|
+| OPEN-5 | Local mock server runner (Python 3 stdlib recommended) | NET-002 completion |
+| OPEN-6 | Token storage mechanism | DATA-002 |
+| OPEN-7 | Supporting-text token value and status-container values | UI-002 |
+| OPEN-8 | Lato weight file representing "600" | UI-002 |
+| OPEN-9 | `allowBackup` for the demo app | DATA-002 |
+| OPEN-10 | Room deferred for the first release | DATA-002 |
+| OPEN-11 | Lato font files placed in the repository | UI-002 start |
+| OPEN-1..4 | Contract decisions listed in [`openapi.yaml`](openapi.yaml) | FND-004 acceptance |
