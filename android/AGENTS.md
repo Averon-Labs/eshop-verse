@@ -27,13 +27,42 @@ The canonical Android task steps, status, scope, dependencies, acceptance criter
 | Java source/target | Java 11 | DECIDED |
 | Android Gradle Plugin | 9.2.1 | DECIDED |
 | Gradle wrapper | 9.4.1 | DECIDED |
-| Material Components | 1.10.0 in the current scaffold | CURRENT SCAFFOLD; review before changing |
+| Material Components | see `gradle/libs.versions.toml` | OWNED BY FND-006; the merged dependency set for Phases 1–2 is declared there |
+| Token storage | platform-protected storage only | DECIDED (mechanism is Android DATA-002 / OPEN-6) |
+| Local persistence | none (Room deferred) | PROPOSED — see Android DATA-002; do not use Room until that step records the decision |
 
 ---
 
 ## Project Structure
 
 Follow the checked-in Android Gradle scaffold and namespace `com.averonlabs.eshopverse`. Organize new code by feature and layer without replacing the Kotlin DSL Gradle files.
+
+Target package layout (created by the Android Phase 0 steps):
+
+```
+com.averonlabs.eshopverse
+├── core/          managed by FND-006, DOM-002, DATA-002, NET-002
+│   ├── money/     fixed-precision money and en-US formatting
+│   ├── model/     contract-derived API models
+│   ├── net/       API client, routes, interceptors, error mapping
+│   ├── state/     UiState, Event, Paged
+│   ├── storage/   token storage
+│   └── ui/view/   the shared custom views owned by UI-002
+├── shell/         managed by APP-002
+├── auth/          AUTH-002
+├── catalog/       CAT-002
+├── cart/          CART-002
+├── checkout/      CHECK-001
+└── orders/        ORD-002
+```
+
+Resource ownership matters as much as code ownership. Every feature owns
+`res/values/strings_<feature>.xml` and its own `fragment_*`, `item_*`, `dialog_*` layouts and its own
+`navigation/nav_<feature>.xml`. Shell, manifest, Gradle, theme, colour, dimension, style, typography,
+and app-level string files each have exactly one owning step. The full ownership table, the per-task
+reading set, and the task-brief format are in
+[`docs/android/TASK-BRIEF-TEMPLATE.md`](../docs/android/TASK-BRIEF-TEMPLATE.md) — read it before
+starting any Android task.
 
 ---
 
@@ -65,6 +94,26 @@ Follow the checked-in Android Gradle scaffold and namespace `com.averonlabs.esho
 - Do not introduce one-off colors, spacing, typography, shapes, elevations, or custom component styles in individual screens. Propose changes centrally and update both the design-system guide and shared resources.
 - Support content descriptions for accessibility.
 
+### Non-negotiable rules
+
+- **Java and XML only.** Do not add Kotlin sources or Kotlin-only artifacts (Kotlin extensions
+  libraries) to the app module. AGP 9 provides built-in Kotlin support, but this project is Java/XML by
+  decision.
+- **No local design decisions.** A screen never introduces a colour, dimension, style, text appearance,
+  elevation, or custom component. Missing tokens or styles are reported back to the owning step
+  (UI-002); they are not worked around locally.
+- **Strings.** New user-visible text goes in `res/values/strings_<feature>.xml`. Only the shell step
+  edits `res/values/strings.xml`.
+- **Money.** Use the shared fixed-precision money type and formatter. Never parse money into a `double`
+  or `float`, and never perform money arithmetic in a screen, adapter, or layout binding.
+- **Never log sensitive data.** No token, password, email address, or full request body may reach
+  logcat, a crash report, or a `toString()`. Debug HTTP logging is basic-level with the authorization
+  header redacted; body-level logging is never enabled.
+- **Transport.** HTTPS in every non-development configuration. Cleartext is permitted only in the
+  debug build and only for the documented local development hosts.
+- **Shared files.** Do not edit a file owned by another step (shell, Gradle, manifest, shared tokens,
+  or another feature's package). Report the need instead.
+
 ---
 
 ## Boundaries
@@ -84,3 +133,9 @@ Follow the checked-in Android Gradle scaffold and namespace `com.averonlabs.esho
 - See `docs/TESTING.md` for conventions.
 - Add tests for new behavior with the implementation.
 - Keep all user-visible UI and errors in English string resources.
+- Prefer pure-JVM tests. Do not add a framework that runs Android code in the JVM without an
+  explicitly recorded toolchain decision.
+- API-client tests replay contract-conformant fixtures through a mock web server; fixtures live in one
+  shared directory described by [`docs/android/API-MOCK-STRATEGY.md`](../docs/android/API-MOCK-STRATEGY.md).
+  A fixture that contradicts `docs/openapi.yaml` is a defect, not a shortcut.
+- A test that only proves a screen renders is not coverage of the behavior the criteria describe.

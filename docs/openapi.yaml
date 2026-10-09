@@ -1,0 +1,1954 @@
+# EShop Verse REST API — machine-readable contract
+#
+# Status: DRAFT — awaiting API-owner review and acceptance.
+# Canonical task: FND-004 (docs/BACKEND_ROADMAP.md).
+# No endpoint may be implemented, and no client integration may start, until this
+# file is reviewed and accepted (docs/API_CONTRACT.md, docs/ROADMAP.md).
+#
+# This draft resolves the open contract decisions that block Android client work:
+# FND-004 criteria a-e, including the category-lifecycle question recorded in
+# docs/SCREEN_SPECIFICATIONS.md ("Open contract alignment item").
+#
+# See x-open-decisions below for the items that still require an owner answer.
+
+openapi: 3.1.0
+
+info:
+  title: EShop Verse API
+  version: 1.0.0-draft
+  description: |
+    Single-store portfolio demo API serving the Android customer application and the
+    React admin dashboard.
+
+    Boundaries that all clients must respect:
+    - English-only user-facing messages. Machine-readable `error.code` values are stable.
+    - USD only. Money is a fixed-precision decimal **string** with exactly two fraction
+      digits. Clients must never parse money into binary floating point.
+    - Payment is simulated. No endpoint accepts or stores card data, and no real payment
+      provider is contacted.
+    - Prices, stock, and order totals are server-authoritative. Client-supplied totals are
+      ignored.
+    - Every failure uses the shared error envelope with a stable `error.code` from
+      `x-error-codes`. Operations below document the errors a client must handle explicitly;
+      `INTERNAL_ERROR` (`500`) is the documented fallback for anything not listed and carries no
+      internal detail. A client must never infer that a request was applied from a failure.
+    - Operations that require the customer bearer token declare it explicitly rather than relying
+      on the document-level default, so a reader of a single operation can see its requirements.
+  contact:
+    name: EShop Verse maintainers
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Local Laravel development server (Android emulator reaches the host as 10.0.2.2:8000).
+  - url: http://localhost:8081/api/v1
+    description: Local contract mock used by Android development before the API exists (see docs/android/API-MOCK-STRATEGY.md).
+  - url: https://api.example.test/api/v1
+    description: PLACEHOLDER production-like origin. The real host is an open decision (x-open-decisions); replace before any public demo.
+
+tags:
+  - name: Catalog
+    description: Public product and category reads.
+  - name: Customer auth
+    description: Customer registration, sign-in, profile, password reset.
+  - name: Cart
+    description: Signed-in customer cart. There is no guest cart.
+  - name: Checkout
+    description: Server-authoritative checkout quote and order creation.
+  - name: Orders
+    description: Customer-owned orders and the simulated payment outcome.
+  - name: Admin auth
+    description: First-party admin SPA session (Sanctum cookie + CSRF).
+  - name: Admin catalog
+    description: Admin product, category, and inventory management.
+  - name: Admin orders
+    description: Admin order inspection and permitted status transitions.
+
+security:
+  - bearerAuth: []
+
+paths:
+  # ------------------------------------------------------------------ Catalog
+
+  /categories:
+    get:
+      tags: [Catalog]
+      operationId: listCategories
+      summary: List active categories
+      description: |
+        Returns active categories ordered by `sortOrder` then `name`. Archived categories are
+        never returned here. Categories are flat; there is no hierarchy in the first release.
+      security: []
+      responses:
+        '200':
+          description: Active categories.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Category' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
+  /products:
+    get:
+      tags: [Catalog]
+      operationId: listProducts
+      summary: List, search, filter, and sort products
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - name: q
+          in: query
+          description: Case-insensitive search over product name and description.
+          schema: { type: string, maxLength: 120 }
+        - name: categoryId
+          in: query
+          description: Only products in this active category.
+          schema: { type: integer, minimum: 1 }
+        - name: inStock
+          in: query
+          description: When true, only products with `stockQuantity > 0`.
+          schema: { type: boolean }
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [newest, price_asc, price_desc, name_asc]
+            default: newest
+      responses:
+        '200':
+          description: Paged product summaries.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/ProductSummary' }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+        '422':
+          description: |
+            `VALIDATION_ERROR` for an invalid filter or pagination value, or
+            `CATEGORY_NOT_FOUND` when `categoryId` references an unknown or archived category.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
+  /products/{productId}:
+    get:
+      tags: [Catalog]
+      operationId: getProduct
+      summary: Product detail with ordered images
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/ProductId'
+      responses:
+        '200':
+          description: Product detail.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/ProductDetail' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
+  # ------------------------------------------------------------ Customer auth
+
+  /auth/register:
+    post:
+      tags: [Customer auth]
+      operationId: registerCustomer
+      summary: Create a customer account and return a bearer token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterRequest' }
+      responses:
+        '201':
+          description: Account created; the returned token is already valid.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/AuthSession' }
+        '409':
+          description: '`EMAIL_ALREADY_REGISTERED` — the email is already registered.'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
+  /auth/login:
+    post:
+      tags: [Customer auth]
+      operationId: loginCustomer
+      summary: Sign in and return a bearer token
+      description: |
+        Failed attempts are counted per email. After 5 consecutive failures the account is
+        locked for 15 minutes and the response is `429` with code `ACCOUNT_LOCKED` and a
+        `Retry-After` header. A locked or suspended account must not disclose whether the
+        password was correct.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200':
+          description: Signed in.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/AuthSession' }
+        '401': { $ref: '#/components/responses/InvalidCredentials' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
+  /auth/logout:
+    post:
+      tags: [Customer auth]
+      operationId: logoutCustomer
+      security:
+        - bearerAuth: []
+      summary: Revoke the current bearer token
+      description: Revokes only the presented token. Other devices stay signed in.
+      responses:
+        '204': { description: Token revoked. }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /auth/profile:
+    get:
+      tags: [Customer auth]
+      operationId: getCustomerProfile
+      security:
+        - bearerAuth: []
+      summary: Read the signed-in customer profile
+      responses:
+        '200':
+          description: The signed-in customer.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/User' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+    patch:
+      tags: [Customer auth]
+      operationId: updateCustomerProfile
+      security:
+        - bearerAuth: []
+      summary: Update the signed-in customer profile
+      description: Only `firstName` and `lastName` are editable. Email and role are not.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              minProperties: 1
+              additionalProperties: false
+              properties:
+                firstName: { type: string, minLength: 1, maxLength: 80 }
+                lastName: { type: string, minLength: 1, maxLength: 80 }
+      responses:
+        '200':
+          description: Updated profile.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/User' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /auth/password-reset:
+    post:
+      tags: [Customer auth]
+      operationId: requestPasswordReset
+      summary: Request a password-reset email
+      description: |
+        Always answers `202` with an empty body whether or not the email exists, so the
+        endpoint cannot be used to enumerate accounts. The reset token is delivered by the
+        backend's configured mail flow and is never returned by the API.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              additionalProperties: false
+              properties:
+                email: { type: string, format: email, maxLength: 254 }
+      responses:
+        '202': { description: Request accepted; no account information is disclosed. }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
+  /auth/password-reset/confirm:
+    post:
+      tags: [Customer auth]
+      operationId: confirmPasswordReset
+      summary: Set a new password with a reset token
+      description: A successful reset revokes every existing bearer token for the account.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, token, password]
+              additionalProperties: false
+              properties:
+                email: { type: string, format: email, maxLength: 254 }
+                token: { type: string, minLength: 16, maxLength: 128 }
+                password: { $ref: '#/components/schemas/Password' }
+      responses:
+        '204': { description: Password changed and existing tokens revoked. }
+        '422':
+          description: |
+            Validation failure or an invalid/expired reset token
+            (`error.code` = `RESET_TOKEN_INVALID`).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
+  # -------------------------------------------------------------------- Cart
+
+  /cart:
+    get:
+      tags: [Cart]
+      operationId: getCart
+      security:
+        - bearerAuth: []
+      summary: Read the signed-in customer's cart
+      description: |
+        Anonymous access is rejected; a cart always belongs to a signed-in customer. Every
+        line is re-priced from the current product record, so `priceChanged` and
+        `unavailable` can become true between reads without any client action.
+      responses:
+        '200':
+          description: The current cart.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/Cart' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /cart/items:
+    post:
+      tags: [Cart]
+      operationId: addCartItem
+      security:
+        - bearerAuth: []
+      summary: Add a product to the cart
+      description: |
+        Adding a product that is already in the cart increases its quantity. The whole cart
+        is returned so the client never has to re-read it after a mutation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [productId, quantity]
+              additionalProperties: false
+              properties:
+                productId: { type: integer, minimum: 1 }
+                quantity: { $ref: '#/components/schemas/CartQuantity' }
+      responses:
+        '200':
+          description: Cart after the mutation.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/Cart' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: |
+            `PRODUCT_UNAVAILABLE` (inactive/archived product) or `INSUFFICIENT_STOCK`
+            (requested quantity exceeds available stock). The current stock is reported in
+            `error.details`.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    delete:
+      tags: [Cart]
+      operationId: clearCart
+      security:
+        - bearerAuth: []
+      summary: Remove every line from the cart
+      responses:
+        '200':
+          description: The now-empty cart.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/Cart' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /cart/items/{productId}:
+    parameters:
+      - $ref: '#/components/parameters/ProductId'
+    patch:
+      tags: [Cart]
+      operationId: updateCartItem
+      security:
+        - bearerAuth: []
+      summary: Set the quantity of one cart line
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [quantity]
+              additionalProperties: false
+              properties:
+                quantity: { $ref: '#/components/schemas/CartQuantity' }
+      responses:
+        '200':
+          description: Cart after the mutation.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/Cart' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '404':
+          description: The product is not in this customer's cart (`CART_ITEM_NOT_FOUND`).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '409':
+          description: '`INSUFFICIENT_STOCK` for the requested quantity.'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    delete:
+      tags: [Cart]
+      operationId: removeCartItem
+      security:
+        - bearerAuth: []
+      summary: Remove one cart line
+      responses:
+        '200':
+          description: Cart after the mutation.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/Cart' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '404':
+          description: The product is not in this customer's cart (`CART_ITEM_NOT_FOUND`).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  # ---------------------------------------------------------------- Checkout
+
+  /checkout/quote:
+    post:
+      tags: [Checkout]
+      operationId: createCheckoutQuote
+      security:
+        - bearerAuth: []
+      summary: Validate a shipping address and price the current cart
+      description: |
+        Side-effect free. Returns the exact item lines, subtotal, configured sample shipping,
+        and total that a following `POST /orders` will produce, so the review screen shows
+        server-confirmed money rather than client arithmetic.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [shippingAddress]
+              additionalProperties: false
+              properties:
+                shippingAddress: { $ref: '#/components/schemas/ShippingAddress' }
+      responses:
+        '200':
+          description: Quote for the current cart and address.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/CheckoutQuote' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '409':
+          description: '`CART_EMPTY`, `PRODUCT_UNAVAILABLE`, or `INSUFFICIENT_STOCK`.'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /orders:
+    post:
+      tags: [Checkout]
+      operationId: createOrder
+      security:
+        - bearerAuth: []
+      summary: Create an order from the cart in `pending_payment`
+      description: |
+        The server recalculates every amount; client totals are ignored. The cart is converted
+        into immutable order snapshots and the cart is emptied. Stock is **not** reserved here;
+        inventory changes only when the simulated payment succeeds (see `docs/DATABASE.md`).
+
+        Requires an `Idempotency-Key` header. Repeating the same key with the same body returns
+        the original `201` result without creating a second order. Reusing a key with a
+        different body returns `409 IDEMPOTENCY_KEY_REUSED`.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [shippingAddress]
+              additionalProperties: false
+              properties:
+                shippingAddress: { $ref: '#/components/schemas/ShippingAddress' }
+                notes: { type: string, maxLength: 500, nullable: true }
+      responses:
+        '201':
+          description: Order created and awaiting the simulated payment outcome.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/Order' }
+        '400':
+          description: '`MISSING_IDEMPOTENCY_KEY` — the header is absent or not a UUID.'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '409':
+          description: |
+            `CART_EMPTY`, `INSUFFICIENT_STOCK`, or `IDEMPOTENCY_KEY_REUSED`.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '500': { $ref: '#/components/responses/ServerError' }
+    get:
+      tags: [Orders]
+      operationId: listOrders
+      security:
+        - bearerAuth: []
+      summary: List the signed-in customer's orders, newest first
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Paged order summaries owned by the caller.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/OrderSummary' }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /orders/{orderId}:
+    get:
+      tags: [Orders]
+      operationId: getOrder
+      security:
+        - bearerAuth: []
+      summary: Read one of the caller's orders
+      description: |
+        Another customer's order id returns `404`, never `403`: the server must not confirm the
+        existence of a resource the caller does not own.
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200':
+          description: Order detail with immutable snapshots.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/Order' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /orders/{orderId}/payment:
+    post:
+      tags: [Orders]
+      operationId: submitSimulatedPayment
+      security:
+        - bearerAuth: []
+      summary: Submit an explicitly simulated payment outcome
+      description: |
+        Demo-only outcome selector. The request carries an outcome flag, never card data.
+
+        - `success` → the payment record becomes `completed`, stock is decremented
+          transactionally, and the order moves `pending_payment` → `confirmed`.
+        - `failure` → the payment record becomes `failed` and the order **stays**
+          `pending_payment` so the customer can retry with a new idempotency key.
+
+        Any other order status is rejected with `409 INVALID_ORDER_STATE`. A client must never
+        treat a timeout as success; it re-reads `GET /orders/{orderId}`.
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [outcome]
+              additionalProperties: false
+              properties:
+                outcome:
+                  type: string
+                  enum: [success, failure]
+      responses:
+        '200':
+          description: The simulated result and the resulting order state.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/PaymentResult' }
+        '400':
+          description: '`MISSING_IDEMPOTENCY_KEY`.'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: '`INVALID_ORDER_STATE` or `IDEMPOTENCY_KEY_REUSED`.'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  # --------------------------------------------------------------- Admin auth
+
+  /admin/auth/csrf:
+    get:
+      tags: [Admin auth]
+      operationId: getAdminCsrfCookie
+      summary: Issue the CSRF cookie required before any admin mutation
+      description: |
+        Sets the `XSRF-TOKEN` cookie. The SPA must echo its value in the `X-XSRF-TOKEN` header
+        on every state-changing admin request and must call this endpoint before signing in.
+      security: []
+      responses:
+        '204': { description: CSRF cookie issued. }
+
+  /admin/auth/login:
+    post:
+      tags: [Admin auth]
+      operationId: loginAdmin
+      summary: Start an admin session
+      description: |
+        Requires a valid `X-XSRF-TOKEN` header. Answers `401 INVALID_CREDENTIALS` for both a
+        wrong password and a customer account, so the endpoint does not disclose which accounts
+        are administrators.
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200':
+          description: Session established; the session cookie is set.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/AdminSession' }
+        '401': { $ref: '#/components/responses/InvalidCredentials' }
+        '403': { $ref: '#/components/responses/CsrfRejected' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
+  /admin/auth/session:
+    get:
+      tags: [Admin auth]
+      operationId: getAdminSession
+      summary: Read the current admin session
+      description: Used on dashboard load to decide between the sign-in screen and the shell.
+      security:
+        - adminSession: []
+      responses:
+        '200':
+          description: The signed-in administrator.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/AdminSession' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /admin/auth/logout:
+    post:
+      tags: [Admin auth]
+      operationId: logoutAdmin
+      summary: End the admin session
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      responses:
+        '204': { description: Session ended. }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/CsrfRejected' }
+
+  # ------------------------------------------------------------ Admin catalog
+
+  /admin/products:
+    get:
+      tags: [Admin catalog]
+      operationId: adminListProducts
+      summary: List products for administration
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - name: q
+          in: query
+          schema: { type: string, maxLength: 120 }
+        - name: categoryId
+          in: query
+          schema: { type: integer, minimum: 1 }
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/ProductStatus' }
+      responses:
+        '200':
+          description: Paged admin product rows.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/AdminProduct' }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+    post:
+      tags: [Admin catalog]
+      operationId: adminCreateProduct
+      summary: Create a product
+      description: |
+        Creates the product and its image rows. Does **not** create an inventory row implicitly;
+        stock is owned by `PATCH /admin/inventory/{productId}`.
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AdminProductInput' }
+      responses:
+        '201':
+          description: Product created.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/AdminProduct' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/CsrfRejected' }
+        '409':
+          description: '`SKU_TAKEN` — the optional SKU is already used.'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /admin/products/{productId}:
+    parameters:
+      - $ref: '#/components/parameters/ProductId'
+    get:
+      tags: [Admin catalog]
+      operationId: adminGetProduct
+      summary: Read one product for administration
+      security:
+        - adminSession: []
+      responses:
+        '200':
+          description: Product row.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/AdminProduct' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [Admin catalog]
+      operationId: adminUpdateProduct
+      summary: Replace an editable product
+      description: Full replacement of the editable fields. Stock is not part of this payload.
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AdminProductInput' }
+      responses:
+        '200':
+          description: Product updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/AdminProduct' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/CsrfRejected' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: '`SKU_TAKEN`.'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /admin/products/{productId}/archive:
+    post:
+      tags: [Admin catalog]
+      operationId: adminArchiveProduct
+      summary: Archive a product
+      description: |
+        Archiving sets `status` to `archived`, which removes the product from public listings
+        and makes it unavailable for new cart lines. Products are never hard-deleted: existing
+        orders keep their snapshots. Re-archiving returns `409 INVALID_PRODUCT_STATE`.
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: '#/components/parameters/ProductId'
+        - $ref: '#/components/parameters/CsrfToken'
+      responses:
+        '200':
+          description: Product archived.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/AdminProduct' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/CsrfRejected' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: '`INVALID_PRODUCT_STATE` — the product is already archived.'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /admin/categories:
+    get:
+      tags: [Admin catalog]
+      operationId: adminListCategories
+      summary: List categories including archived ones
+      security:
+        - adminSession: []
+      parameters:
+        - name: status
+          in: query
+          description: Omit to return every status.
+          schema: { $ref: '#/components/schemas/CategoryStatus' }
+      responses:
+        '200':
+          description: Categories ordered by `sortOrder` then `name`.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/AdminCategory' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+    post:
+      tags: [Admin catalog]
+      operationId: adminCreateCategory
+      summary: Create a category
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CategoryInput' }
+      responses:
+        '201':
+          description: Category created.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/AdminCategory' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/CsrfRejected' }
+        '409':
+          description: '`CATEGORY_NAME_TAKEN`.'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /admin/categories/{categoryId}:
+    parameters:
+      - $ref: '#/components/parameters/CategoryId'
+    put:
+      tags: [Admin catalog]
+      operationId: adminUpdateCategory
+      summary: Update a category name or display order
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CategoryInput' }
+      responses:
+        '200':
+          description: Category updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/AdminCategory' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/CsrfRejected' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: '`CATEGORY_NAME_TAKEN`.'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  # Resolves the open question recorded in docs/SCREEN_SPECIFICATIONS.md: categories are
+  # archived, never deleted, and a category holding any non-archived product cannot be
+  # archived until those products are archived or moved.
+
+  /admin/categories/{categoryId}/archive:
+    post:
+      tags: [Admin catalog]
+      operationId: adminArchiveCategory
+      summary: Archive an empty category
+      description: |
+        Archived categories disappear from the public category list; products already assigned
+        to them stay in the catalog and keep their `categoryName` on product detail.
+
+        Rejected with `409 CATEGORY_NOT_EMPTY` while the category still holds at least one
+        product whose status is `active` or `inactive`. Hard deletion is not offered.
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: '#/components/parameters/CategoryId'
+        - $ref: '#/components/parameters/CsrfToken'
+      responses:
+        '200':
+          description: Category archived.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/AdminCategory' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/CsrfRejected' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: |
+            `CATEGORY_NOT_EMPTY` — `error.details` reports the blocking product count, or
+            `INVALID_CATEGORY_STATE` when it is already archived.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /admin/categories/{categoryId}/restore:
+    post:
+      tags: [Admin catalog]
+      operationId: adminRestoreCategory
+      summary: Restore an archived category
+      description: Returns the category to `active` so it appears in the public list again.
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: '#/components/parameters/CategoryId'
+        - $ref: '#/components/parameters/CsrfToken'
+      responses:
+        '200':
+          description: Category restored.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/AdminCategory' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/CsrfRejected' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: '`INVALID_CATEGORY_STATE` — the category is not archived.'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /admin/inventory:
+    get:
+      tags: [Admin catalog]
+      operationId: adminListInventory
+      summary: List stock rows
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - name: q
+          in: query
+          schema: { type: string, maxLength: 120 }
+        - name: inStock
+          in: query
+          schema: { type: boolean }
+      responses:
+        '200':
+          description: Paged inventory rows.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/InventoryRow' }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /admin/inventory/{productId}:
+    patch:
+      tags: [Admin catalog]
+      operationId: adminUpdateInventory
+      summary: Set the absolute stock quantity for a product
+      description: |
+        The client sends the resulting quantity, never a delta, so a retry cannot double-apply.
+        Zero is a valid value and means `Out of stock`. There is no low-stock threshold and no
+        adjustment history in the first release.
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: '#/components/parameters/ProductId'
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [quantity]
+              additionalProperties: false
+              properties:
+                quantity: { type: integer, minimum: 0, maximum: 1000000 }
+      responses:
+        '200':
+          description: Updated stock row.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/InventoryRow' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/CsrfRejected' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  # ------------------------------------------------------------- Admin orders
+
+  /admin/orders:
+    get:
+      tags: [Admin orders]
+      operationId: adminListOrders
+      summary: List orders for administration
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - name: q
+          in: query
+          description: Matches order reference or customer email.
+          schema: { type: string, maxLength: 120 }
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/OrderStatus' }
+        - name: from
+          in: query
+          description: Inclusive lower bound on `createdAt` (date, UTC).
+          schema: { type: string, format: date }
+        - name: to
+          in: query
+          description: Inclusive upper bound on `createdAt` (date, UTC).
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Paged admin order summaries, newest first.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/AdminOrderSummary' }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /admin/orders/{orderId}:
+    get:
+      tags: [Admin orders]
+      operationId: adminGetOrder
+      summary: Read one order with its snapshots and simulated payment
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200':
+          description: Order detail.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/AdminOrder' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /admin/orders/{orderId}/status:
+    patch:
+      tags: [Admin orders]
+      operationId: adminUpdateOrderStatus
+      summary: Apply a permitted order status transition
+      description: |
+        Permitted transitions (see `x-order-state-machine`):
+
+        | From | To |
+        |------|----|
+        | `pending_payment` | `cancelled` |
+        | `confirmed` | `processing`, `cancelled` |
+        | `processing` | `shipped`, `cancelled` |
+        | `shipped` | `delivered` |
+
+        `delivered` and `cancelled` are terminal. `confirmed` is reached only by a successful
+        simulated payment, never by this endpoint. Any other requested transition returns
+        `409 INVALID_TRANSITION`.
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              additionalProperties: false
+              properties:
+                status: { $ref: '#/components/schemas/OrderStatus' }
+      responses:
+        '200':
+          description: The order after the transition.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/AdminOrder' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/CsrfRejected' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: '`INVALID_TRANSITION`.'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: SanctumToken
+      description: |
+        Revocable Laravel Sanctum personal access token issued to the Android application.
+        Maximum lifetime is 30 days; `POST /auth/logout` revokes the presented token. The client
+        stores it only in platform-protected storage and never logs it.
+    adminSession:
+      type: apiKey
+      in: cookie
+      name: eshop_admin_session
+      description: |
+        First-party Sanctum session cookie used only by the admin SPA. It must be HttpOnly and
+        Secure outside local HTTP development, and must share a compatible top-level domain with
+        the API. Mutating admin requests additionally require the `X-XSRF-TOKEN` header.
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    PerPage:
+      name: perPage
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+    ProductId:
+      name: productId
+      in: path
+      required: true
+      schema: { type: integer, minimum: 1 }
+    CategoryId:
+      name: categoryId
+      in: path
+      required: true
+      schema: { type: integer, minimum: 1 }
+    OrderId:
+      name: orderId
+      in: path
+      required: true
+      schema: { type: integer, minimum: 1 }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: |
+        Client-generated UUID identifying one logical mutation. Repeating the same key with the
+        same body replays the stored result; reusing it with a different body is rejected.
+      schema:
+        type: string
+        format: uuid
+    CsrfToken:
+      name: X-XSRF-TOKEN
+      in: header
+      required: true
+      description: Value of the `XSRF-TOKEN` cookie issued by `GET /admin/auth/csrf`.
+      schema: { type: string, minLength: 16, maxLength: 512 }
+
+  responses:
+    ValidationError:
+      description: |
+        `VALIDATION_ERROR` — one or more fields are invalid. `error.details` lists the offending
+        fields. No field value is echoed back.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Unauthenticated:
+      description: |
+        `UNAUTHENTICATED` — the credential is missing, revoked, expired, or not a valid
+        administrator session.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    InvalidCredentials:
+      description: '`INVALID_CREDENTIALS` — deliberately vague; never reveals which part failed.'
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    CsrfRejected:
+      description: |
+        `CSRF_TOKEN_MISMATCH` — the `X-XSRF-TOKEN` header is missing or does not match the cookie.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: |
+        `NOT_FOUND` — the resource does not exist **or** is not owned by the caller. Ownership
+        failures must not be distinguishable from missing resources.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: |
+        `FORBIDDEN` — the caller is authenticated but not permitted. Returned when a session
+        exists for an account that is no longer an administrator.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    ServerError:
+      description: |
+        `INTERNAL_ERROR` — an unexpected server failure. The response never contains a stack trace,
+        SQL, or a file path, and does not reveal whether the request was applied.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    RateLimited:
+      description: '`RATE_LIMITED` or `ACCOUNT_LOCKED`. A `Retry-After` header is always present.'
+      headers:
+        Retry-After:
+          description: Seconds the client must wait before retrying.
+          schema: { type: integer, minimum: 1 }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+  schemas:
+
+    # ------------------------------------------------------------- primitives
+
+    Money:
+      type: string
+      pattern: '^\d{1,9}\.\d{2}$'
+      description: |
+        Fixed-precision decimal string with exactly two fraction digits. Never a JSON number:
+        clients must not introduce binary floating-point money arithmetic.
+      examples: ["19.99", "5.00"]
+
+    Currency:
+      type: string
+      enum: [USD]
+      description: Display currency. Always USD in the first release.
+
+    Password:
+      type: string
+      format: password
+      minLength: 8
+      maxLength: 72
+      description: |
+        At least 8 characters with at least one letter and one digit. Never logged, never
+        returned, and stored only as a password hash. The 72-byte ceiling is bcrypt's limit.
+
+    CartQuantity:
+      type: integer
+      minimum: 1
+      maximum: 99
+      description: Quantity per cart line; also bounded by the product's available stock.
+
+    Pagination:
+      type: object
+      required: [currentPage, perPage, totalItems, totalPages]
+      properties:
+        currentPage: { type: integer, minimum: 1 }
+        perPage: { type: integer, minimum: 1, maximum: 100 }
+        totalItems: { type: integer, minimum: 0 }
+        totalPages: { type: integer, minimum: 0 }
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              description: Stable machine-readable code. See `x-error-codes`.
+            message:
+              type: string
+              description: English, user-safe. Never contains a stack trace, SQL, or a file path.
+            details:
+              type: array
+              description: Optional field-level or contextual detail.
+              items:
+                type: object
+                required: [field, message]
+                properties:
+                  field: { type: string }
+                  message: { type: string }
+
+    # ----------------------------------------------------------------- enums
+
+    UserRole:
+      type: string
+      enum: [customer, admin]
+    UserStatus:
+      type: string
+      enum: [active, suspended, deleted]
+    ProductStatus:
+      type: string
+      enum: [active, inactive, archived]
+    CategoryStatus:
+      type: string
+      enum: [active, archived]
+    OrderStatus:
+      type: string
+      enum: [pending_payment, confirmed, processing, shipped, delivered, cancelled]
+    PaymentStatus:
+      type: string
+      enum: [pending, completed, failed]
+    PaymentMethod:
+      type: string
+      enum: [demo]
+
+    # ------------------------------------------------------------ core models
+
+    User:
+      type: object
+      required: [id, email, firstName, lastName, role, status]
+      properties:
+        id: { type: integer, minimum: 1 }
+        email: { type: string, format: email }
+        firstName: { type: string }
+        lastName: { type: string }
+        role: { $ref: '#/components/schemas/UserRole' }
+        status: { $ref: '#/components/schemas/UserStatus' }
+        createdAt: { type: string, format: date-time }
+
+    RegisterRequest:
+      type: object
+      required: [email, password, firstName, lastName]
+      additionalProperties: false
+      properties:
+        email: { type: string, format: email, maxLength: 254 }
+        password: { $ref: '#/components/schemas/Password' }
+        firstName: { type: string, minLength: 1, maxLength: 80 }
+        lastName: { type: string, minLength: 1, maxLength: 80 }
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      additionalProperties: false
+      properties:
+        email: { type: string, format: email, maxLength: 254 }
+        password: { type: string, format: password, maxLength: 72 }
+
+    AuthSession:
+      type: object
+      required: [token, expiresAt, user]
+      properties:
+        token:
+          type: string
+          description: Bearer token. Android stores it only in protected storage and never logs it.
+        expiresAt:
+          type: string
+          format: date-time
+          description: Absolute expiry; at most 30 days after issue.
+        user: { $ref: '#/components/schemas/User' }
+
+    AdminSession:
+      type: object
+      required: [user]
+      properties:
+        user: { $ref: '#/components/schemas/User' }
+
+    Category:
+      type: object
+      required: [id, name, sortOrder, status]
+      properties:
+        id: { type: integer, minimum: 1 }
+        name: { type: string }
+        sortOrder: { type: integer, minimum: 0 }
+        status: { $ref: '#/components/schemas/CategoryStatus' }
+
+    AdminCategory:
+      allOf:
+        - $ref: '#/components/schemas/Category'
+        - type: object
+          required: [productCount]
+          properties:
+            productCount:
+              type: integer
+              minimum: 0
+              description: Number of products whose status is not `archived`.
+
+    CategoryInput:
+      type: object
+      required: [name, sortOrder]
+      additionalProperties: false
+      properties:
+        name: { type: string, minLength: 1, maxLength: 80 }
+        sortOrder: { type: integer, minimum: 0, maximum: 9999 }
+
+    ProductSummary:
+      type: object
+      required: [id, name, price, currency, categoryId, categoryName, imageUrl, inStock]
+      properties:
+        id: { type: integer, minimum: 1 }
+        name: { type: string }
+        price: { $ref: '#/components/schemas/Money' }
+        currency: { $ref: '#/components/schemas/Currency' }
+        categoryId:
+          type: [integer, 'null']
+        categoryName:
+          type: [string, 'null']
+        imageUrl:
+          type: [string, 'null']
+          description: Primary seeded image URL, or null when the product has no image.
+        inStock:
+          type: boolean
+          description: True when `stockQuantity > 0`. Exact stock is not exposed in listings.
+        status: { $ref: '#/components/schemas/ProductStatus' }
+
+    ProductImage:
+      type: object
+      required: [url, sortOrder]
+      properties:
+        url: { type: string, format: uri-reference }
+        sortOrder: { type: integer, minimum: 0 }
+
+    ProductDetail:
+      allOf:
+        - $ref: '#/components/schemas/ProductSummary'
+        - type: object
+          required: [description, images, stockQuantity]
+          properties:
+            description:
+              type: [string, 'null']
+            sku:
+              type: [string, 'null']
+            stockQuantity:
+              type: integer
+              minimum: 0
+              description: Exact stock, used by the product-detail quantity stepper.
+            images:
+              type: array
+              description: Ordered image set; may be empty.
+              items: { $ref: '#/components/schemas/ProductImage' }
+
+    AdminProduct:
+      allOf:
+        - $ref: '#/components/schemas/ProductSummary'
+        - type: object
+          required: [description, images, stockQuantity, sku, updatedAt]
+          properties:
+            description:
+              type: [string, 'null']
+            sku:
+              type: [string, 'null']
+            stockQuantity:
+              type: integer
+              minimum: 0
+            images:
+              type: array
+              items: { $ref: '#/components/schemas/ProductImage' }
+            updatedAt: { type: string, format: date-time }
+
+    AdminProductInput:
+      type: object
+      required: [name, description, price, categoryId, status, imageUrls]
+      additionalProperties: false
+      properties:
+        name: { type: string, minLength: 1, maxLength: 160 }
+        description:
+          type: [string, 'null']
+          maxLength: 5000
+        price: { $ref: '#/components/schemas/Money' }
+        sku:
+          type: [string, 'null']
+          maxLength: 64
+          description: Optional and unique when present.
+        categoryId:
+          type: [integer, 'null']
+          minimum: 1
+          description: Must reference a category whose status is `active` when provided.
+        status:
+          type: string
+          enum: [active, inactive]
+          description: |
+            `archived` is not assignable here; use `POST /admin/products/{productId}/archive`.
+        imageUrls:
+          type: array
+          maxItems: 8
+          description: Ordered seeded image URLs. Binary upload is out of scope.
+          items: { type: string, format: uri-reference, maxLength: 2048 }
+
+    InventoryRow:
+      type: object
+      required: [productId, name, sku, quantity, inStock, updatedAt]
+      properties:
+        productId: { type: integer, minimum: 1 }
+        name: { type: string }
+        sku: { type: [string, 'null'] }
+        quantity: { type: integer, minimum: 0 }
+        inStock: { type: boolean }
+        updatedAt: { type: [string, 'null'], format: date-time }
+
+    ShippingAddress:
+      type: object
+      required: [recipientName, line1, city, region, postalCode, country]
+      additionalProperties: false
+      properties:
+        recipientName: { type: string, minLength: 1, maxLength: 120 }
+        line1: { type: string, minLength: 1, maxLength: 180 }
+        line2:
+          type: [string, 'null']
+          maxLength: 180
+        city: { type: string, minLength: 1, maxLength: 80 }
+        region: { type: string, minLength: 1, maxLength: 80 }
+        postalCode: { type: string, minLength: 1, maxLength: 20 }
+        country:
+          type: string
+          pattern: '^[A-Z]{2}$'
+          description: ISO 3166-1 alpha-2 country code, uppercase.
+
+    CartItem:
+      type: object
+      required: [productId, name, imageUrl, unitPrice, currency, quantity, lineTotal, inStock, availableQuantity, priceChanged, unavailable]
+      properties:
+        productId: { type: integer, minimum: 1 }
+        name: { type: string }
+        imageUrl: { type: [string, 'null'] }
+        unitPrice: { $ref: '#/components/schemas/Money' }
+        currency: { $ref: '#/components/schemas/Currency' }
+        quantity: { $ref: '#/components/schemas/CartQuantity' }
+        lineTotal: { $ref: '#/components/schemas/Money' }
+        inStock: { type: boolean }
+        availableQuantity: { type: integer, minimum: 0 }
+        priceChanged:
+          type: boolean
+          description: True when the stored line price differs from the current product price.
+        unavailable:
+          type: boolean
+          description: True when the product is no longer `active`.
+
+    Cart:
+      type: object
+      required: [items, itemCount, subtotal, shipping, total, currency, hasIssues]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/CartItem' }
+        itemCount:
+          type: integer
+          minimum: 0
+          description: Sum of quantities; drives the bottom-navigation badge.
+        subtotal: { $ref: '#/components/schemas/Money' }
+        shipping: { $ref: '#/components/schemas/Money' }
+        total: { $ref: '#/components/schemas/Money' }
+        currency: { $ref: '#/components/schemas/Currency' }
+        hasIssues:
+          type: boolean
+          description: True when any line is unavailable, out of stock, or repriced.
+
+    CheckoutQuote:
+      type: object
+      required: [items, subtotal, shipping, total, currency, shippingAddress, shippingAddressId]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/CartItem' }
+        subtotal: { $ref: '#/components/schemas/Money' }
+        shipping: { $ref: '#/components/schemas/Money' }
+        total: { $ref: '#/components/schemas/Money' }
+        currency: { $ref: '#/components/schemas/Currency' }
+        shippingAddress: { $ref: '#/components/schemas/ShippingAddress' }
+        shippingAddressId:
+          type: string
+          description: |
+            Opaque fingerprint of the validated address. `POST /orders` echoes it so the server
+            can detect that the address changed between review and submission. This is a
+            convenience token, not an authorization credential.
+
+    OrderItem:
+      type: object
+      required: [productId, productName, quantity, unitPrice, lineTotal]
+      properties:
+        productId: { type: integer, minimum: 1 }
+        productName:
+          type: string
+          description: Snapshot of the product name at purchase time.
+        quantity: { type: integer, minimum: 1 }
+        unitPrice: { $ref: '#/components/schemas/Money' }
+        lineTotal: { $ref: '#/components/schemas/Money' }
+
+    OrderStatusEvent:
+      type: object
+      required: [status, at]
+      properties:
+        status: { $ref: '#/components/schemas/OrderStatus' }
+        at: { type: string, format: date-time }
+
+    OrderPayment:
+      type: object
+      required: [method, status, amount, currency, createdAt]
+      properties:
+        method: { $ref: '#/components/schemas/PaymentMethod' }
+        status: { $ref: '#/components/schemas/PaymentStatus' }
+        amount: { $ref: '#/components/schemas/Money' }
+        currency: { $ref: '#/components/schemas/Currency' }
+        transactionId:
+          type: [string, 'null']
+          pattern: '^DEMO-[A-Z0-9]{12}$'
+          description: Fictional demo reference. Never a real payment credential.
+        createdAt: { type: string, format: date-time }
+
+    OrderSummary:
+      type: object
+      required: [id, reference, status, paymentStatus, total, currency, itemCount, createdAt]
+      properties:
+        id: { type: integer, minimum: 1 }
+        reference: { type: string, pattern: '^ESV-[0-9]{6}$' }
+        status: { $ref: '#/components/schemas/OrderStatus' }
+        paymentStatus: { $ref: '#/components/schemas/PaymentStatus' }
+        total: { $ref: '#/components/schemas/Money' }
+        currency: { $ref: '#/components/schemas/Currency' }
+        itemCount: { type: integer, minimum: 1 }
+        createdAt: { type: string, format: date-time }
+
+    Order:
+      type: object
+      required: [id, reference, status, paymentStatus, items, subtotal, shipping, total, currency, shippingAddress, timeline, createdAt, updatedAt]
+      properties:
+        id: { type: integer, minimum: 1 }
+        reference: { type: string, pattern: '^ESV-[0-9]{6}$' }
+        status: { $ref: '#/components/schemas/OrderStatus' }
+        paymentStatus: { $ref: '#/components/schemas/PaymentStatus' }
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/OrderItem' }
+        subtotal: { $ref: '#/components/schemas/Money' }
+        shipping: { $ref: '#/components/schemas/Money' }
+        total: { $ref: '#/components/schemas/Money' }
+        currency: { $ref: '#/components/schemas/Currency' }
+        shippingAddress: { $ref: '#/components/schemas/ShippingAddress' }
+        notes:
+          type: [string, 'null']
+        payment:
+          oneOf:
+            - $ref: '#/components/schemas/OrderPayment'
+            - type: 'null'
+        timeline:
+          type: array
+          description: Recorded status transitions, oldest first.
+          items: { $ref: '#/components/schemas/OrderStatusEvent' }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    PaymentResult:
+      type: object
+      required: [orderId, orderReference, orderStatus, paymentStatus, simulated]
+      properties:
+        orderId: { type: integer, minimum: 1 }
+        orderReference: { type: string, pattern: '^ESV-[0-9]{6}$' }
+        orderStatus: { $ref: '#/components/schemas/OrderStatus' }
+        paymentStatus: { $ref: '#/components/schemas/PaymentStatus' }
+        simulated:
+          type: boolean
+          const: true
+          description: Always true. Present so no client can present the result as a real payment.
+        payment: { $ref: '#/components/schemas/OrderPayment' }
+
+    AdminOrderSummary:
+      allOf:
+        - $ref: '#/components/schemas/OrderSummary'
+        - type: object
+          required: [customer]
+          properties:
+            customer:
+              type: object
+              required: [id, email, firstName, lastName]
+              properties:
+                id: { type: integer, minimum: 1 }
+                email: { type: string, format: email }
+                firstName: { type: string }
+                lastName: { type: string }
+
+    AdminOrder:
+      allOf:
+        - $ref: '#/components/schemas/Order'
+        - type: object
+          required: [customer, allowedTransitions]
+          properties:
+            customer:
+              type: object
+              required: [id, email, firstName, lastName]
+              properties:
+                id: { type: integer, minimum: 1 }
+                email: { type: string, format: email }
+                firstName: { type: string }
+                lastName: { type: string }
+            allowedTransitions:
+              type: array
+              description: |
+                Transitions the current status permits, so the admin UI never offers a state the
+                server will reject.
+              items: { $ref: '#/components/schemas/OrderStatus' }
+
+  # ------------------------------------------------------- contract metadata
+
+x-error-codes:
+  VALIDATION_ERROR: { status: 422, meaning: One or more request fields are invalid. }
+  UNAUTHENTICATED: { status: 401, meaning: Missing, revoked, or expired credential. }
+  INVALID_CREDENTIALS: { status: 401, meaning: Sign-in failed; deliberately non-specific. }
+  ACCOUNT_LOCKED: { status: 429, meaning: 'Too many consecutive failures; Retry-After is set.' }
+  FORBIDDEN: { status: 403, meaning: Authenticated but not permitted. }
+  CSRF_TOKEN_MISMATCH: { status: 403, meaning: Admin mutation without a valid X-XSRF-TOKEN. }
+  NOT_FOUND: { status: 404, meaning: Missing resource, or one the caller does not own. }
+  EMAIL_ALREADY_REGISTERED: { status: 409, meaning: Registration email is taken. }
+  RESET_TOKEN_INVALID: { status: 422, meaning: Password-reset token is unknown or expired. }
+  PRODUCT_UNAVAILABLE: { status: 409, meaning: Product is inactive or archived. }
+  INSUFFICIENT_STOCK: { status: 409, meaning: Requested quantity exceeds available stock. }
+  CART_ITEM_NOT_FOUND: { status: 404, meaning: Product is not in the caller cart. }
+  CART_EMPTY: { status: 409, meaning: Checkout attempted with no cart lines. }
+  MISSING_IDEMPOTENCY_KEY: { status: 400, meaning: The Idempotency-Key header is absent or invalid. }
+  IDEMPOTENCY_KEY_REUSED: { status: 409, meaning: Same key, different request body. }
+  INVALID_ORDER_STATE: { status: 409, meaning: The order is not in a state that allows this action. }
+  INVALID_TRANSITION: { status: 409, meaning: The requested status transition is not permitted. }
+  INVALID_PRODUCT_STATE: { status: 409, meaning: Product status does not allow this action. }
+  INVALID_CATEGORY_STATE: { status: 409, meaning: Category status does not allow this action. }
+  CATEGORY_NOT_EMPTY: { status: 409, meaning: Category still holds non-archived products. }
+  CATEGORY_NAME_TAKEN: { status: 409, meaning: Category name is already used. }
+  SKU_TAKEN: { status: 409, meaning: Product SKU is already used. }
+  CATEGORY_NOT_FOUND: { status: 422, meaning: Filter references an unknown or archived category. }
+  RATE_LIMITED: { status: 429, meaning: Request class limit exceeded. }
+  INTERNAL_ERROR: { status: 500, meaning: Unexpected failure; no internal detail is returned. }
+
+x-rate-limit-classes:
+  global: { limit: 300, window: 1m, key: ip }
+  public-read: { limit: 120, window: 1m, key: ip, applies-to: [listCategories, listProducts, getProduct] }
+  customer-login: { limit: 10, window: 1m, key: ip, reset-on-success: true, note: Also counts 5 consecutive failures per email for account lockout. }
+  customer-register: { limit: 5, window: 1h, key: ip }
+  password-reset: { limit: 3, window: 1h, key: email, secondary: { limit: 10, window: 1h, key: ip } }
+  admin-login: { limit: 10, window: 1m, key: ip }
+  customer-write: { limit: 60, window: 1m, key: token }
+  admin-write: { limit: 120, window: 1m, key: session }
+
+x-order-state-machine:
+  initial: pending_payment
+  terminal: [delivered, cancelled]
+  transitions:
+    pending_payment: [confirmed, cancelled]
+    confirmed: [processing, cancelled]
+    processing: [shipped, cancelled]
+    shipped: [delivered]
+    delivered: []
+    cancelled: []
+  rules:
+    - "pending_payment -> confirmed happens only through a successful simulated payment."
+    - "Inventory is decremented transactionally only on that success; failure leaves stock unchanged."
+    - "A failed simulated payment leaves the order in pending_payment so it can be retried."
+    - "Every transition is recorded in the order timeline."
+
+x-money-rules:
+  representation: Decimal string with exactly two fraction digits, plus a separate `currency` field.
+  storage: Fixed-precision decimal columns; never floating point.
+  authority: The server calculates every subtotal, shipping amount, and total.
+  client-rule: Clients format money for display and never perform arithmetic on it.
+  rounding: Half-up to two fraction digits, applied only when an amount is derived.
+  shipping: One configured flat sample rate (USD 5.00) applied per order, including cross-checking in the quote.
+
+x-open-decisions:
+  - id: OPEN-1
+    question: Confirm the production-like API host that replaces `api.example.test`.
+    blocks: Any public deployment. Does not block Phase 0 or Phase 1 Android or backend work.
+  - id: OPEN-2
+    question: >-
+      Confirm category lifecycle: categories are archived (never deleted) and archiving is
+      refused while non-archived products remain. This draft assumes it.
+    blocks: Backend CAT-003 and Admin CAT-004 destructive actions.
+  - id: OPEN-3
+    question: Confirm the flat sample shipping rate (USD 5.00) and that no free-shipping threshold exists.
+    blocks: Nothing; the value is returned by the API so clients stay correct if it changes.
+  - id: OPEN-4
+    question: >-
+      Confirm that a failed simulated payment leaves the order in `pending_payment` for retry
+      rather than cancelling it.
+    blocks: Order-result copy in Android CHECK-001 and Admin ORD-003.

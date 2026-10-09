@@ -202,5 +202,7 @@ English is the only supported API-facing locale in the first release. Error mess
 
 ## Open Decisions
 
-- [ ] Exact endpoint schemas and examples in `docs/openapi.yaml` (must be completed before endpoint implementation)
-- [ ] Rate limits for each endpoint class
+- [ ] **Draft prepared; awaiting API-owner review.** [`openapi.yaml`](openapi.yaml) is an OpenAPI 3.1 draft covering customer registration/login/logout/profile/password reset, public category and product read/search/sort/pagination, the authenticated cart, checkout quote and order creation with idempotency, the simulated payment outcome, customer order history and detail, admin session authentication, admin product/category/inventory management, admin order status transitions, the shared error envelope and error-code list, and the status-code contract. It still requires API-owner acceptance before any endpoint or client integration is implemented (canonical task: Backend FND-004).
+- [ ] Rate limits for each endpoint class — drafted as `x-rate-limit-classes` in [`openapi.yaml`](openapi.yaml), pending the same review.
+- [ ] Category lifecycle — resolved in the draft as OPEN-2 (categories are archived, never deleted, and archiving is refused while non-archived products remain), pending owner confirmation.
+- [ ] Items OPEN-1, OPEN-3, and OPEN-4 in [`openapi.yaml`](openapi.yaml) record the remaining contract questions (deployment host, flat sample shipping rate, and failed-payment order state).
