@@ -61,6 +61,6 @@ public final class PagedResponse<T> {
         int perPage = pagination != null ? pagination.getPerPage() : getData().size();
         int totalItems = pagination != null ? pagination.getTotalItems() : getData().size();
         int totalPages = pagination != null ? pagination.getTotalPages() : 1;
-        return new Paged<>(getData(), current, perPage, totalItems, totalPages, hasMore());
+        return new Paged<>(getData(), current, perPage, totalItems, totalPages);
     }
 }
