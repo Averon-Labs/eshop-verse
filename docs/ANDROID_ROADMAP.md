@@ -149,7 +149,7 @@ Phase 0 supplies every cross-cutting layer the screen tasks depend on, so Phase 
 
 ### Step 5 — DOM-002 — Money, API models, and shared UI state
 
-**Status:** `[ ]`
+**Status:** `[x]`
 
 **Depends on:** FND-006, FND-004
 
@@ -165,13 +165,13 @@ Phase 0 supplies every cross-cutting layer the screen tasks depend on, so Phase 
 
 **Acceptance criteria:**
 
-- [ ] **a.** Money is a fixed-precision decimal type parsed from strings and formatted for en-US USD; no code path converts money to or from a binary floating-point value, and a test proves it.
-- [ ] **b.** All Phase 1 and Phase 2 API models and enums exist, match the contract schema names, and are documented as contract-derived; no screen task needs to fork a model.
-- [ ] **c.** Every documented error code maps to a user-visible English message with a generic fallback, and a test proves the mapping is total.
-- [ ] **d.** Shared loading/content/empty/error state and one-shot event primitives exist for the ViewModels, and no screen re-implements them.
-- [ ] **e.** Tests avoid Android framework dependencies where practical.
+- [x] **a.** Money is a fixed-precision decimal type parsed from strings and formatted for en-US USD; no code path converts money to or from a binary floating-point value, and a test proves it.
+- [x] **b.** All Phase 1 and Phase 2 API models and enums exist, match the contract schema names, and are documented as contract-derived; no screen task needs to fork a model.
+- [x] **c.** Every documented error code maps to a user-visible English message with a generic fallback, and a test proves the mapping is total.
+- [x] **d.** Shared loading/content/empty/error state and one-shot event primitives exist for the ViewModels, and no screen re-implements them.
+- [x] **e.** Tests avoid Android framework dependencies where practical.
 
-**Verification:** unit tests for money boundaries, formatting, model parsing, error mapping, and state primitives; a checked model-to-schema mapping list.
+**Verification:** unit tests for money boundaries, formatting, reflection check ensuring no float/double exposure (`MoneyTest`), model JSON parsing (`ApiModelParsingTest`), total error-code coverage (`ErrorMessagesTest`), and state/event primitives (`UiStateAndEventTest`); `lintDebug` and `testDebugUnitTest` passed with zero errors.
 
 ### Step 6 — DATA-002 — Secure token storage and local persistence decision
 
