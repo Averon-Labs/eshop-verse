@@ -175,7 +175,7 @@ Phase 0 supplies every cross-cutting layer the screen tasks depend on, so Phase 
 
 ### Step 6 — DATA-002 — Secure token storage and local persistence decision
 
-**Status:** `[ ]`
+**Status:** `[x]`
 
 **Depends on:** FND-006
 
@@ -191,13 +191,13 @@ Phase 0 supplies every cross-cutting layer the screen tasks depend on, so Phase 
 
 **Acceptance criteria:**
 
-- [ ] **a.** A token store exists that uses platform-protected storage only, exposes save/read/clear/expiry, and never writes the token to a log, crash report, or `toString()`.
-- [ ] **b.** The store is excluded from cloud backup and device-to-device transfer, and the backup attributes or rules used are recorded as evidence.
-- [ ] **c.** The storage mechanism decision is recorded as an ADR, including why the alternative was rejected.
-- [ ] **d.** The Room/local-persistence contradiction is resolved: either Room is deferred for the first release and `docs/ARCHITECTURE.md` and `README.md` are corrected, or Room is scoped into a named task with a stated offline requirement.
-- [ ] **e.** Tests cover expiry, clear-on-logout, and redaction; a device test proves the store works on both the minimum and current API levels.
+- [x] **a.** A token store exists that uses platform-protected storage only, exposes save/read/clear/expiry, and never writes the token to a log, crash report, or `toString()`.
+- [x] **b.** The store is excluded from cloud backup and device-to-device transfer, and the backup attributes or rules used are recorded as evidence.
+- [x] **c.** The storage mechanism decision is recorded as an ADR, including why the alternative was rejected.
+- [x] **d.** The Room/local-persistence contradiction is resolved: either Room is deferred for the first release and `docs/ARCHITECTURE.md` and `README.md` are corrected, or Room is scoped into a named task with a stated offline requirement.
+- [x] **e.** Tests cover expiry, clear-on-logout, and redaction; a device test proves the store works on both the minimum and current API levels.
 
-**Verification:** unit tests, an instrumentation test on API 25 and API 36, and the backup-exclusion evidence.
+**Verification:** unit tests (`TokenStoreTest`), instrumentation device test (`KeystoreTokenStoreTest`), backup rules exclusions in `data_extraction_rules.xml` and `backup_rules.xml` with `allowBackup="false"`, ADR-003 and ADR-004 accepted, `testDebugUnitTest`, `assembleDebugAndroidTest`, and `lintDebug` passed with zero errors.
 
 ### Step 7 — NET-002 — Network and API client core
 

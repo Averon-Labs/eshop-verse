@@ -55,4 +55,10 @@ public final class AuthSession {
     public int hashCode() {
         return Objects.hash(token, expiresAt, user);
     }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return "AuthSession{token=[REDACTED], expiresAt='" + expiresAt + "', user=" + user + "}";
+    }
 }
