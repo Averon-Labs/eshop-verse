@@ -6,6 +6,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -76,6 +77,24 @@ public class MainActivity extends AppCompatActivity {
 
         // Initialize cart badge as hidden
         setCartBadgeCount(0);
+
+        // Hierarchical back navigation:
+        // If the user is on any destination other than Home, Back returns directly to HomeFragment.
+        // A subsequent Back press from HomeFragment exits the application directly, avoiding backstack loops.
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (navController != null && navController.getCurrentDestination() != null) {
+                    int currentId = navController.getCurrentDestination().getId();
+                    if (currentId != R.id.homeFragment) {
+                        navController.popBackStack(R.id.homeFragment, false);
+                        return;
+                    }
+                }
+                setEnabled(false);
+                getOnBackPressedDispatcher().onBackPressed();
+            }
+        });
     }
 
     private void updateContentBottomPadding() {
@@ -115,15 +134,11 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_search) {
-            if (navController != null) {
-                navController.navigate(R.id.exploreFragment);
-                return true;
-            }
+            binding.bottomNav.setSelectedItemId(R.id.exploreFragment);
+            return true;
         } else if (id == R.id.action_account) {
-            if (navController != null) {
-                navController.navigate(R.id.accountFragment);
-                return true;
-            }
+            binding.bottomNav.setSelectedItemId(R.id.accountFragment);
+            return true;
         }
         if (navController != null && NavigationUI.onNavDestinationSelected(item, navController)) {
             return true;
@@ -133,9 +148,12 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onSupportNavigateUp() {
-        if (navController != null) {
-            return NavigationUI.navigateUp(navController, appBarConfiguration)
-                    || super.onSupportNavigateUp();
+        if (navController != null && navController.getCurrentDestination() != null) {
+            int currentId = navController.getCurrentDestination().getId();
+            if (currentId != R.id.homeFragment) {
+                navController.popBackStack(R.id.homeFragment, false);
+                return true;
+            }
         }
         return super.onSupportNavigateUp();
     }
