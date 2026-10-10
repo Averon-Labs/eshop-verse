@@ -37,24 +37,79 @@ For each new or materially changed screen, verify during implementation/review t
 
 ## Color System
 
-**Status: ACCEPTED — light coral-and-neutral brand palette**
+**Status: ACCEPTED — light palette derived from the owner's reference**
+
+The reference's recognizable palette is bright coral actions, white cards, a very light neutral canvas, near-black text, and soft pink, lavender, aqua, and lime product surfaces. Use Material 3 semantic roles for controls and text; the pastel product surfaces are decorative only. The values below are deliberate accessible approximations of the supplied image, not claims of exact pixel sampling.
+
+### Material 3 light roles
+
+| Role token | Value | Use |
+|------------|-------|-----|
+| Primary / on-primary | `#F7767E` / `#161616` | Coral actions and their foregrounds |
+| Primary container / on-primary-container | `#FFF0F1` / `#8D2531` | Selected surfaces and soft coral emphasis |
+| Secondary / on-secondary | `#7651B5` / `#FFFFFF` | Secondary emphasis, reflecting the promo's lavender end |
+| Secondary container / on-secondary-container | `#EEE7F7` / `#392653` | Soft lavender chips and selected surfaces |
+| Tertiary / on-tertiary | `#287E87` / `#FFFFFF` | Aqua emphasis and promo accents |
+| Tertiary container / on-tertiary-container | `#DDF3F4` / `#164E53` | Soft aqua surfaces |
+| Error / on-error | `#B3261E` / `#FFFFFF` | Destructive and error emphasis |
+| Error container / on-error-container | `#FCEEEE` / `#8C1D18` | Error messages and fields |
+| Background / on-background | `#F5F6F7` / `#161616` | App canvas and default text |
+| Surface / on-surface | `#FFFFFF` / `#161616` | Cards, sheets, fields, dialogs, and text |
+| Surface variant / on-surface-variant | `#F1F1F3` / `#6B6B6B` | Supporting surfaces and secondary text |
+| Surface containers (lowest → highest) | `#FFFFFF`, `#FAFAFB`, `#F5F6F7`, `#EFF0F2`, `#E7E8EA` | Nested neutral surface hierarchy |
+| Outline / outline variant | `#767676` / `#D8D8DE` | Strong control boundary / decorative divider |
+| Surface tint | `#F7767E` | Material tonal elevation tint |
+| Inverse surface / inverse-on-surface | `#28242C` / `#F7F1FA` | Temporary inverse surfaces such as snackbars |
+| Inverse primary | `#FFB6BC` | Primary emphasis on inverse surfaces |
+| Scrim | `#000000` | Modal dimming, with component-provided opacity |
+
+### Reference-only merchandising surfaces
 
 | Token | Value | Use |
 |-------|-------|-----|
-| Brand coral | `#F7767E` | Primary filled actions, selected emphasis, small decorative accents |
-| Brand coral strong | `#B92F3D` | Text/icons on light surfaces and active web navigation |
-| Brand coral tint | `#FFF0F1` | Selected rows, soft badges, subtle highlighted surfaces |
-| Canvas | `#F5F6F7` | App/page background |
-| Surface | `#FFFFFF` | Cards, sheets, fields, sidebar, dialogs |
-| Ink | `#161616` | Primary text and icons; foreground on bright coral actions |
-| Text secondary | `#777777` | Supporting text and metadata |
-| Neutral dark | `#505050` | Secondary controls and strong dividers when needed |
-| Outline | `#E7E8EA` | Field/card borders and separators |
-| Success | `#256B4B` | Completed/success state |
-| Warning | `#8A5300` | Pending/attention state |
-| Error | `#B3261E` | Invalid, failed, destructive state |
+| Product lime | `#EFF5C8` | Product tile backing only |
+| Product blush | `#F8E3E3` | Product tile backing only |
+| Product aqua | `#DDF3F4` | Product tile backing only |
+| Product lavender | `#F0E5F7` | Product tile backing only |
 
-Bright coral is not used as small text on white. Put `#161616` on `#F7767E` filled actions; use `#B92F3D` for text or icons on white. Confirm actual combinations meet WCAG AA: 4.5:1 for normal text and 3:1 for large text and meaningful non-text indicators. Product imagery may contain its own colors; do not add unrelated per-page accent colors. Dark mode and user-selected dynamic palettes are deferred; first-release screens use the stable light palette.
+These are non-semantic image backings, never status colors or text backgrounds. Use the standard surface and on-surface roles for copy and controls placed over them unless a separately measured foreground pair is added here.
+
+### Status semantics
+
+| Semantic | Foreground | Container |
+|----------|------------|-----------|
+| Success / delivered / completed | `#256B4B` | `#E8F3ED` |
+| Warning / pending | `#8A5300` | `#FBF1E3` |
+| Error / failed / cancelled | `#B3261E` | `#FCEEEE` |
+| Neutral / informational | `#505050` | `#EFF0F2` |
+
+Status must always have a visible text label; color alone never communicates meaning. Dark mode and device dynamic color remain deferred so the brand palette is stable in the first release.
+
+### Measured Contrast Ratios (WCAG AA)
+
+Measured contrast table covering every foreground/background pair the application and starter screens use:
+
+| Foreground on background | Contrast | Requirement |
+|--------------------------|----------|-------------|
+| `#161616` on coral `#F7767E` (primary action) | 6.76:1 | Passes normal text |
+| `#8D2531` on `#FFF0F1` (primary container) | 7.78:1 | Passes normal text |
+| white on lavender `#7651B5` (secondary action) | 5.81:1 | Passes normal text |
+| `#392653` on `#EEE7F7` (secondary container) | 11.05:1 | Passes normal text |
+| white on aqua `#287E87` (tertiary action) | 4.75:1 | Passes normal text |
+| `#164E53` on `#DDF3F4` (tertiary container) | 8.09:1 | Passes normal text |
+| white on error `#B3261E` | 6.54:1 | Passes normal text |
+| `#8C1D18` on `#FCEEEE` (error container) | 8.07:1 | Passes normal text |
+| `#161616` on white surface | 18.10:1 | Passes normal text |
+| `#161616` on canvas `#F5F6F7` | 16.72:1 | Passes normal text |
+| `#6B6B6B` on white surface | 5.33:1 | Passes normal text |
+| `#6B6B6B` on `#F1F1F3` surface variant | 4.72:1 | Passes normal text |
+| `#6B6B6B` on `#EFF0F2` surface container high | 4.67:1 | Passes normal text |
+| coral-strong `#B92F3D` on white / canvas | 5.94:1 / 5.49:1 | Passes normal text |
+| outline `#767676` on white / canvas | 4.54:1 / 4.20:1 | Passes 3:1 component boundary |
+| success `#256B4B` on `#E8F3ED` | 5.63:1 | Passes normal text |
+| warning `#8A5300` on `#FBF1E3` | 5.66:1 | Passes normal text |
+| error `#B3261E` on `#FCEEEE` | 5.79:1 | Passes normal text |
+| neutral `#505050` on `#EFF0F2` | 7.07:1 | Passes normal text |
 
 ---
 
@@ -62,7 +117,7 @@ Bright coral is not used as small text on white. Put `#161616` on `#F7767E` fill
 
 **Status: ACCEPTED**
 
-Use Lato to match the supplied visual direction, with Android/web fallback to the system sans-serif. Bundle licensed Lato font assets locally when implementation begins and retain the SIL Open Font License notice. Use the same weight hierarchy across Android and web:
+Use Lato to match the supplied visual direction, with Android/web fallback to the system sans-serif. Android bundles licensed static Lato Regular, Semibold, and Bold font files locally and retains the SIL Open Font License notice at [`android/licenses/Lato-OFL.txt`](../android/licenses/Lato-OFL.txt). Use the same weight hierarchy across Android and web:
 
 | Role | Android size/weight | Web size/weight | Usage |
 |------|---------------------|-----------------|-------|

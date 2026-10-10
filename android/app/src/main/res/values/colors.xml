@@ -1,20 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Brand Palette (from DESIGN_SYSTEM.md) -->
+    <!-- Brand anchors sampled approximately from the approved visual reference. -->
     <color name="brand_coral">#F7767E</color>
     <color name="brand_coral_strong">#B92F3D</color>
+    <color name="brand_lavender">#7651B5</color>
+    <color name="brand_aqua">#287E87</color>
+
+    <!-- Material 3 light color roles. Paired on-colors meet WCAG AA for normal text. -->
+    <color name="m3_primary">#F7767E</color>
+    <color name="m3_on_primary">#161616</color>
+    <color name="m3_primary_container">#FFF0F1</color>
+    <color name="m3_on_primary_container">#8D2531</color>
+    <color name="m3_secondary">#7651B5</color>
+    <color name="m3_on_secondary">#FFFFFF</color>
+    <color name="m3_secondary_container">#EEE7F7</color>
+    <color name="m3_on_secondary_container">#392653</color>
+    <color name="m3_tertiary">#287E87</color>
+    <color name="m3_on_tertiary">#FFFFFF</color>
+    <color name="m3_tertiary_container">#DDF3F4</color>
+    <color name="m3_on_tertiary_container">#164E53</color>
+    <color name="m3_error">#B3261E</color>
+    <color name="m3_on_error">#FFFFFF</color>
+    <color name="m3_error_container">#FCEEEE</color>
+    <color name="m3_on_error_container">#8C1D18</color>
+    <color name="m3_background">#F5F6F7</color>
+    <color name="m3_on_background">#161616</color>
+    <color name="m3_surface">#FFFFFF</color>
+    <color name="m3_on_surface">#161616</color>
+    <color name="m3_surface_variant">#F1F1F3</color>
+    <color name="m3_on_surface_variant">#6B6B6B</color>
+    <color name="m3_surface_container_lowest">#FFFFFF</color>
+    <color name="m3_surface_container_low">#FAFAFB</color>
+    <color name="m3_surface_container">#F5F6F7</color>
+    <color name="m3_surface_container_high">#EFF0F2</color>
+    <color name="m3_surface_container_highest">#E7E8EA</color>
+    <color name="m3_outline">#767676</color>
+    <color name="m3_outline_variant">#D8D8DE</color>
+    <color name="m3_surface_tint">#F7767E</color>
+    <color name="m3_inverse_surface">#28242C</color>
+    <color name="m3_inverse_on_surface">#F7F1FA</color>
+    <color name="m3_inverse_primary">#FFB6BC</color>
+    <color name="m3_scrim">#000000</color>
+
+    <!-- Decorative product tile backings only; never use these for status or small text. -->
+    <color name="product_surface_lime">#EFF5C8</color>
+    <color name="product_surface_blush">#F8E3E3</color>
+    <color name="product_surface_aqua">#DDF3F4</color>
+    <color name="product_surface_lavender">#F0E5F7</color>
+
+    <!-- Status semantic pairs. StatusBadgeView always includes the status label. -->
+    <color name="status_success">#256B4B</color>
+    <color name="status_success_container">#E8F3ED</color>
+    <color name="status_warning">#8A5300</color>
+    <color name="status_warning_container">#FBF1E3</color>
+    <color name="status_error">#B3261E</color>
+    <color name="status_error_container">#FCEEEE</color>
+    <color name="status_neutral">#505050</color>
+    <color name="status_neutral_container">#EFF0F2</color>
+
+    <!-- Existing semantic names retained for current layout callers. -->
     <color name="brand_coral_tint">#FFF0F1</color>
     <color name="canvas_background">#F5F6F7</color>
     <color name="surface_color">#FFFFFF</color>
     <color name="text_primary_ink">#161616</color>
-    <color name="text_secondary">#777777</color>
+    <color name="text_secondary">#6B6B6B</color>
     <color name="neutral_dark">#505050</color>
-    <color name="outline_color">#E7E8EA</color>
+    <color name="outline_color">#767676</color>
     <color name="success_color">#256B4B</color>
     <color name="warning_color">#8A5300</color>
     <color name="error_color">#B3261E</color>
-
-    <!-- Basic Colors -->
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
 </resources>
