@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_catalog"
+    app:startDestination="@id/catalogPlaceholderFragment">
+
+    <fragment
+        android:id="@+id/catalogPlaceholderFragment"
+        android:name="com.averonlabs.eshopverse.shell.PlaceholderFragment"
+        android:label="@string/nav_explore"
+        tools:layout="@layout/fragment_placeholder" />
+
+</navigation>
