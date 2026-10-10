@@ -22,6 +22,7 @@ See [docs/decisions/README.md](decisions/README.md) for ADR conventions.
 | [ADR-002](decisions/ADR-002-shared-visual-direction.md) | Shared coral-and-neutral visual direction | ACCEPTED | 2026-10-07 |
 | [ADR-003](decisions/ADR-003-secure-token-storage.md) | Secure token storage mechanism | ACCEPTED | 2026-10-10 |
 | [ADR-004](decisions/ADR-004-defer-room-persistence.md) | Defer Room local persistence for initial release | ACCEPTED | 2026-10-10 |
+| [ADR-005](decisions/ADR-005-local-mock-api-runner.md) | Local mock API server runner | ACCEPTED | 2026-10-10 |
 
 ---
 

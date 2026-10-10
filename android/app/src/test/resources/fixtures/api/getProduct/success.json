@@ -1,0 +1,21 @@
+{
+  "data": {
+    "id": 101,
+    "name": "Classic Leather Sneaker",
+    "slug": "classic-leather-sneaker",
+    "description": "Premium full-grain leather sneaker with cushioned insole and rubber outsole.",
+    "price": "89.99",
+    "stock": 15,
+    "status": "active",
+    "categoryId": 1,
+    "categoryName": "Footwear",
+    "images": [
+      {
+        "id": 1,
+        "url": "https://images.example.com/products/sneaker-1.jpg",
+        "altText": "Side view",
+        "sortOrder": 1
+      }
+    ]
+  }
+}
