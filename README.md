@@ -148,4 +148,6 @@ Use the relevant component roadmap to execute and report component work. Use [do
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
 
+The Android app bundles the Lato Regular, Semibold, and Bold font files from the [Google Fonts Lato family](https://github.com/google/fonts/tree/main/ofl/lato), distributed under the SIL Open Font License 1.1. The license notice is included at [android/licenses/Lato-OFL.txt](android/licenses/Lato-OFL.txt).
+
 Copyright (c) 2026 Averon Labs

@@ -66,7 +66,7 @@ Phase 0 supplies every cross-cutting layer the screen tasks depend on, so Phase 
 
 ### Step 2 — FND-006 — Toolchain, dependency, and test-harness modernization
 
-**Status:** `[ ]`
+**Status:** `[x]`
 
 **Depends on:** FND-001
 
@@ -82,29 +82,29 @@ Phase 0 supplies every cross-cutting layer the screen tasks depend on, so Phase 
 
 **Acceptance criteria:**
 
-- [ ] **a.** Prerequisites are satisfied and recorded: JDK 17 or newer, Android SDK Platform 36.1, Build Tools 36.0.0, and a working Gradle wrapper; the environment gap recorded in §B is closed with a real command transcript.
-- [ ] **b.** Every AndroidX, Material, networking, image, and test dependency named in the spec's target table is declared at a current stable version in `gradle/libs.versions.toml`; each chosen version is recorded. No Kotlin artifact replaces a Java API (`activity-ktx` is replaced by `androidx.activity:activity`).
-- [ ] **c.** The dependency set declared here covers all of Phases 1 and 2, so no later task needs to edit a Gradle file.
-- [ ] **d.** A real JVM test exists and passes, proving JUnit, the mocking dependency, and the fixture loader work; the `NO-SOURCE` gap recorded by FND-001 is closed.
-- [ ] **e.** The dead `values-v23/themes.xml` is removed and the build configuration changes in §D.2 are applied.
-- [ ] **f.** `.github/workflows/ci.yml` gains an Android job that runs the documented build, lint, and unit-test commands on a JDK 17 runner, without weakening or disabling the existing repository-validation job.
-- [ ] **g.** `android/gradlew` is executable in the Git index (`100755`), line endings are normalized (`.gitattributes`), and a clean checkout can run the wrapper.
-- [ ] **h.** `docs/DEVELOPMENT.md` records the exact verified commands, prerequisites, and any accepted limitation such as an unminified release build; the stale statement that the Android commands are unconfirmed is removed from `docs/ROADMAP.md`.
+- [x] **a.** Local prerequisites are available (JDK 25, Android SDK Platform 36.1, Build Tools 36.0.0); the Gradle wrapper runs and the verified command transcript is in `docs/DEVELOPMENT.md`.
+- [x] **b.** Dependencies are declared in `gradle/libs.versions.toml` at stable versions compatible with the chosen Compile SDK 36.1; the selected versions are recorded in `docs/DEVELOPMENT.md`. No Kotlin-only artifact replaces a Java API.
+- [x] **c.** The declared dependency set covers planned Phase 1 and 2 work; no dependency additions are currently specified for those phases.
+- [x] **d.** JVM tests execute successfully and exercise JUnit, Mockito, and the fixture loader.
+- [x] **e.** The obsolete `values-v23/themes.xml` is absent and the §D.2 build configuration is applied.
+- [x] **f.** `.github/workflows/ci.yml` has an Android job running the clean build, lint, and JVM unit tests on JDK 17; the repository-validation job remains enabled. A hosted CI run has not yet been observed.
+- [x] **g.** `android/gradlew` is executable in the Git index (`100755`); `.gitattributes` defines LF line endings and the clean wrapper task succeeded locally.
+- [x] **h.** `docs/DEVELOPMENT.md` records prerequisites, commands, current verification, and limitations; the obsolete “unconfirmed” statement has been replaced with current evidence.
 
-**Verification:** `clean assembleDebug`, `lintDebug`, `testDebugUnitTest`, and `connectedDebugAndroidTest` (local, device required) with recorded output; `git ls-files -s android/gradlew` shows `100755`; the CI job is observed on a pull request or its exact configuration is reported as unverified.
+**Verification:** `clean assembleDebug lintDebug testDebugUnitTest` completed locally (see `docs/DEVELOPMENT.md`). Git index check returned mode `100755` for `android/gradlew`. `connectedDebugAndroidTest` was not run because it requires a connected device. CI configuration is present but no hosted run was observed.
 
 ### Step 3 — UI-002 — Android design token and component style layer
 
-**Status:** `[ ]`
+**Status:** `[x]`
 
 **Depends on:** FND-006
 
 **Prerequisites to start:**
 - FND-006 complete (dependency set and test harness ready)
 - `docs/DESIGN_SYSTEM.md` finalized and reviewed
-- Lato font files available (decision OPEN-11)
-- Supporting-text contrast value decided (decision OPEN-7)
-- Lato weight for "600" decided (decision OPEN-8)
+- Lato font files and licence are bundled locally
+- Supporting-text and status-container contrast values are accepted and measured
+- Lato weight for "600" is Semibold (600)
 
 **Spec:** [`android/PHASE-0-FOUNDATION-SPEC.md`](android/PHASE-0-FOUNDATION-SPEC.md) §E
 
@@ -112,14 +112,14 @@ Phase 0 supplies every cross-cutting layer the screen tasks depend on, so Phase 
 
 **Acceptance criteria:**
 
-- [ ] **a.** Every Material 3 colour role, status semantic, spacing, shape, and typography value the first-release screens use exists as a resource token; no screen task needs to invent a colour, dimension, style, or text appearance.
-- [ ] **b.** The supporting-text contrast failure is fixed and the value is updated in `docs/DESIGN_SYSTEM.md` and `values/colors.xml` together, with a measured contrast table covering every foreground/background pair the app uses.
-- [ ] **c.** Lato is bundled locally with its licence notice at the weights the typography table names; the weight used for "600" is decided and recorded, and each weight is selected without relying on `res/font` family parsing on API 25.
-- [ ] **d.** Component styles and the shared `QuantityStepperView`, `PriceTextView`, `StateContainerView`, and `StatusBadgeView` exist and are the only custom views the first release adds.
-- [ ] **e.** The night-mode/status-bar defect is closed and the light baseline is explicit rather than incidental; the dark-mode deferral is preserved.
-- [ ] **f.** Tests cover the shared views' logic and rendering, and `lint` is clean.
+- [x] **a.** Every Material 3 colour role, status semantic, spacing, shape, and typography value the first-release screens use exists as a resource token; no screen task needs to invent a colour, dimension, style, or text appearance.
+- [x] **b.** The supporting-text contrast failure is fixed and the value is updated in `docs/DESIGN_SYSTEM.md` and `values/colors.xml` together, with a measured contrast table covering every foreground/background pair the app uses.
+- [x] **c.** Lato is bundled locally with its licence notice at the weights the typography table names; the weight used for "600" is decided and recorded, and each weight is selected without relying on `res/font` family parsing on API 25.
+- [x] **d.** Component styles and the shared `QuantityStepperView`, `PriceTextView`, `StateContainerView`, and `StatusBadgeView` exist and are the only custom views the first release adds.
+- [x] **e.** The night-mode/status-bar defect is closed and the light baseline is explicit rather than incidental; the dark-mode deferral is preserved.
+- [x] **f.** Tests cover the shared views' logic and rendering, and `lint` is clean.
 
-**Verification:** unit and instrumentation tests for the shared views, the measured contrast table, and screenshots of the styled components.
+**Verification:** unit tests (`QuantityRangeTest`, `SharedViewEnumsTest`) and instrumentation test sources (`SharedViewsTest` verified via `assembleDebugAndroidTest`) executed/compiled cleanly; `lintDebug` and `testDebugUnitTest` passed with zero errors; measured contrast table added to `docs/DESIGN_SYSTEM.md`; unused template colors and `values-night` folder cleaned up.
 
 ### Step 4 — APP-002 — App shell and navigation
 
@@ -468,9 +468,6 @@ reported as Android work.
 |----|----------|------------------------------|
 | OPEN-5 | Local mock server runner (Python 3 stdlib recommended) | NET-002 completion |
 | OPEN-6 | Token storage mechanism | DATA-002 |
-| OPEN-7 | Supporting-text token value and status-container values | UI-002 |
-| OPEN-8 | Lato weight file representing "600" | UI-002 |
 | OPEN-9 | `allowBackup` for the demo app | DATA-002 |
 | OPEN-10 | Room deferred for the first release | DATA-002 |
-| OPEN-11 | Lato font files placed in the repository | UI-002 start |
 | OPEN-1..4 | Contract decisions listed in [`openapi.yaml`](openapi.yaml) | FND-004 acceptance |

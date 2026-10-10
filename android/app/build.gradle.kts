@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
+val apiBaseUrlOverride = providers.gradleProperty("apiBaseUrl")
+
 android {
     namespace = "com.averonlabs.eshopverse"
     compileSdk {
@@ -19,16 +21,28 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // API base URL configuration
-        buildConfigField("String", "API_BASE_URL",
-            project.findProperty("apiBaseUrl") as String?
-                ?: if (it.name == "debug") "\"http://10.0.2.2:8081/api/v1\""
-                else "\"https://api.eshopverse.example.com/api/v1\"")
+    }
+
+    testOptions {
+        unitTests.isReturnDefaultValues = true
     }
 
     buildTypes {
+        debug {
+            buildConfigField(
+                "String",
+                "API_BASE_URL",
+                "\"${apiBaseUrlOverride.orElse("http://10.0.2.2:8081/api/v1").get()}\""
+            )
+        }
+
         release {
             isMinifyEnabled = false
+            buildConfigField(
+                "String",
+                "API_BASE_URL",
+                "\"${apiBaseUrlOverride.orElse("https://api.eshopverse.example.com/api/v1").get()}\""
+            )
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

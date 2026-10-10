@@ -1,18 +1,7 @@
 # CI Workflow — EShop Verse
 #
-# This is a placeholder CI workflow. It will be expanded as build systems
-# are set up for each component.
-#
-# Current status:
-# - Android: Java/XML scaffold exists; product features are not implemented yet
-# - Backend: Project not initialized yet
-# - Admin: Project not initialized yet
-#
-# Planned checks (to be implemented when components are ready):
-# - Android: Gradle build, lint, unit tests
-# - Backend: Composer install, PHPUnit tests, PHP lint
-# - Admin: React/TypeScript type-check, tests, production build
-# - Documentation: Markdown lint (optional)
+# CI currently validates repository structure and runs the Android build,
+# lint, and JVM unit-test checks. Other components are added when initialized.
 
 name: CI
 
@@ -59,7 +48,7 @@ jobs:
           persist-credentials: false
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           java-version: '17'
           distribution: 'temurin'

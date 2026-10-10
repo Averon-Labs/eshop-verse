@@ -91,22 +91,25 @@ implementation time and record the final choice; do **not** silently keep the cu
 | `androidx.appcompat:appcompat` | 1.6.1 | **1.8.0** | AppCompat/Material integration, `EdgeToEdge` support |
 | `androidx.navigation:navigation-fragment`, `-ui` | 2.6.0 | **2.10.2** | Nested graphs, menu/destination matching, type-safe args |
 | `androidx.constraintlayout:constraintlayout` | 2.1.4 | **2.2.2** | Layout engine used by every screen |
-| `androidx.core:core` | absent (transitive) | **1.19.1** | Declared explicitly; insets and `WindowCompat` APIs are used directly |
+| `androidx.core:core` | absent (transitive) | **1.18.0** | Declared explicitly; compatible with the retained Compile SDK 36.1; insets and `WindowCompat` APIs are used directly |
 | `androidx.recyclerview:recyclerview` | absent | **1.4.0** | Every list screen; `ListAdapter`/`DiffUtil` |
-| `androidx.lifecycle:lifecycle-viewmodel`, `-livedata` | absent | latest stable 2.x | MVVM per `docs/ARCHITECTURE.md` |
-| `androidx.activity:activity` | `activity-ktx` 1.8.0 | latest stable | Replaces the Kotlin artifact in a Java-only project; `EdgeToEdge` lives here |
-| `androidx.fragment:fragment` | absent (transitive) | latest stable | Explicit dependency for `Fragment`/`FragmentManager` APIs used directly |
-| `androidx.swiperefreshlayout:swiperefreshlayout` | absent | latest stable | Pull-to-refresh required by catalog/cart/order retry states |
-| `com.squareup.retrofit2:retrofit` + `converter-gson` | absent | latest stable | DECIDED in `docs/ARCHITECTURE.md` (NET-002) |
-| `com.squareup.okhttp3:okhttp` + `logging-interceptor` | absent | latest stable | Auth interceptor and debug logging (NET-002) |
-| `com.github.bumptech.glide:glide` | absent | latest stable | DECIDED in `android/AGENTS.md` (CAT-002) |
+| `androidx.lifecycle:lifecycle-viewmodel`, `-livedata` | absent | **2.11.0** | MVVM per `docs/ARCHITECTURE.md` |
+| `androidx.activity:activity` | `activity-ktx` 1.8.0 | **1.13.0** | Replaces the Kotlin-specific artifact in this Java project; `EdgeToEdge` lives here |
+| `androidx.fragment:fragment` | absent (transitive) | **1.9.1** | Explicit dependency for `Fragment`/`FragmentManager` APIs used directly |
+| `androidx.swiperefreshlayout:swiperefreshlayout` | absent | **1.2.0** | Pull-to-refresh required by catalog/cart/order retry states |
+| `com.squareup.retrofit2:retrofit` + `converter-gson` | absent | **3.0.0** | DECIDED in `docs/ARCHITECTURE.md` (NET-002) |
+| `com.squareup.okhttp3:okhttp` + `logging-interceptor` | absent | **5.3.0** | Auth interceptor and debug logging (NET-002) |
+| `com.github.bumptech.glide:glide` | absent | **4.16.0** | DECIDED in `android/AGENTS.md` (CAT-002); compatible with the retained Compile SDK 36.1 |
 | Token storage | absent | see DATA-002 | Decision **OPEN-6** |
 | `junit:junit` | 4.13.2 | 4.13.2 | Keep; `docs/TESTING.md` requires JUnit 4 |
-| `org.mockito:mockito-core` | absent | latest stable 5.x | Required by `docs/TESTING.md`; currently required but unavailable |
-| `com.squareup.okhttp3:mockwebserver` | absent | same version family as `okhttp` | Fixture-driven API-client tests |
+| `org.mockito:mockito-core` | absent | **5.24.0** | Required by `docs/TESTING.md` |
+| `com.squareup.okhttp3:mockwebserver` | absent | **5.3.0** | Fixture-driven API-client tests; kept aligned with OkHttp |
 | `androidx.arch.core:core-testing` | absent | latest stable | `InstantTaskExecutorRule` for LiveData assertions in JVM tests |
-| `androidx.test.ext:junit` | 1.1.5 | latest stable | Instrumentation runner |
-| `androidx.test.espresso:espresso-core` | 3.5.1 | latest stable | UI tests per `docs/TESTING.md` |
+| `androidx.test.ext:junit` | 1.1.5 | **1.3.0** | Instrumentation runner |
+| `androidx.test.espresso:espresso-core` | 3.5.1 | **3.7.0** | UI tests per `docs/TESTING.md` |
+
+Stable versions were rechecked against their upstream release documentation on 2026-10-10. The exact
+selected versions are recorded in `android/gradle/libs.versions.toml` and `docs/DEVELOPMENT.md`.
 
 Rules:
 
@@ -151,9 +154,9 @@ adds the **Android job only** and must not renumber or disable the existing `val
 
 ### D.5 FND-006 tests and evidence
 
-- One real JVM test must exist and pass at the end of this task. An empty/`NO-SOURCE` test run does not
-  prove the harness works, and `FND-001` left that gap open. A minimal pure-JVM test over a Phase 0
-  utility (for example `MoneyTest`) is sufficient to prove JUnit, Mockito, and the fixture loader work.
+- A pure-JVM test must exercise JUnit, a Mockito stub/verification, and loading a contract-conformant
+  fixture from the documented shared test-resource directory. An empty/`NO-SOURCE` run or placeholder
+  arithmetic assertions do not prove the harness works.
 - Record the exact commands and their output in `docs/DEVELOPMENT.md`, replacing the "exact commands
   will be documented" language where it is now answerable and correcting the stale
   `docs/ROADMAP.md` line that still says the Android commands are unconfirmed.
@@ -167,64 +170,53 @@ to invent styling. **Every value used by a screen must exist as a resource after
 
 ### E.1 Colour roles
 
-`DESIGN_SYSTEM.md` names twelve palette colours. Material 3 needs the full role set or it generates
-off-brand tones for chips, snackbars, dialogs, and badges. Define all of these in
-`values/colors.xml`, mapped to the brand palette:
+Use the accepted image-inspired palette and Material 3 role mapping in
+[`../DESIGN_SYSTEM.md`](../DESIGN_SYSTEM.md). Material 3 defines semantic roles for primary,
+secondary, tertiary, error, surface, outline, and their paired foregrounds. Define every listed role
+in `values/colors.xml`; do not let Material Components generate unrelated defaults.
 
-| M3 role | Value | M3 role | Value |
-|---------|-------|---------|-------|
-| `colorPrimary` | `#F7767E` | `colorSurface` | `#FFFFFF` |
-| `colorOnPrimary` | `#161616` | `colorOnSurface` | `#161616` |
-| `colorPrimaryContainer` | `#FFF0F1` | `colorSurfaceVariant` | `#F5F6F7` |
-| `colorOnPrimaryContainer` | `#B92F3D` | `colorOnSurfaceVariant` | `#6B6B6B` |
-| `colorSecondary` | `#B92F3D` | `colorSurfaceContainerLowest` | `#FFFFFF` |
-| `colorOnSecondary` | `#FFFFFF` | `colorSurfaceContainerLow` | `#FAFAFB` |
-| `colorSecondaryContainer` | `#FFF0F1` | `colorSurfaceContainer` | `#F5F6F7` |
-| `colorOnSecondaryContainer` | `#B92F3D` | `colorSurfaceContainerHigh` | `#EFF0F2` |
-| `colorTertiary` | `#505050` | `colorSurfaceContainerHighest` | `#E7E8EA` |
-| `colorOnTertiary` | `#FFFFFF` | `colorOutline` | `#E7E8EA` |
-| `colorTertiaryContainer` | `#ECEDEF` | `colorOutlineVariant` | `#EFF0F2` |
-| `colorOnTertiaryContainer` | `#161616` | `colorBackground` | `#F5F6F7` |
-| `colorError` | `#B3261E` | `colorOnBackground` | `#161616` |
-| `colorOnError` | `#FFFFFF` | `colorSurfaceTint` | `#F7767E` |
-| `colorErrorContainer` | `#FCEEEE` | `colorInverseSurface` | `#161616` |
-| `colorOnErrorContainer` | `#B3261E` | `colorInverseOnSurface` | `#FFFFFF` |
-| `colorScrim` | `#000000` | `colorInversePrimary` | `#F7767E` |
+The palette uses coral primary actions with near-black foregrounds, lavender secondary emphasis,
+aqua tertiary emphasis, neutral white/light-gray surfaces, and pastel merchandising backings. The
+pastel product-tile colors are decorative only. Status semantics are a separate, accessible set and
+must always include text.
 
-Status semantics for badges and inline state (used by every screen, so they are defined here):
+### E.2 Contrast requirements and measured pairs
 
-| Semantic | Foreground | Container |
-|----------|-----------|-----------|
-| Success / delivered / completed | `#256B4B` | `#E8F3ED` |
-| Warning / pending | `#8A5300` | `#FBF1E3` |
-| Error / failed / cancelled | `#B3261E` | `#FCEEEE` |
-| Neutral / informational | `#505050` | `#EFF0F2` |
+Use WCAG relative luminance. Normal text pairs must be at least 4.5:1; meaningful component
+boundaries and icons must be at least 3:1 against adjacent colors. `colorOutlineVariant` and pastel
+merchandising backings are decorative and must not be the only indicator of a control boundary or
+status. The design-system token table records the full role set; the following table covers every
+foreground/background pairing that UI-002 components and the starter screen use:
 
-### E.2 Contrast defect — `text_secondary` fails WCAG AA
+| Foreground on background | Contrast | Requirement |
+|--------------------------|----------|-------------|
+| `#161616` on coral `#F7767E` (primary action) | 6.76:1 | Passes normal text |
+| `#8D2531` on `#FFF0F1` (primary container) | 7.78:1 | Passes normal text |
+| white on lavender `#7651B5` (secondary action) | 5.81:1 | Passes normal text |
+| `#392653` on `#EEE7F7` (secondary container) | 11.05:1 | Passes normal text |
+| white on aqua `#287E87` (tertiary action) | 4.75:1 | Passes normal text |
+| `#164E53` on `#DDF3F4` (tertiary container) | 8.09:1 | Passes normal text |
+| white on error `#B3261E` | 6.54:1 | Passes normal text |
+| `#8C1D18` on `#FCEEEE` (error container) | 8.07:1 | Passes normal text |
+| `#161616` on white surface | 18.10:1 | Passes normal text |
+| `#161616` on canvas `#F5F6F7` | 16.72:1 | Passes normal text |
+| `#6B6B6B` on white surface | 5.33:1 | Passes normal text |
+| `#6B6B6B` on `#F1F1F3` surface variant | 4.72:1 | Passes normal text |
+| `#6B6B6B` on `#EFF0F2` surface container high | 4.67:1 | Passes normal text |
+| coral-strong `#B92F3D` on white / canvas | 5.94:1 / 5.49:1 | Passes normal text |
+| outline `#767676` on white / canvas | 4.54:1 / 4.20:1 | Passes 3:1 component boundary |
+| success `#256B4B` on `#E8F3ED` | 5.63:1 | Passes normal text |
+| warning `#8A5300` on `#FBF1E3` | 5.66:1 | Passes normal text |
+| error `#B3261E` on `#FCEEEE` | 5.79:1 | Passes normal text |
+| neutral `#505050` on `#EFF0F2` | 7.07:1 | Passes normal text |
 
-Measured with the WCAG relative-luminance formula:
-
-| Pair | Ratio | Verdict |
-|------|-------|---------|
-| `#777777` on `#FFFFFF` (**current**) | **4.48:1** | **FAILS** AA for normal text (needs 4.5:1) |
-| `#777777` on `#F5F6F7` (**current**) | **4.14:1** | **FAILS** with margin |
-| `#6B6B6B` on `#FFFFFF` (proposed) | 5.33:1 | passes |
-| `#6B6B6B` on `#F5F6F7` (proposed) | 4.92:1 | passes |
-
-`DESIGN_SYSTEM.md` requires 4.5:1 for normal text and `SCREEN_SPECIFICATIONS.md` uses this colour for
-12sp supporting copy, so the current value is a genuine accessibility failure, not a theoretical one.
-
-Required work: replace the supporting-text token with a passing value (`#6B6B6B` proposed), update
-`DESIGN_SYSTEM.md` **and** `values/colors.xml` in the same commit, and add a measured contrast table to
-the task evidence covering every foreground/background pair the app actually uses, including the new
-status containers. Confirm the status pairs above at implementation time rather than trusting them.
+The table is calculated for the chosen values and must be extended if an implementation introduces a
+new foreground/background pair. Never place small text over the decorative product backings.
 
 ### E.3 Typography
 
-- Lato weights required by the typography table: `400`, `600`, `700`. If the chosen Lato distribution
-  has no 600 weight, decide explicitly which file represents "600" (Medium or Semibold), record it, and
-  update the table so the document and the resources agree. Do not ship a weight the document does not
-  name.
+- Lato weights required by the typography table: `400`, `600`, `700`. Use Lato Regular, Lato Semibold
+  for weight 600, and Lato Bold. Record the upstream family source and SIL OFL version in `README.md`.
 - **minSdk 25 constraint:** a multi-weight `<font>` *family* XML in `res/font/` is only parsed on
   API 26+. On API 25 the weights silently collapse. Store each weight as its own file
   (`res/font/lato_regular.ttf`, `lato_semibold.ttf`, `lato_bold.ttf`) and select the exact file per
@@ -234,9 +226,10 @@ status containers. Confirm the status pairs above at implementation time rather 
   `Supporting`, `ActionLabel`.
 - Bundle the OFL licence text with the fonts and reference it from `README.md`. Do not rely on a
   runtime download; ADR-002 requires locally bundled fonts.
-- **Prerequisite:** if the implementation environment has no network access, the owner must place the
-  three Lato files in `android/app/src/main/res/font/` before this task starts. Record the upstream
-  source and version in the commit.
+- The Lato font files and SIL OFL notice are bundled locally; no runtime or build-time font download
+  is used.
+- Weight 600 is resolved to the static Lato Semibold file; supporting text uses `#6B6B6B`, and the
+  accepted status pairs are listed in `DESIGN_SYSTEM.md` and measured in §E.2.
 
 ### E.4 Component styles (`res/values/styles.xml`)
 
@@ -262,7 +255,7 @@ These appear on more than one screen, so per-feature implementations would diver
 | View | Used by | Contract |
 |------|---------|----------|
 | `view/QuantityStepperView` | M-05 product detail, M-10 cart | `setQuantity`, `getQuantity`, `setMin`, `setMax`; emits one change event per user action; 48dp targets; content descriptions |
-| `view/PriceTextView` | Every money display | Renders a decimal **string**; never parses into a `double`; uses `MoneyFormat` |
+| `view/PriceTextView` | Every money display | Accepts and renders already-formatted text from the single `MoneyFormat` utility (DOM-002); it performs no parsing, currency selection, rounding, or formatting itself |
 | `view/StateContainerView` | Every data-driven screen | Swaps between loading, content, empty, and error/retry with one API; the error state exposes a retry callback |
 | `view/StatusBadgeView` | Order status, payment status, catalog status | Text label plus semantic colour from the status tokens |
 
@@ -290,8 +283,9 @@ Required work:
 
 ### E.7 UI-002 tests and evidence
 
-- JVM tests for `QuantityStepperView` bounds and `PriceTextView` formatting (pure logic extracted from
-  the views so the tests need no Android framework).
+- JVM tests for `QuantityRange` bounds (the pure logic owned by `QuantityStepperView`). `MoneyFormat`
+  owns formatting in DOM-002; `PriceTextView` only displays the supplied formatted text, verified by
+  an instrumentation rendering assertion rather than duplicating formatting logic in UI-002.
 - An instrumentation test that inflates each shared view from its style and asserts it renders without
   a resource error.
 - The measured contrast table (§E.2).
@@ -545,8 +539,5 @@ explicit.
 |----|----------|--------|
 | OPEN-5 | Runner for the local mock server (Python 3 stdlib recommended) | NET-002 completion |
 | OPEN-6 | Token storage mechanism: `security-crypto` versus a Keystore-backed AES-GCM store | DATA-002 |
-| OPEN-7 | Supporting-text token value (`#6B6B6B` proposed) and the status-container values | UI-002; needs a design-system edit |
-| OPEN-8 | Lato weight file chosen for "600" | UI-002 |
 | OPEN-9 | `allowBackup` for the demo app (recommend `false`) | DATA-002 |
 | OPEN-10 | Room deferred for the first release (recommended) | DATA-002; needs an `ARCHITECTURE.md` edit |
-| OPEN-11 | Lato font files must be placed in the repository before UI-002 starts | UI-002 |

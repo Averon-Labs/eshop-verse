@@ -1,21 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.EShopVerse" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Material 3 Brand Color Tokens (DESIGN_SYSTEM.md) -->
-        <item name="colorPrimary">@color/brand_coral</item>
-        <item name="colorOnPrimary">@color/text_primary_ink</item>
-        <item name="colorPrimaryContainer">@color/brand_coral_tint</item>
-        <item name="colorOnPrimaryContainer">@color/brand_coral_strong</item>
-        <item name="colorSecondary">@color/brand_coral_strong</item>
-        <item name="colorOnSecondary">@color/surface_color</item>
-        <item name="android:colorBackground">@color/canvas_background</item>
-        <item name="colorOnBackground">@color/text_primary_ink</item>
-        <item name="colorSurface">@color/surface_color</item>
-        <item name="colorOnSurface">@color/text_primary_ink</item>
-        <item name="colorOutline">@color/outline_color</item>
-        <item name="colorError">@color/error_color</item>
-        <item name="colorOnError">@color/surface_color</item>
+    <style name="Base.Theme.EShopVerse" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/m3_primary</item>
+        <item name="colorOnPrimary">@color/m3_on_primary</item>
+        <item name="colorPrimaryContainer">@color/m3_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/m3_on_primary_container</item>
+        <item name="colorSecondary">@color/m3_secondary</item>
+        <item name="colorOnSecondary">@color/m3_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/m3_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/m3_on_secondary_container</item>
+        <item name="colorTertiary">@color/m3_tertiary</item>
+        <item name="colorOnTertiary">@color/m3_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/m3_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/m3_on_tertiary_container</item>
+        <item name="colorError">@color/m3_error</item>
+        <item name="colorOnError">@color/m3_on_error</item>
+        <item name="colorErrorContainer">@color/m3_error_container</item>
+        <item name="colorOnErrorContainer">@color/m3_on_error_container</item>
+        <item name="android:colorBackground">@color/m3_background</item>
+        <item name="colorOnBackground">@color/m3_on_background</item>
+        <item name="colorSurface">@color/m3_surface</item>
+        <item name="colorOnSurface">@color/m3_on_surface</item>
+        <item name="colorSurfaceVariant">@color/m3_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/m3_on_surface_variant</item>
+        <item name="colorSurfaceContainerLowest">@color/m3_surface_container_lowest</item>
+        <item name="colorSurfaceContainerLow">@color/m3_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/m3_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/m3_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/m3_surface_container_highest</item>
+        <item name="colorOutline">@color/m3_outline</item>
+        <item name="colorOutlineVariant">@color/m3_outline_variant</item>
+        <item name="colorSurfaceInverse">@color/m3_inverse_surface</item>
+        <item name="colorOnSurfaceInverse">@color/m3_inverse_on_surface</item>
+        <item name="colorPrimaryInverse">@color/m3_inverse_primary</item>
+        <item name="materialButtonStyle">@style/Widget.EShopVerse.Button.Filled</item>
+        <item name="materialButtonOutlinedStyle">@style/Widget.EShopVerse.Button.Outlined</item>
+        <item name="materialIconButtonStyle">@style/Widget.EShopVerse.Button.Icon</item>
+        <item name="materialCardViewElevatedStyle">@style/Widget.EShopVerse.Card.Product</item>
+        <item name="toolbarStyle">@style/Widget.EShopVerse.Toolbar</item>
+        <item name="bottomNavigationStyle">@style/Widget.EShopVerse.BottomNavigation</item>
+        <item name="textInputOutlinedStyle">@style/Widget.EShopVerse.TextInputLayout.Outlined</item>
+        <item name="chipStyle">@style/Widget.EShopVerse.Chip.Filter</item>
+        <item name="snackbarStyle">@style/Widget.EShopVerse.Snackbar</item>
+        <item name="circularProgressIndicatorStyle">@style/Widget.EShopVerse.ProgressIndicator.Circular</item>
+        <item name="linearProgressIndicatorStyle">@style/Widget.EShopVerse.ProgressIndicator.Linear</item>
+        <item name="android:windowLightStatusBar">true</item>
     </style>
 
     <style name="Theme.EShopVerse" parent="Base.Theme.EShopVerse" />
