@@ -70,7 +70,7 @@ public final class ApiErrorMapper {
             case 404:
                 return ApiErrorCodes.NOT_FOUND;
             case 409:
-                return ApiErrorCodes.CONFLICT;
+                return ApiErrorCodes.INSUFFICIENT_STOCK;
             case 422:
                 return ApiErrorCodes.VALIDATION_ERROR;
             case 429:
