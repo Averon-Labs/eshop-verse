@@ -15,6 +15,13 @@
     <dimen name="corner_sm">12dp</dimen>
     <dimen name="corner_md">16dp</dimen>
     <dimen name="corner_lg">20dp</dimen>
+    <dimen name="corner_pill">999dp</dimen>
+
+    <!-- Shared elevation and touch-target tokens. -->
+    <dimen name="elevation_level_1">1dp</dimen>
+    <dimen name="elevation_level_2">3dp</dimen>
+    <dimen name="elevation_level_3">6dp</dimen>
+    <dimen name="touch_target_min">48dp</dimen>
 
     <!-- Layout Dimensions -->
     <dimen name="screen_horizontal_margin">16dp</dimen>
