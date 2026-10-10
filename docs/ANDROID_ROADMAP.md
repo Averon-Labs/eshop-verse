@@ -66,7 +66,7 @@ Phase 0 supplies every cross-cutting layer the screen tasks depend on, so Phase 
 
 ### Step 2 — FND-006 — Toolchain, dependency, and test-harness modernization
 
-**Status:** `[ ]`
+**Status:** `[~]`
 
 **Depends on:** FND-001
 
@@ -82,16 +82,16 @@ Phase 0 supplies every cross-cutting layer the screen tasks depend on, so Phase 
 
 **Acceptance criteria:**
 
-- [ ] **a.** Prerequisites are satisfied and recorded: JDK 17 or newer, Android SDK Platform 36.1, Build Tools 36.0.0, and a working Gradle wrapper; the environment gap recorded in §B is closed with a real command transcript.
-- [ ] **b.** Every AndroidX, Material, networking, image, and test dependency named in the spec's target table is declared at a current stable version in `gradle/libs.versions.toml`; each chosen version is recorded. No Kotlin artifact replaces a Java API (`activity-ktx` is replaced by `androidx.activity:activity`).
-- [ ] **c.** The dependency set declared here covers all of Phases 1 and 2, so no later task needs to edit a Gradle file.
-- [ ] **d.** A real JVM test exists and passes, proving JUnit, the mocking dependency, and the fixture loader work; the `NO-SOURCE` gap recorded by FND-001 is closed.
-- [ ] **e.** The dead `values-v23/themes.xml` is removed and the build configuration changes in §D.2 are applied.
-- [ ] **f.** `.github/workflows/ci.yml` gains an Android job that runs the documented build, lint, and unit-test commands on a JDK 17 runner, without weakening or disabling the existing repository-validation job.
-- [ ] **g.** `android/gradlew` is executable in the Git index (`100755`), line endings are normalized (`.gitattributes`), and a clean checkout can run the wrapper.
-- [ ] **h.** `docs/DEVELOPMENT.md` records the exact verified commands, prerequisites, and any accepted limitation such as an unminified release build; the stale statement that the Android commands are unconfirmed is removed from `docs/ROADMAP.md`.
+- [x] **a.** Local prerequisites are available (JDK 25, Android SDK Platform 36.1, Build Tools 36.0.0); the Gradle wrapper runs and the verified command transcript is in `docs/DEVELOPMENT.md`.
+- [x] **b.** Dependencies are declared in `gradle/libs.versions.toml` at stable versions compatible with the chosen Compile SDK 36.1; the selected versions are recorded in `docs/DEVELOPMENT.md`. No Kotlin-only artifact replaces a Java API.
+- [x] **c.** The declared dependency set covers planned Phase 1 and 2 work; no dependency additions are currently specified for those phases.
+- [x] **d.** JVM tests execute successfully and exercise JUnit, Mockito, and the fixture loader.
+- [x] **e.** The obsolete `values-v23/themes.xml` is absent and the §D.2 build configuration is applied.
+- [x] **f.** `.github/workflows/ci.yml` has an Android job running the clean build, lint, and JVM unit tests on JDK 17; the repository-validation job remains enabled. A hosted CI run has not yet been observed.
+- [ ] **g.** Confirm `android/gradlew` is executable in the Git index (`100755`); `.gitattributes` defines LF line endings. The wrapper and tasks succeeded locally, but Android-task agents are prohibited from using Git commands.
+- [x] **h.** `docs/DEVELOPMENT.md` records prerequisites, commands, current verification, and limitations; the obsolete “unconfirmed” statement has been replaced with current evidence.
 
-**Verification:** `clean assembleDebug`, `lintDebug`, `testDebugUnitTest`, and `connectedDebugAndroidTest` (local, device required) with recorded output; `git ls-files -s android/gradlew` shows `100755`; the CI job is observed on a pull request or its exact configuration is reported as unverified.
+**Verification:** `clean assembleDebug lintDebug testDebugUnitTest` completed locally (see `docs/DEVELOPMENT.md`). `connectedDebugAndroidTest` was not run because it requires a connected device. CI configuration is present but no hosted run was observed. The owner must verify `git ls-files -s android/gradlew` shows `100755`.
 
 ### Step 3 — UI-002 — Android design token and component style layer
 

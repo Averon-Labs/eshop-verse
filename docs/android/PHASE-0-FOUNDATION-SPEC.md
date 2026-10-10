@@ -91,22 +91,25 @@ implementation time and record the final choice; do **not** silently keep the cu
 | `androidx.appcompat:appcompat` | 1.6.1 | **1.8.0** | AppCompat/Material integration, `EdgeToEdge` support |
 | `androidx.navigation:navigation-fragment`, `-ui` | 2.6.0 | **2.10.2** | Nested graphs, menu/destination matching, type-safe args |
 | `androidx.constraintlayout:constraintlayout` | 2.1.4 | **2.2.2** | Layout engine used by every screen |
-| `androidx.core:core` | absent (transitive) | **1.19.1** | Declared explicitly; insets and `WindowCompat` APIs are used directly |
+| `androidx.core:core` | absent (transitive) | **1.18.0** | Declared explicitly; compatible with the retained Compile SDK 36.1; insets and `WindowCompat` APIs are used directly |
 | `androidx.recyclerview:recyclerview` | absent | **1.4.0** | Every list screen; `ListAdapter`/`DiffUtil` |
-| `androidx.lifecycle:lifecycle-viewmodel`, `-livedata` | absent | latest stable 2.x | MVVM per `docs/ARCHITECTURE.md` |
-| `androidx.activity:activity` | `activity-ktx` 1.8.0 | latest stable | Replaces the Kotlin artifact in a Java-only project; `EdgeToEdge` lives here |
-| `androidx.fragment:fragment` | absent (transitive) | latest stable | Explicit dependency for `Fragment`/`FragmentManager` APIs used directly |
-| `androidx.swiperefreshlayout:swiperefreshlayout` | absent | latest stable | Pull-to-refresh required by catalog/cart/order retry states |
-| `com.squareup.retrofit2:retrofit` + `converter-gson` | absent | latest stable | DECIDED in `docs/ARCHITECTURE.md` (NET-002) |
-| `com.squareup.okhttp3:okhttp` + `logging-interceptor` | absent | latest stable | Auth interceptor and debug logging (NET-002) |
-| `com.github.bumptech.glide:glide` | absent | latest stable | DECIDED in `android/AGENTS.md` (CAT-002) |
+| `androidx.lifecycle:lifecycle-viewmodel`, `-livedata` | absent | **2.11.0** | MVVM per `docs/ARCHITECTURE.md` |
+| `androidx.activity:activity` | `activity-ktx` 1.8.0 | **1.13.0** | Replaces the Kotlin-specific artifact in this Java project; `EdgeToEdge` lives here |
+| `androidx.fragment:fragment` | absent (transitive) | **1.9.1** | Explicit dependency for `Fragment`/`FragmentManager` APIs used directly |
+| `androidx.swiperefreshlayout:swiperefreshlayout` | absent | **1.2.0** | Pull-to-refresh required by catalog/cart/order retry states |
+| `com.squareup.retrofit2:retrofit` + `converter-gson` | absent | **3.0.0** | DECIDED in `docs/ARCHITECTURE.md` (NET-002) |
+| `com.squareup.okhttp3:okhttp` + `logging-interceptor` | absent | **5.3.0** | Auth interceptor and debug logging (NET-002) |
+| `com.github.bumptech.glide:glide` | absent | **4.16.0** | DECIDED in `android/AGENTS.md` (CAT-002); compatible with the retained Compile SDK 36.1 |
 | Token storage | absent | see DATA-002 | Decision **OPEN-6** |
 | `junit:junit` | 4.13.2 | 4.13.2 | Keep; `docs/TESTING.md` requires JUnit 4 |
-| `org.mockito:mockito-core` | absent | latest stable 5.x | Required by `docs/TESTING.md`; currently required but unavailable |
-| `com.squareup.okhttp3:mockwebserver` | absent | same version family as `okhttp` | Fixture-driven API-client tests |
+| `org.mockito:mockito-core` | absent | **5.24.0** | Required by `docs/TESTING.md` |
+| `com.squareup.okhttp3:mockwebserver` | absent | **5.3.0** | Fixture-driven API-client tests; kept aligned with OkHttp |
 | `androidx.arch.core:core-testing` | absent | latest stable | `InstantTaskExecutorRule` for LiveData assertions in JVM tests |
-| `androidx.test.ext:junit` | 1.1.5 | latest stable | Instrumentation runner |
-| `androidx.test.espresso:espresso-core` | 3.5.1 | latest stable | UI tests per `docs/TESTING.md` |
+| `androidx.test.ext:junit` | 1.1.5 | **1.3.0** | Instrumentation runner |
+| `androidx.test.espresso:espresso-core` | 3.5.1 | **3.7.0** | UI tests per `docs/TESTING.md` |
+
+Stable versions were rechecked against their upstream release documentation on 2026-10-10. The exact
+selected versions are recorded in `android/gradle/libs.versions.toml` and `docs/DEVELOPMENT.md`.
 
 Rules:
 
@@ -151,9 +154,9 @@ adds the **Android job only** and must not renumber or disable the existing `val
 
 ### D.5 FND-006 tests and evidence
 
-- One real JVM test must exist and pass at the end of this task. An empty/`NO-SOURCE` test run does not
-  prove the harness works, and `FND-001` left that gap open. A minimal pure-JVM test over a Phase 0
-  utility (for example `MoneyTest`) is sufficient to prove JUnit, Mockito, and the fixture loader work.
+- A pure-JVM test must exercise JUnit, a Mockito stub/verification, and loading a contract-conformant
+  fixture from the documented shared test-resource directory. An empty/`NO-SOURCE` run or placeholder
+  arithmetic assertions do not prove the harness works.
 - Record the exact commands and their output in `docs/DEVELOPMENT.md`, replacing the "exact commands
   will be documented" language where it is now answerable and correcting the stale
   `docs/ROADMAP.md` line that still says the Android commands are unconfirmed.
