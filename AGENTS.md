@@ -4,7 +4,7 @@
 
 This section takes precedence over every other Git, branch, commit, push, and PR instruction in this file.
 
-- **Android tasks:** agents are authorized to perform local inspect, staging, and commits (`git status`, `git diff`, `git add`, `git commit`) on the active task branch provided by the owner. All other Git and remote operations (`branch`, `switch`, `push`, `pull`, `fetch`, `merge`, `reset`, or GitHub PR creation) remain strictly owner-managed. The repository owner handles branch management, remotes, push, and PRs.
+- **Android tasks:** agents are authorized ONLY to perform staging and commits (`git add`, `git commit`) on the active task branch provided by the owner. All other Git commands (`status`, `diff`, `log`, `branch`, `switch`, `push`, `pull`, `fetch`, `merge`, `reset`, or GitHub PR creation) remain strictly owner-managed. The repository owner handles inspecting Git state, branch management, remotes, push, and PRs.
 - **Backend tasks:** the repository owner performs all Git operations. Agents must not run any Git command, including `status`, `diff`, `log`, `fetch`, `pull`, `branch`, `switch`, `add`, `commit`, `push`, `reset`, or GitHub CLI commands. This applies to builders, testers, debuggers, coordinators, and handoffs. Do not fetch, pull, inspect Git state, create or switch branches, stage, commit, push, or create/update PRs.
 - Sequential Android agents work against the task branch and create focused Conventional Commits for verified units. Backend agents continue to hand off verified working-tree state without commits.
 - The owner may authorize additional specific Git operations as an exception for one particular task.
@@ -175,7 +175,7 @@ Debuggers must keep an attempt record and must not repeat a failed approach with
 
 ### Remote Synchronization and Task Branch Lifecycle
 
-The Git lifecycle below applies to Admin tasks. For Android tasks, agents are authorized to inspect status and create focused local commits (`git status`, `git diff`, `git add`, `git commit`), while all branch, remote, push, pull, and PR operations remain strictly owner-managed. Backend Git operations remain entirely owner-managed: agents must not run any Git command for Backend.
+The Git lifecycle below applies to Admin tasks. For Android tasks, agents are authorized only for staging and local commits (`git add`, `git commit`), while all other Git operations (`status`, `diff`, `branch`, `remote`, `push`, `pull`, and PR creation) remain strictly owner-managed. Backend Git operations remain entirely owner-managed: agents must not run any Git command for Backend.
 
 1. **At task start, before creating a branch (Admin only):** run `git fetch --prune origin` and `git remote set-head origin -a`, then inspect `git status --short --branch`, `git branch -vv`, recent commits, and relevant remote refs. Create each new task branch from the latest `origin/develop`. For an existing shared task branch, confirm its upstream state before editing.
 2. **Keep integration branches current only by fast-forward:** create a missing local `develop` with `git switch --track -c develop origin/develop`; update an existing clean `develop` or `main` with `git pull --ff-only origin <branch>`. Never commit or push directly from them. Never pull/rebase over uncommitted work; preserve it and reconcile deliberately.
