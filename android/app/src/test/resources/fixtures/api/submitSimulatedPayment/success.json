@@ -1,0 +1,9 @@
+{
+  "data": {
+    "orderId": 5001,
+    "paymentId": 9001,
+    "status": "completed",
+    "orderStatus": "confirmed",
+    "message": "Demo payment simulation approved"
+  }
+}

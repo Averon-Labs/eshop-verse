@@ -1,0 +1,15 @@
+{
+  "data": {
+    "token": "test-jwt-bearer-token-12345",
+    "expiresAt": "2099-01-01T00:00:00Z",
+    "user": {
+      "id": 1,
+      "email": "customer@example.com",
+      "firstName": "John",
+      "lastName": "Doe",
+      "role": "customer",
+      "status": "active",
+      "createdAt": "2026-01-01T00:00:00Z"
+    }
+  }
+}

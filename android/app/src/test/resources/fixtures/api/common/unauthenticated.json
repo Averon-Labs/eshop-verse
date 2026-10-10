@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "UNAUTHENTICATED",
+    "message": "Authentication required or bearer token is invalid/expired",
+    "details": []
+  }
+}
