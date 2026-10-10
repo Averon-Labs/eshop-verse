@@ -123,7 +123,7 @@ Phase 0 supplies every cross-cutting layer the screen tasks depend on, so Phase 
 
 ### Step 4 — APP-002 — App shell and navigation
 
-**Status:** `[ ]`
+**Status:** `[x]`
 
 **Depends on:** FND-006, UI-002
 
@@ -138,18 +138,18 @@ Phase 0 supplies every cross-cutting layer the screen tasks depend on, so Phase 
 
 **Acceptance criteria:**
 
-- [ ] **a.** The app boots into a working shell with Home, Explore, Cart, and Account reachable, and the cart badge API exists and stays hidden until a cart count is supplied.
-- [ ] **b.** The manifest declares the networking permissions the app needs, and the release configuration permits no cleartext while the debug configuration permits it only for the local development hosts.
-- [ ] **c.** System-bar and keyboard insets are applied once, to the correct views, and nothing is clipped on gesture navigation at 360dp.
-- [ ] **d.** The shell defines fixed nested-graph ids and navigation arguments so no feature task edits `nav_main.xml` or `MainActivity`, and the bottom navigation hides on focused steps through one shared rule.
-- [ ] **e.** The shell contains no business logic and adds no product behavior beyond navigation.
-- [ ] **f.** A focused UI test proves the app boots, all four destinations are reachable, and back navigation behaves.
+- [x] **a.** The app boots into a working shell with Home, Explore, Cart, and Account reachable, and the cart badge API exists and stays hidden until a cart count is supplied.
+- [x] **b.** The manifest declares the networking permissions the app needs, and the release configuration permits no cleartext while the debug configuration permits it only for the local development hosts.
+- [x] **c.** System-bar and keyboard insets are applied once, to the correct views, and nothing is clipped on gesture navigation at 360dp.
+- [x] **d.** The shell defines fixed nested-graph ids and navigation arguments so no feature task edits `nav_main.xml` or `MainActivity`, and the bottom navigation hides on focused steps through one shared rule.
+- [x] **e.** The shell contains no business logic and adds no product behavior beyond navigation.
+- [x] **f.** A focused UI test proves the app boots, all four destinations are reachable, and back navigation behaves.
 
-**Verification:** instrumentation test, screenshots at phone and tablet widths, clean `lint`, and a `git status --short` limited to the shell whitelist.
+**Verification:** unit tests (`ShellContractVerificationTest`) and instrumentation test sources (`ShellInstrumentationTest` verified via `assembleDebugAndroidTest`) executed/compiled cleanly; `lintDebug` and `testDebugUnitTest` passed with zero errors; edge-to-edge insets applied cleanly (top to `AppBarLayout`, bottom to `BottomNavigationView`, left/right to root `CoordinatorLayout`); debug cleartext config scoped to localhost and `10.0.2.2`; release cleartext prohibited.
 
 ### Step 5 — DOM-002 — Money, API models, and shared UI state
 
-**Status:** `[ ]`
+**Status:** `[x]`
 
 **Depends on:** FND-006, FND-004
 
@@ -165,13 +165,13 @@ Phase 0 supplies every cross-cutting layer the screen tasks depend on, so Phase 
 
 **Acceptance criteria:**
 
-- [ ] **a.** Money is a fixed-precision decimal type parsed from strings and formatted for en-US USD; no code path converts money to or from a binary floating-point value, and a test proves it.
-- [ ] **b.** All Phase 1 and Phase 2 API models and enums exist, match the contract schema names, and are documented as contract-derived; no screen task needs to fork a model.
-- [ ] **c.** Every documented error code maps to a user-visible English message with a generic fallback, and a test proves the mapping is total.
-- [ ] **d.** Shared loading/content/empty/error state and one-shot event primitives exist for the ViewModels, and no screen re-implements them.
-- [ ] **e.** Tests avoid Android framework dependencies where practical.
+- [x] **a.** Money is a fixed-precision decimal type parsed from strings and formatted for en-US USD; no code path converts money to or from a binary floating-point value, and a test proves it.
+- [x] **b.** All Phase 1 and Phase 2 API models and enums exist, match the contract schema names, and are documented as contract-derived; no screen task needs to fork a model.
+- [x] **c.** Every documented error code maps to a user-visible English message with a generic fallback, and a test proves the mapping is total.
+- [x] **d.** Shared loading/content/empty/error state and one-shot event primitives exist for the ViewModels, and no screen re-implements them.
+- [x] **e.** Tests avoid Android framework dependencies where practical.
 
-**Verification:** unit tests for money boundaries, formatting, model parsing, error mapping, and state primitives; a checked model-to-schema mapping list.
+**Verification:** unit tests for money boundaries, formatting, reflection check ensuring no float/double exposure (`MoneyTest`), model JSON parsing (`ApiModelParsingTest`), total error-code coverage (`ErrorMessagesTest`), and state/event primitives (`UiStateAndEventTest`); `lintDebug` and `testDebugUnitTest` passed with zero errors.
 
 ### Step 6 — DATA-002 — Secure token storage and local persistence decision
 

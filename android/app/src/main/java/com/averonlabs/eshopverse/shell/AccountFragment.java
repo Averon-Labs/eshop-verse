@@ -1,4 +1,4 @@
-package com.averonlabs.eshopverse;
+package com.averonlabs.eshopverse.shell;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -9,11 +9,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import com.averonlabs.eshopverse.databinding.FragmentHomeBinding;
+import com.averonlabs.eshopverse.databinding.FragmentAccountBinding;
 
-public class HomeFragment extends Fragment {
+public class AccountFragment extends Fragment {
 
-    private FragmentHomeBinding binding;
+    private FragmentAccountBinding binding;
 
     @Override
     public View onCreateView(
@@ -21,7 +21,7 @@ public class HomeFragment extends Fragment {
             @Nullable ViewGroup container,
             @Nullable Bundle savedInstanceState
     ) {
-        binding = FragmentHomeBinding.inflate(inflater, container, false);
+        binding = FragmentAccountBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 

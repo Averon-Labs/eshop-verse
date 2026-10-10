@@ -59,15 +59,20 @@ public class TestHarnessVerificationTest {
             server.start();
 
             OkHttpClient client = new OkHttpClient();
-            Request request = new Request.Builder()
-                    .url(server.url("/api/v1/categories"))
-                    .build();
+            try {
+                Request request = new Request.Builder()
+                        .url(server.url("/api/v1/categories"))
+                        .build();
 
-            try (Response response = client.newCall(request).execute()) {
-                assertTrue(response.isSuccessful());
-                assertNotNull(response.body());
-                String responseBody = response.body().string();
-                assertEquals(fixture, responseBody);
+                try (Response response = client.newCall(request).execute()) {
+                    assertTrue(response.isSuccessful());
+                    assertNotNull(response.body());
+                    String responseBody = response.body().string();
+                    assertEquals(fixture, responseBody);
+                }
+            } finally {
+                client.dispatcher().executorService().shutdown();
+                client.connectionPool().evictAll();
             }
         }
     }

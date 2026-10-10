@@ -113,6 +113,7 @@ starting any Android task.
   debug build and only for the documented local development hosts.
 - **Shared files.** Do not edit a file owned by another step (shell, Gradle, manifest, shared tokens,
   or another feature's package). Report the need instead.
+- **Git operations.** Agents are authorized ONLY to stage and create local commits (`git add`, `git commit`) on the active task branch. All other Git operations (`status`, `diff`, `branch`, `switch`, `push`, `pull`, `fetch`, `merge`, `reset`, or PR creation) remain strictly owner-managed.
 
 ---
 
