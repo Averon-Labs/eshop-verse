@@ -1,0 +1,28 @@
+{
+  "data": [
+    {
+      "id": 101,
+      "name": "Classic Leather Sneaker",
+      "slug": "classic-leather-sneaker",
+      "price": "89.99",
+      "primaryImageUrl": "https://images.example.com/products/sneaker-1.jpg",
+      "status": "active",
+      "categoryName": "Footwear"
+    },
+    {
+      "id": 102,
+      "name": "Canvas Low-Top",
+      "slug": "canvas-low-top",
+      "price": "49.50",
+      "primaryImageUrl": "https://images.example.com/products/canvas-1.jpg",
+      "status": "active",
+      "categoryName": "Footwear"
+    }
+  ],
+  "pagination": {
+    "currentPage": 1,
+    "perPage": 20,
+    "totalItems": 2,
+    "totalPages": 1
+  }
+}

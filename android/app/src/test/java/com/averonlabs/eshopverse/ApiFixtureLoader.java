@@ -5,11 +5,11 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 /** Loads the shared API fixtures from the JVM test classpath. */
-final class ApiFixtureLoader {
+public final class ApiFixtureLoader {
 
     private ApiFixtureLoader() { }
 
-    static String load(String operationId, String scenario) throws IOException {
+    public static String load(String operationId, String scenario) throws IOException {
         if (!isSafePathSegment(operationId) || !isSafePathSegment(scenario)) {
             throw new IllegalArgumentException("Fixture path segments must be simple names");
         }

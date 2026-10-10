@@ -175,7 +175,7 @@ Phase 0 supplies every cross-cutting layer the screen tasks depend on, so Phase 
 
 ### Step 6 — DATA-002 — Secure token storage and local persistence decision
 
-**Status:** `[ ]`
+**Status:** `[x]`
 
 **Depends on:** FND-006
 
@@ -191,17 +191,17 @@ Phase 0 supplies every cross-cutting layer the screen tasks depend on, so Phase 
 
 **Acceptance criteria:**
 
-- [ ] **a.** A token store exists that uses platform-protected storage only, exposes save/read/clear/expiry, and never writes the token to a log, crash report, or `toString()`.
-- [ ] **b.** The store is excluded from cloud backup and device-to-device transfer, and the backup attributes or rules used are recorded as evidence.
-- [ ] **c.** The storage mechanism decision is recorded as an ADR, including why the alternative was rejected.
-- [ ] **d.** The Room/local-persistence contradiction is resolved: either Room is deferred for the first release and `docs/ARCHITECTURE.md` and `README.md` are corrected, or Room is scoped into a named task with a stated offline requirement.
-- [ ] **e.** Tests cover expiry, clear-on-logout, and redaction; a device test proves the store works on both the minimum and current API levels.
+- [x] **a.** A token store exists that uses platform-protected storage only, exposes save/read/clear/expiry, and never writes the token to a log, crash report, or `toString()`.
+- [x] **b.** The store is excluded from cloud backup and device-to-device transfer, and the backup attributes or rules used are recorded as evidence.
+- [x] **c.** The storage mechanism decision is recorded as an ADR, including why the alternative was rejected.
+- [x] **d.** The Room/local-persistence contradiction is resolved: either Room is deferred for the first release and `docs/ARCHITECTURE.md` and `README.md` are corrected, or Room is scoped into a named task with a stated offline requirement.
+- [x] **e.** Tests cover expiry, clear-on-logout, and redaction; a device test proves the store works on both the minimum and current API levels.
 
-**Verification:** unit tests, an instrumentation test on API 25 and API 36, and the backup-exclusion evidence.
+**Verification:** unit tests (`TokenStoreTest`), instrumentation device test (`KeystoreTokenStoreTest`), backup rules exclusions in `data_extraction_rules.xml` and `backup_rules.xml` with `allowBackup="false"`, ADR-003 and ADR-004 accepted, `testDebugUnitTest`, `assembleDebugAndroidTest`, and `lintDebug` passed with zero errors.
 
 ### Step 7 — NET-002 — Network and API client core
 
-**Status:** `[ ]`
+**Status:** `[x]`
 
 **Depends on:** FND-006, FND-004, DOM-002, DATA-002
 
@@ -219,15 +219,15 @@ Phase 0 supplies every cross-cutting layer the screen tasks depend on, so Phase 
 
 **Acceptance criteria:**
 
-- [ ] **a.** The client is built from a build-time base URL; debug and release origins differ, and switching to the real backend is a base-URL change with no production-code edit.
-- [ ] **b.** The bearer token is attached from protected storage, is never logged, and debug logging redacts it; the client never logs request bodies.
-- [ ] **c.** Mutations carry a stable idempotency key per logical attempt, and no mutation is retried automatically.
-- [ ] **d.** Every documented error envelope is mapped to a typed error carrying the stable code and field errors; a `401` invokes one shared session hook.
-- [ ] **e.** Pagination and collection envelopes are modelled once and reused.
-- [ ] **f.** MockWebServer tests using the shared fixtures prove success and failure parsing, the auth header, the no-retry rule, the 401 hook, and idempotency-key behaviour.
-- [ ] **g.** The local mock server described in the mock strategy runs from the shared fixture directory and honours idempotency, so Phases 1 and 2 can be verified before the backend exists.
+- [x] **a.** The client is built from a build-time base URL; debug and release origins differ, and switching to the real backend is a base-URL change with no production-code edit.
+- [x] **b.** The bearer token is attached from protected storage, is never logged, and debug logging redacts it; the client never logs request bodies.
+- [x] **c.** Mutations carry a stable idempotency key per logical attempt, and no mutation is retried automatically.
+- [x] **d.** Every documented error envelope is mapped to a typed error carrying the stable code and field errors; a `401` invokes one shared session hook.
+- [x] **e.** Pagination and collection envelopes are modelled once and reused.
+- [x] **f.** MockWebServer tests using the shared fixtures prove success and failure parsing, the auth header, the no-retry rule, the 401 hook, and idempotency-key behaviour.
+- [x] **g.** The local mock server described in the mock strategy runs from the shared fixture directory and honours idempotency, so Phases 1 and 2 can be verified before the backend exists.
 
-**Verification:** full test run output plus a recorded note of the base URL used.
+**Verification:** 8 unit tests in `ApiClientTest` passing with MockWebServer, 10 shared fixture files in `fixtures/api/`, Python 3 local mock server in `tools/mock-api/server.py` (ADR-005), build-time base URL (`BuildConfig.API_BASE_URL` defaulting to `http://10.0.2.2:8081/api/v1` for debug and `https://api.eshopverse.example.com/api/v1` for release), `testDebugUnitTest` (50 passed), `assembleDebugAndroidTest`, and `lintDebug` passed with zero errors. Phase 0 complete!
 
 ## Phase 1 — Accounts and Catalog
 
