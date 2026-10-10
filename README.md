@@ -58,7 +58,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed architecture docum
 
 | Component | Technologies |
 |-----------|-------------|
-| Android App | Java, XML, Material 3, MVVM, Repository Pattern, Room, Retrofit |
+| Android App | Java, XML, Material 3, MVVM, Repository Pattern, Retrofit (Room deferred per ADR-004) |
 | Backend | PHP, Laravel, RESTful API |
 | Admin Dashboard | React, TypeScript |
 | Database | MySQL |

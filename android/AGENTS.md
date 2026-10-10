@@ -14,7 +14,7 @@ The canonical Android task steps, status, scope, dependencies, acceptance criter
 | UI | XML layouts with Material 3 | DECIDED |
 | Architecture Pattern | MVVM (Model-View-ViewModel) | DECIDED |
 | Data Layer | Repository Pattern | DECIDED |
-| Local Database | Room (where appropriate) | DECIDED |
+| Local Database | Deferred for initial release (ADR-004) | DECIDED |
 | Networking | REST API | DECIDED |
 | HTTP Client | Retrofit | DECIDED |
 | Image Loading | Glide | DECIDED |
@@ -28,8 +28,8 @@ The canonical Android task steps, status, scope, dependencies, acceptance criter
 | Android Gradle Plugin | 9.2.1 | DECIDED |
 | Gradle wrapper | 9.4.1 | DECIDED |
 | Material Components | see `gradle/libs.versions.toml` | OWNED BY FND-006; the merged dependency set for Phases 1–2 is declared there |
-| Token storage | platform-protected storage only | DECIDED (mechanism is Android DATA-002 / OPEN-6) |
-| Local persistence | none (Room deferred) | PROPOSED — see Android DATA-002; do not use Room until that step records the decision |
+| Token storage | platform-protected storage only (Android Keystore AES-256-GCM, ADR-003) | DECIDED |
+| Local persistence | none (Room deferred, ADR-004) | DECIDED |
 
 ---
 

@@ -35,7 +35,7 @@ EShop Verse follows a client-server architecture with clearly separated componen
 | UI | XML layouts with Material 3 | DECIDED |
 | Architecture | MVVM (Model-View-ViewModel) | DECIDED |
 | Data Layer | Repository Pattern | DECIDED |
-| Local Storage | Room (where appropriate) | DECIDED |
+| Local Storage | Deferred for initial release; server is single source of truth (ADR-004). Secure tokens use KeystoreTokenStore (ADR-003). | DECIDED |
 | Networking | REST API client | DECIDED |
 | HTTP Client | Retrofit | DECIDED |
 | Image Loading | Glide | DECIDED |
