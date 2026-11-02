@@ -115,6 +115,85 @@ public void onViewRecycled(@NonNull MyViewHolder holder) {
 </androidx.constraintlayout.widget.ConstraintLayout>
 ```
 
+### 2.3 Encapsulation via `ViewHolder.bind` Pattern
+
+Always encapsulate view binding logic inside the `ViewHolder` subclass rather than bloating `onBindViewHolder`:
+
+```java
+static class ProductViewHolder extends RecyclerView.ViewHolder {
+    private final ItemProductCardBinding binding;
+
+    ProductViewHolder(@NonNull ItemProductCardBinding binding) {
+        super(binding.getRoot());
+        this.binding = binding;
+    }
+
+    void bind(Product product, OnProductClickListener listener) {
+        // Step 1: Text & Metadata rendered immediately
+        binding.tvProductName.setText(product.getName());
+        binding.tvProductPrice.setText(MoneyFormat.format(product.getPriceMoney()));
+        binding.getRoot().setContentDescription(product.getName() + ", " + MoneyFormat.format(product.getPriceMoney()));
+        binding.getRoot().setOnClickListener(v -> listener.onProductClick(product));
+
+        // Step 2: Asynchronous image load (non-blocking)
+        ImageLoaderHelper.loadImage(
+            binding.ivProductImage,
+            product.getImageUrl(),
+            R.drawable.bg_placeholder_shimmer,
+            R.drawable.bg_placeholder_error,
+            true
+        );
+    }
+
+    void clearImage() {
+        ImageLoaderHelper.clear(binding.ivProductImage);
+    }
+}
+```
+
+### 2.4 Smooth List Updates with `DiffUtil` (Prevent Image Flickering)
+
+Never call `notifyDataSetChanged()`. Calling `notifyDataSetChanged()` forces RecyclerView to discard active ViewHolders and re-bind all items, canceling in-flight image requests and causing perceptible image flickers.
+
+Always use `DiffUtil.calculateDiff()` or `ListAdapter<T, VH>` with `DiffUtil.ItemCallback`:
+- Identical items retain their active bitmaps without re-invoking Glide.
+- Only genuinely modified rows trigger re-binding.
+
+### 2.5 Activity & Fragment Lifecycle Guards
+
+Before initiating any image load, verify that the host context is valid. If a user presses Back while network calls are in flight:
+```java
+if (context instanceof Activity) {
+    Activity activity = (Activity) context;
+    if (activity.isDestroyed() || activity.isFinishing()) {
+        return; // Avoid Glide 'You cannot start a load for a destroyed activity' crash
+    }
+}
+```
+
+### 2.6 Lookahead Scroll Prefetching (Low Priority Background Warmup)
+
+To eliminate visual loading delays during fast scrolling without starving UI text rendering:
+1. Render current viewport text instantly.
+2. Observe RecyclerView scrolling (`addOnScrollListener`).
+3. Preload upcoming off-screen items (4–8 items ahead) with `Priority.LOW` via `ImageLoaderHelper.preloadBatch()`:
+```java
+recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+    @Override
+    public void onScrolled(@NonNull RecyclerView rv, int dx, int dy) {
+        if (dy > 0) { // Scrolling down
+            int lastVisible = layoutManager.findLastVisibleItemPosition();
+            int totalCount = adapter.getItemCount();
+            if (lastVisible >= 0 && lastVisible + 6 < totalCount) {
+                List<String> nextUrls = adapter.getImageUrls(lastVisible + 1, lastVisible + 6);
+                ImageLoaderHelper.preloadBatch(context, nextUrls);
+            }
+        }
+    }
+});
+```
+This primes the disk/memory cache asynchronously without competing with the primary thread or visible item text binding.
+
 ---
 
 ## 3. Web & Admin Implementation Standard (React / TypeScript / Tailwind)

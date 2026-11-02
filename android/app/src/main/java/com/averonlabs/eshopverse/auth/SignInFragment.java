@@ -166,10 +166,12 @@ public class SignInFragment extends Fragment {
         if (state.isLoading()) {
             binding.progressBar.setVisibility(View.VISIBLE);
             binding.btnSignIn.setEnabled(false);
+            binding.btnGoogleSignIn.setEnabled(false);
             binding.stateContainer.setState(StateContainerView.State.CONTENT, null, null, null);
         } else if (state.isContent()) {
             binding.progressBar.setVisibility(View.GONE);
             binding.btnSignIn.setEnabled(true);
+            binding.btnGoogleSignIn.setEnabled(true);
 
             // Update app-wide session
             AuthSession session = state.getData();
@@ -182,9 +184,14 @@ public class SignInFragment extends Fragment {
         } else if (state.isError()) {
             binding.progressBar.setVisibility(View.GONE);
             binding.btnSignIn.setEnabled(true);
+            binding.btnGoogleSignIn.setEnabled(true);
 
             String errorMsg = state.getMessageRes() != 0 ? getString(state.getMessageRes()) : "";
-            if (state.isRetryable()) {
+
+            if (authViewModel.isGoogleAuth()) {
+                binding.stateContainer.setState(StateContainerView.State.CONTENT, null, null, null);
+                Snackbar.make(binding.getRoot(), errorMsg, Snackbar.LENGTH_LONG).show();
+            } else if (state.isRetryable()) {
                 binding.stateContainer.setState(
                         StateContainerView.State.ERROR,
                         errorMsg,

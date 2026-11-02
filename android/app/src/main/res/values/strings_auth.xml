@@ -56,6 +56,7 @@
     <string name="auth_error_google_cancelled">Google sign in was cancelled.</string>
     <string name="auth_error_google_no_credential">No Google account selected or Google Play services unavailable.</string>
     <string name="auth_error_google_failed">Google sign in failed. Please try again.</string>
+    <string name="auth_error_google_verification_failed">Google sign-in could not be verified by the server. Please try again or sign in with your email.</string>
     <string name="auth_status_signed_in_as">Signed in as %1$s</string>
     <string name="auth_guest_prompt">Sign in or create an account to view your profile and manage orders.</string>
     <string name="default_web_client_id" translatable="false">702430048689-4gc06300mfqbf217l2ipp06nn14gtmla.apps.googleusercontent.com</string>

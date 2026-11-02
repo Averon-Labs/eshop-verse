@@ -229,9 +229,40 @@ public class AuthViewModelTest {
         viewModel.loginWithGoogle("bad-google-token");
 
         assertFalse(viewModel.isSubmitting());
+        assertTrue(viewModel.isGoogleAuth());
         UiState<AuthSession> state = viewModel.getLoginState().getValue();
         assertNotNull(state);
         assertTrue(state.isError());
+        assertEquals(R.string.auth_error_google_verification_failed, state.getMessageRes());
+        assertNull(viewModel.getPasswordErrorRes().getValue());
+        assertNull(viewModel.getEmailErrorRes().getValue());
+    }
+
+    @Test
+    public void testLoginWithEmailAfterGoogleResetsAuthType() {
+        ApiException apiEx = new ApiException(401, ApiErrorCodes.INVALID_CREDENTIALS, "Invalid credentials", null);
+
+        doAnswer(invocation -> {
+            AuthCallback<AuthSession> cb = invocation.getArgument(2);
+            cb.onError(apiEx);
+            return null;
+        }).when(authRepository).loginCustomer(eq("user@example.com"), eq("wrongpass1"), any());
+
+        doAnswer(invocation -> {
+            AuthCallback<AuthSession> cb = invocation.getArgument(1);
+            cb.onError(apiEx);
+            return null;
+        }).when(authRepository).loginWithGoogle(any(), any());
+
+        // First attempt with Google (fails)
+        viewModel.loginWithGoogle("sample-token");
+        assertTrue(viewModel.isGoogleAuth());
+        assertFalse(viewModel.isSubmitting());
+
+        // Second attempt with email/password
+        viewModel.login("user@example.com", "wrongpass1");
+        assertFalse(viewModel.isGoogleAuth());
+        assertEquals(Integer.valueOf(R.string.error_invalid_credentials), viewModel.getPasswordErrorRes().getValue());
     }
 
     @Test
