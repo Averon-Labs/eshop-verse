@@ -190,10 +190,12 @@ public class RegisterFragment extends Fragment {
         if (state.isLoading()) {
             binding.progressBar.setVisibility(View.VISIBLE);
             binding.btnRegister.setEnabled(false);
+            binding.btnGoogleSignIn.setEnabled(false);
             binding.stateContainer.setState(StateContainerView.State.CONTENT, null, null, null);
         } else if (state.isContent()) {
             binding.progressBar.setVisibility(View.GONE);
             binding.btnRegister.setEnabled(true);
+            binding.btnGoogleSignIn.setEnabled(true);
 
             AuthSession session = state.getData();
             if (session != null) {
@@ -212,9 +214,14 @@ public class RegisterFragment extends Fragment {
         } else if (state.isError()) {
             binding.progressBar.setVisibility(View.GONE);
             binding.btnRegister.setEnabled(true);
+            binding.btnGoogleSignIn.setEnabled(true);
 
             String errorMsg = state.getMessageRes() != 0 ? getString(state.getMessageRes()) : "";
-            if (state.isRetryable()) {
+
+            if (authViewModel.isGoogleAuth()) {
+                binding.stateContainer.setState(StateContainerView.State.CONTENT, null, null, null);
+                Snackbar.make(binding.getRoot(), errorMsg, Snackbar.LENGTH_LONG).show();
+            } else if (state.isRetryable()) {
                 binding.stateContainer.setState(
                         StateContainerView.State.ERROR,
                         errorMsg,

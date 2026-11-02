@@ -762,7 +762,40 @@ All three steps in this phase may run concurrently: they own disjoint packages, 
 - [x] **d.** Pressing Back from `SignInFragment` returns gracefully to `CartFragment` without re-triggering an auto-redirect.
 - [x] **e.** All unit tests in `CartViewModelTest` and cart-related suites pass cleanly.
 
-**Verification:** Gradle `testDebugUnitTest` passes cleanly with 0 errors. Phase 12 complete!
+**Verification:** Gradle `testDebugUnitTest` passes cleanly with 0 errors.
+
+### Step 3 — AUTH-013 — Context-Aware Authentication Error Handling & Google Sign-In Polish
+
+**Status:** `[x]`
+
+**Depends on:** AUTH-005, AUTH-007
+
+**Scope:** Prevent Google sign-in failure from highlighting email or password fields with "Invalid email or password" error. Map Google authentication errors to contextual Snackbar feedback and maintain button progress state.
+
+**Acceptance criteria:**
+- [x] **a.** `AuthViewModel` distinguishes between `EMAIL_PASSWORD` and `GOOGLE` authentication attempts via `AuthType`.
+- [x] **b.** When a Google sign-in attempt fails or is rejected by backend (e.g., 401 INVALID_CREDENTIALS), `passwordErrorRes`, `emailErrorRes`, and `serverFieldErrors` remain null/cleared so input fields do not display incorrect field errors.
+- [x] **c.** `SignInFragment` and `RegisterFragment` display an accessible, non-intrusive Snackbar message (`auth_error_google_verification_failed` or server message) upon Google authentication failure.
+- [x] **d.** Google Sign-In button correctly toggles disabled/enabled state during authentication and restores interactivity after errors.
+- [x] **e.** Switching back to email/password authentication cleanly resets `currentAuthType` so standard email/password validation continues to function.
+
+**Verification:** unit tests in `AuthViewModelTest` (`testLoginWithGoogleError` and `testLoginWithEmailAfterGoogleResetsAuthType`) and full suite `testDebugUnitTest` pass cleanly with 100% success (0 errors).
+
+### Step 4 — IMG-006 — Lookahead Scroll Image Prefetching for Explore & Catalog Grid
+
+**Status:** `[x]`
+
+**Depends on:** IMG-001, CAT-002
+
+**Scope:** Integrate lookahead scroll prefetching in `ExploreFragment` and catalog grids to preload off-screen images with low priority before viewport entry, ensuring seamless scrolling and zero image popping.
+
+**Acceptance criteria:**
+- [x] **a.** `ExploreFragment` registers a `RecyclerView.OnScrollListener` that detects downward scroll velocity.
+- [x] **b.** Off-screen item URLs (4–6 positions ahead of `findLastVisibleItemPosition()`) are preloaded asynchronously via `ImageLoaderHelper.preloadBatch()`.
+- [x] **c.** Preload requests operate at `Priority.LOW` to guarantee visible text rendering and in-viewport images are never deprioritized or blocked.
+- [x] **d.** Unit and instrumentation tests pass cleanly with zero regressions.
+
+**Verification:** implemented `ProductGridAdapter.getImageUrls()`, wired forward & backward lookahead prefetching with `ImageLoaderHelper.preloadBatch` in `ExploreFragment`, added unit tests in `ProductGridAdapterTest` (246 tests passing 100% in Gradle `testDebugUnitTest`). Phase 12 complete!
 
 ## External dependencies owned by other components
 

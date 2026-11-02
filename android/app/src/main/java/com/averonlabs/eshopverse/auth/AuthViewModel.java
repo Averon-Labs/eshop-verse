@@ -45,10 +45,20 @@ public class AuthViewModel extends ViewModel {
     // Lockout countdown seconds (for 429 ACCOUNT_LOCKED)
     private final MutableLiveData<Integer> lockoutSeconds = new MutableLiveData<>(0);
 
+    public enum AuthType {
+        EMAIL_PASSWORD,
+        GOOGLE
+    }
+
+    private AuthType currentAuthType = AuthType.EMAIL_PASSWORD;
     private boolean isSubmitting = false;
 
     public AuthViewModel(@NonNull AuthRepository authRepository) {
         this.authRepository = Objects.requireNonNull(authRepository, "authRepository cannot be null");
+    }
+
+    public boolean isGoogleAuth() {
+        return currentAuthType == AuthType.GOOGLE;
     }
 
     public LiveData<UiState<AuthSession>> getLoginState() {
@@ -126,6 +136,7 @@ public class AuthViewModel extends ViewModel {
         }
 
         clearErrors();
+        currentAuthType = AuthType.EMAIL_PASSWORD;
         boolean valid = true;
 
         if (!AuthValidator.isValidEmail(email)) {
@@ -168,6 +179,7 @@ public class AuthViewModel extends ViewModel {
         }
 
         clearErrors();
+        currentAuthType = AuthType.GOOGLE;
         isSubmitting = true;
         loginState.setValue(UiState.loading());
 
@@ -201,6 +213,7 @@ public class AuthViewModel extends ViewModel {
         }
 
         clearErrors();
+        currentAuthType = AuthType.EMAIL_PASSWORD;
         boolean valid = true;
 
         if (!AuthValidator.isValidEmail(email)) {
@@ -386,6 +399,20 @@ public class AuthViewModel extends ViewModel {
 
         if (throwable instanceof ApiException) {
             ApiException apiException = (ApiException) throwable;
+
+            if (currentAuthType == AuthType.GOOGLE) {
+                int messageRes;
+                if (ApiErrorCodes.INVALID_CREDENTIALS.equals(apiException.getCode())) {
+                    messageRes = R.string.auth_error_google_verification_failed;
+                } else if (ApiErrorCodes.ACCOUNT_DISABLED.equals(apiException.getCode())) {
+                    messageRes = R.string.error_account_disabled;
+                } else {
+                    messageRes = ErrorMessages.getMessageRes(apiException.getCode());
+                }
+                stateLiveData.postValue(UiState.error(messageRes, apiException.getHttpStatus() >= 500));
+                return;
+            }
+
             Map<String, String> fieldErrors = apiException.getFieldErrors();
             if (!fieldErrors.isEmpty()) {
                 serverFieldErrors.postValue(fieldErrors);
