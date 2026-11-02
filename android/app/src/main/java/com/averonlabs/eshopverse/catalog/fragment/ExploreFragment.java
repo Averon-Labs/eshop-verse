@@ -124,27 +124,15 @@ public class ExploreFragment extends Fragment {
                     // Proactive scroll lookahead prefetching (next 4-6 items)
                     int lastVisible = layoutManager.findLastVisibleItemPosition();
                     if (lastVisible >= 0 && lastVisible + 1 < totalCount) {
-                        List<ProductSummary> currentList = gridAdapter.getItems();
-                        int preloadEnd = Math.min(lastVisible + 5, currentList.size());
-                        for (int i = lastVisible + 1; i < preloadEnd; i++) {
-                            ProductSummary item = currentList.get(i);
-                            if (item != null && item.getImageUrl() != null) {
-                                ImageLoaderHelper.preload(recyclerView.getContext(), item.getImageUrl());
-                            }
-                        }
+                        List<String> nextUrls = gridAdapter.getImageUrls(lastVisible + 1, lastVisible + 7);
+                        ImageLoaderHelper.preloadBatch(recyclerView.getContext(), nextUrls);
                     }
                 } else if (dy < 0) {
                     // Proactive reverse prefetching when scrolling back up
                     int firstVisible = layoutManager.findFirstVisibleItemPosition();
                     if (firstVisible > 0) {
-                        List<ProductSummary> currentList = gridAdapter.getItems();
-                        int preloadStart = Math.max(0, firstVisible - 4);
-                        for (int i = preloadStart; i < firstVisible; i++) {
-                            ProductSummary item = currentList.get(i);
-                            if (item != null && item.getImageUrl() != null) {
-                                ImageLoaderHelper.preload(recyclerView.getContext(), item.getImageUrl());
-                            }
-                        }
+                        List<String> prevUrls = gridAdapter.getImageUrls(Math.max(0, firstVisible - 6), firstVisible);
+                        ImageLoaderHelper.preloadBatch(recyclerView.getContext(), prevUrls);
                     }
                 }
             }
@@ -344,6 +332,10 @@ public class ExploreFragment extends Fragment {
                 }
                 if (state.getData() != null) {
                     gridAdapter.submitList(state.getData());
+                    if (getContext() != null && state.getData().size() > 4) {
+                        List<String> initialPreload = gridAdapter.getImageUrls(4, Math.min(10, state.getData().size()));
+                        ImageLoaderHelper.preloadBatch(getContext(), initialPreload);
+                    }
                 }
                 break;
             case EMPTY:
