@@ -40,13 +40,16 @@ for host upload — including a guarantee that Laravel's stock welcome ("start u
 
 ## Commits
 
-| SHA | Subject |
-|-----|---------|
-| `c922aac` | fix(android-p12-s03-auth-013): report Google sign-in failures without a password error |
-| `0edb14f` | fix(backend): serve the admin SPA at / instead of Laravel's welcome page |
-| `2373472` | chore(deploy): add the host release packer and upload instructions |
-| `e10f41d` | docs(deploy): add the full pull-request description |
-| `06d7cd4` | docs(deploy): fix a typo in the pull-request description |
+| # | Subject |
+|---|---------|
+| 1 | fix(android-p12-s03-auth-013): report Google sign-in failures without a password error |
+| 2 | fix(backend): serve the admin SPA at / instead of Laravel's welcome page |
+| 3 | chore(deploy): add the host release packer and upload instructions |
+| 4 | docs(deploy): add the full pull-request description |
+| 5 | docs(deploy): fix a typo in the pull-request description |
+| 6 | docs(deploy): list every commit of the branch in the pull-request description |
+
+SHAs are not repeated here: rebasing rewrites them, so this pull request's **Commits** tab is authoritative.
 
 ## Files changed
 

@@ -8,6 +8,9 @@ Branch: `feature/android-phase-12` → pull request into `develop` (GitHub Flow 
 fix(android-p12-s03-auth-013): report Google sign-in failures without a password error
 fix(backend): serve the admin SPA at / instead of Laravel's welcome page
 chore(deploy): add the host release packer and upload instructions
+docs(deploy): add the full pull-request description
+docs(deploy): fix a typo in the pull-request description
+docs(deploy): list every commit of the branch in the pull-request description
 ```
 
 Push from the machine holding the clone:
