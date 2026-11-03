@@ -66,7 +66,7 @@ for host upload — including a guarantee that Laravel's stock welcome ("start u
 
 No production backend code needed changing for Google auth: `POST /api/v1/auth/google` already verifies the
 ID token (RS256 against Google's JWKS, issuer, audience, expiry, verified email), creates a password-less
-customer on first use, links an existing password account, and issues the same Santhum|Sanctum bearer session
+customer on first use, links an existing password account, and issues the same Sanctum bearer session
 as password sign-in.
 
 ### Never show Laravel's welcome page
