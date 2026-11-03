@@ -45,6 +45,8 @@ for host upload — including a guarantee that Laravel's stock welcome ("start u
 | `c922aac` | fix(android-p12-s03-auth-013): report Google sign-in failures without a password error |
 | `0edb14f` | fix(backend): serve the admin SPA at / instead of Laravel's welcome page |
 | `2373472` | chore(deploy): add the host release packer and upload instructions |
+| `e10f41d` | docs(deploy): add the full pull-request description |
+| `06d7cd4` | docs(deploy): fix a typo in the pull-request description |
 
 ## Files changed
 
