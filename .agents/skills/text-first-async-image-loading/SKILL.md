@@ -227,6 +227,9 @@ For the Admin Dashboard and web components:
 - ❌ **NEVER leave image views empty/blank** while loading; always provide an active shimmer placeholder.
 - ❌ **NEVER show broken icon graphics** or alert dialogs when an image fails; quietly fallback to the editorial error vector.
 - ❌ **NEVER download images in a global batch** upfront before rendering list text.
+- ❌ **NEVER call `notifyDataSetChanged()`** on list updates (destroys active ViewHolders and causes image flickering; use `DiffUtil`).
+- ❌ **NEVER initiate Glide loads without lifecycle checks** on `Activity.isDestroyed()` or `Activity.isFinishing()`.
+- ❌ **NEVER prefetch background images with high priority** (always use `Priority.LOW` so visible item rendering and text are never starved).
 
 ---
 

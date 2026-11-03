@@ -259,10 +259,12 @@ public class AccountFragment extends Fragment {
         if (state.isLoading()) {
             binding.progressGuestSignIn.setVisibility(View.VISIBLE);
             binding.btnGuestSignIn.setEnabled(false);
+            binding.btnGuestGoogleSignIn.setEnabled(false);
             binding.stateContainer.setState(StateContainerView.State.CONTENT, null, null, null);
         } else if (state.isContent()) {
             binding.progressGuestSignIn.setVisibility(View.GONE);
             binding.btnGuestSignIn.setEnabled(true);
+            binding.btnGuestGoogleSignIn.setEnabled(true);
 
             AuthSession session = state.getData();
             if (session != null) {
@@ -272,8 +274,19 @@ public class AccountFragment extends Fragment {
         } else if (state.isError()) {
             binding.progressGuestSignIn.setVisibility(View.GONE);
             binding.btnGuestSignIn.setEnabled(true);
+            binding.btnGuestGoogleSignIn.setEnabled(true);
 
             String errorMsg = state.getMessageRes() != 0 ? getString(state.getMessageRes()) : "";
+
+            // AUTH-013: a Google failure never concerns the email/password
+            // fields, and its retry must not re-submit the credential form.
+            // Report it non-intrusively and leave the form untouched.
+            if (authViewModel.isGoogleAuth()) {
+                binding.stateContainer.setState(StateContainerView.State.CONTENT, null, null, null);
+                showAnchoredSnackbar(errorMsg);
+                return;
+            }
+
             if (state.isRetryable()) {
                 binding.stateContainer.setState(
                         StateContainerView.State.ERROR,

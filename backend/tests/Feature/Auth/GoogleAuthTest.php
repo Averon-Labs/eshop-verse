@@ -26,6 +26,8 @@ class GoogleAuthTest extends TestCase
     /** @var array{0: \OpenSSLAsymmetricKey, 1: string}|null */
     private static ?array $keyPair = null;
 
+    private static ?string $opensslConfig = null;
+
     private bool $googleKeysAvailable = true;
 
     protected function setUp(): void
@@ -182,6 +184,7 @@ class GoogleAuthTest extends TestCase
         $rogueKey = openssl_pkey_new([
             'private_key_bits' => 2048,
             'private_key_type' => OPENSSL_KEYTYPE_RSA,
+            'config' => self::opensslConfigPath(),
         ]);
 
         $response = $this->postJson('/api/v1/auth/google', [
@@ -362,18 +365,27 @@ class GoogleAuthTest extends TestCase
      * A fresh RSA key pair and its self-signed certificate (base64 DER,
      * as Google's JWKS `x5c` entries are), shared within the process.
      *
+     * A minimal OpenSSL config is supplied explicitly because bare PHP
+     * builds (for example the Windows CLI install) ship without an
+     * `openssl.cnf`, which makes `openssl_csr_new()` return false and the
+     * certificate generation crash instead of testing the endpoint.
+     *
      * @return array{0: \OpenSSLAsymmetricKey, 1: string}
      */
     private static function keyPair(): array
     {
         if (self::$keyPair === null) {
+            $configPath = self::opensslConfigPath();
+            $options = ['digest_alg' => 'sha256', 'config' => $configPath];
+
             $resource = openssl_pkey_new([
                 'private_key_bits' => 2048,
                 'private_key_type' => OPENSSL_KEYTYPE_RSA,
+                'config' => $configPath,
             ]);
 
-            $request = openssl_csr_new(['commonName' => 'eshopverse-test'], $resource, ['digest_alg' => 'sha256']);
-            $certificate = openssl_csr_sign($request, null, $resource, 1, ['digest_alg' => 'sha256']);
+            $request = openssl_csr_new(['commonName' => 'eshopverse-test'], $resource, $options);
+            $certificate = openssl_csr_sign($request, null, $resource, 1, $options);
             openssl_x509_export($certificate, $certificatePem);
 
             self::$keyPair = [
@@ -383,6 +395,23 @@ class GoogleAuthTest extends TestCase
         }
 
         return self::$keyPair;
+    }
+
+    /**
+     * Write (once per process) the minimal config OpenSSL needs to build the
+     * test certificate when the PHP build has no system `openssl.cnf`.
+     */
+    private static function opensslConfigPath(): string
+    {
+        if (self::$opensslConfig === null) {
+            $path = tempnam(sys_get_temp_dir(), 'eshopverse-openssl');
+
+            file_put_contents($path, "[req]\ndistinguished_name = req_distinguished_name\nprompt = no\n[req_distinguished_name]\nCN = eshopverse-test\n");
+
+            self::$opensslConfig = $path;
+        }
+
+        return self::$opensslConfig;
     }
 
     private function encode(array|string $value): string
