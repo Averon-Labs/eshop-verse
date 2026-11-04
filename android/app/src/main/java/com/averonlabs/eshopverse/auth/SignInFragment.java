@@ -116,9 +116,10 @@ public class SignInFragment extends Fragment {
                 }
 
                 @Override
-                public void onError(@NonNull String errorMessage) {
+                public void onError(@NonNull GoogleAuthManager.GoogleAuthFailure failure) {
                     if (binding != null) {
-                        Snackbar.make(binding.getRoot(), errorMessage, Snackbar.LENGTH_LONG).show();
+                        Snackbar.make(binding.getRoot(),
+                                GoogleAuthManager.messageResFor(failure), Snackbar.LENGTH_LONG).show();
                     }
                 }
             });

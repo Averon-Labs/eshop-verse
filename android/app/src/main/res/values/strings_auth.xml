@@ -54,7 +54,12 @@
     <string name="auth_error_account_locked">Account temporarily locked. Please try again in %1$d seconds.</string>
     <string name="auth_error_session_expired">Your session has expired. Please sign in again to continue.</string>
     <string name="auth_error_google_cancelled">Google sign in was cancelled.</string>
-    <string name="auth_error_google_no_credential">No Google account selected or Google Play services unavailable.</string>
+    <string name="auth_error_google_no_credential">No Google account is available on this device. Add a Google account in Android Settings, then try again.</string>
+    <string name="auth_error_google_play_services">Google Play services is missing or out of date. Update it from the Play Store, or use a device or emulator with Google Play support, then try again.</string>
+    <string name="auth_error_google_not_configured">Google sign-in is not set up for this build. Register this app\'s package name and SHA-1 signing fingerprint on the Google Cloud OAuth client, then install a new build.</string>
+    <string name="auth_error_google_unsupported">This device does not support Google sign-in. Please sign in with your email instead.</string>
+    <string name="auth_error_google_interrupted">Google sign in was interrupted. Please try again.</string>
+    <string name="auth_error_google_unexpected_credential">Google returned a sign-in method this app cannot use. Choose a Google account when prompted, or sign in with your email.</string>
     <string name="auth_error_google_failed">Google sign in failed. Please try again.</string>
     <string name="auth_error_google_verification_failed">Google sign-in could not be verified by the server. Please try again or sign in with your email.</string>
     <string name="auth_status_signed_in_as">Signed in as %1$s</string>
