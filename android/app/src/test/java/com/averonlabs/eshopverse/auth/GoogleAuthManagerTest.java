@@ -9,7 +9,6 @@ import androidx.credentials.CustomCredential;
 import androidx.credentials.GetCredentialRequest;
 import androidx.credentials.GetCredentialResponse;
 import androidx.credentials.exceptions.GetCredentialCancellationException;
-import androidx.credentials.exceptions.GetCredentialException;
 import androidx.credentials.exceptions.NoCredentialException;
 
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
@@ -27,6 +26,9 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * Unit tests for GoogleAuthManager (AUTH-007).
+ *
+ * <p>Failures are asserted through {@link GoogleAuthManager.GoogleAuthFailure} so the
+ * tests pin the classification that decides which actionable message a screen shows.</p>
  */
 public class GoogleAuthManagerTest {
 
@@ -38,6 +40,23 @@ public class GoogleAuthManagerTest {
     public void setUp() {
         mockCredentialManager = Mockito.mock(CredentialManager.class);
         googleAuthManager = new GoogleAuthManager(mockCredentialManager, TEST_CLIENT_ID);
+    }
+
+    private GoogleAuthManager.GoogleAuthCallback failureCallback(AtomicReference<GoogleAuthManager.GoogleAuthFailure> ref) {
+        return new GoogleAuthManager.GoogleAuthCallback() {
+            @Override
+            public void onSuccess(@NonNull String idToken) {}
+
+            @Override
+            public void onCancelled() {
+                ref.set(GoogleAuthManager.GoogleAuthFailure.CANCELLED);
+            }
+
+            @Override
+            public void onError(@NonNull GoogleAuthManager.GoogleAuthFailure failure) {
+                ref.set(failure);
+            }
+        };
     }
 
     @Test
@@ -69,7 +88,7 @@ public class GoogleAuthManagerTest {
             }
 
             @Override
-            public void onError(@NonNull String errorMessage) {
+            public void onError(@NonNull GoogleAuthManager.GoogleAuthFailure failure) {
                 errorCalled.set(true);
             }
         });
@@ -79,73 +98,113 @@ public class GoogleAuthManagerTest {
     }
 
     @Test
-    public void testHandleCredentialErrorNoCredentialInvokesOnError() {
-        AtomicReference<String> errorRef = new AtomicReference<>();
+    public void testHandleCredentialErrorNoCredentialReportsNoCredential() {
+        AtomicReference<GoogleAuthManager.GoogleAuthFailure> failureRef = new AtomicReference<>();
 
         NoCredentialException noCredException = new NoCredentialException("No credential available");
 
-        googleAuthManager.handleCredentialError(noCredException, new GoogleAuthManager.GoogleAuthCallback() {
-            @Override
-            public void onSuccess(@NonNull String idToken) {}
+        googleAuthManager.handleCredentialError(noCredException, failureCallback(failureRef));
 
-            @Override
-            public void onCancelled() {}
-
-            @Override
-            public void onError(@NonNull String errorMessage) {
-                errorRef.set(errorMessage);
-            }
-        });
-
-        assertNotNull(errorRef.get());
-        assertTrue(errorRef.get().contains("No Google accounts found"));
+        assertEquals(GoogleAuthManager.GoogleAuthFailure.NO_CREDENTIAL, failureRef.get());
     }
 
     @Test
-    public void testHandleCredentialResponseNullInvokesOnError() {
-        AtomicReference<String> errorRef = new AtomicReference<>();
-
-        googleAuthManager.handleCredentialResponse(null, new GoogleAuthManager.GoogleAuthCallback() {
-            @Override
-            public void onSuccess(@NonNull String idToken) {}
-
-            @Override
-            public void onCancelled() {}
-
-            @Override
-            public void onError(@NonNull String errorMessage) {
-                errorRef.set(errorMessage);
-            }
-        });
-
-        assertNotNull(errorRef.get());
-        assertEquals("No credential returned.", errorRef.get());
+    public void testClassifyPlayServicesMessageReportsPlayServicesUnavailable() {
+        assertEquals(
+                GoogleAuthManager.GoogleAuthFailure.PLAY_SERVICES_UNAVAILABLE,
+                GoogleAuthManager.classify(
+                        "android.credentials.GetCredentialException.TYPE_NO_CREDENTIAL",
+                        "Google Play services is not available on this device")
+        );
     }
 
     @Test
-    public void testHandleCredentialResponseUnexpectedTypeInvokesOnError() {
-        AtomicReference<String> errorRef = new AtomicReference<>();
+    public void testClassifyConfigurationIssueTypeReportsNotConfigured() {
+        assertEquals(
+                GoogleAuthManager.GoogleAuthFailure.NOT_CONFIGURED,
+                GoogleAuthManager.classify(
+                        "android.credentials.GetCredentialException.TYPE_GET_CREDENTIAL_PROVIDER_CONFIGURATION_ISSUE",
+                        "Provider configuration is invalid")
+        );
+    }
+
+    @Test
+    public void testClassifyDeveloperConsoleMessageReportsNotConfigured() {
+        assertEquals(
+                GoogleAuthManager.GoogleAuthFailure.NOT_CONFIGURED,
+                GoogleAuthManager.classify(
+                        "android.credentials.GetCredentialException.TYPE_UNKNOWN",
+                        "[28444] Developer console is not set up correctly.")
+        );
+    }
+
+    @Test
+    public void testClassifyUserCanceledTypeReportsCancelled() {
+        assertEquals(
+                GoogleAuthManager.GoogleAuthFailure.CANCELLED,
+                GoogleAuthManager.classify(
+                        "android.credentials.GetCredentialException.TYPE_USER_CANCELED",
+                        null)
+        );
+    }
+
+    @Test
+    public void testClassifyUnsupportedTypeReportsUnsupported() {
+        assertEquals(
+                GoogleAuthManager.GoogleAuthFailure.UNSUPPORTED,
+                GoogleAuthManager.classify(
+                        "android.credentials.GetCredentialException.TYPE_UNSUPPORTED",
+                        null)
+        );
+    }
+
+    @Test
+    public void testClassifyInterruptedTypeReportsInterrupted() {
+        assertEquals(
+                GoogleAuthManager.GoogleAuthFailure.INTERRUPTED,
+                GoogleAuthManager.classify(
+                        "android.credentials.GetCredentialException.TYPE_INTERRUPTED",
+                        null)
+        );
+    }
+
+    @Test
+    public void testClassifyUnrecognizedErrorReportsUnknown() {
+        assertEquals(
+                GoogleAuthManager.GoogleAuthFailure.UNKNOWN,
+                GoogleAuthManager.classify(null, null)
+        );
+    }
+
+    @Test
+    public void testMessageResForEveryFailureIsNonZero() {
+        for (GoogleAuthManager.GoogleAuthFailure failure : GoogleAuthManager.GoogleAuthFailure.values()) {
+            assertTrue("Missing message resource for " + failure,
+                    GoogleAuthManager.messageResFor(failure) != 0);
+        }
+    }
+
+    @Test
+    public void testHandleCredentialResponseNullReportsFailure() {
+        AtomicReference<GoogleAuthManager.GoogleAuthFailure> failureRef = new AtomicReference<>();
+
+        googleAuthManager.handleCredentialResponse(null, failureCallback(failureRef));
+
+        assertNotNull(failureRef.get());
+    }
+
+    @Test
+    public void testHandleCredentialResponseUnexpectedTypeReportsUnexpectedCredential() {
+        AtomicReference<GoogleAuthManager.GoogleAuthFailure> failureRef = new AtomicReference<>();
 
         Credential mockCredential = Mockito.mock(Credential.class);
         Mockito.when(mockCredential.getType()).thenReturn("unexpected_credential_type");
 
         GetCredentialResponse response = new GetCredentialResponse(mockCredential);
 
-        googleAuthManager.handleCredentialResponse(response, new GoogleAuthManager.GoogleAuthCallback() {
-            @Override
-            public void onSuccess(@NonNull String idToken) {}
+        googleAuthManager.handleCredentialResponse(response, failureCallback(failureRef));
 
-            @Override
-            public void onCancelled() {}
-
-            @Override
-            public void onError(@NonNull String errorMessage) {
-                errorRef.set(errorMessage);
-            }
-        });
-
-        assertNotNull(errorRef.get());
-        assertTrue(errorRef.get().contains("Unexpected credential type"));
+        assertEquals(GoogleAuthManager.GoogleAuthFailure.UNEXPECTED_CREDENTIAL, failureRef.get());
     }
 
     @Test
@@ -176,15 +235,15 @@ public class GoogleAuthManagerTest {
             public void onCancelled() {}
 
             @Override
-            public void onError(@NonNull String errorMessage) {}
+            public void onError(@NonNull GoogleAuthManager.GoogleAuthFailure failure) {}
         });
 
         assertEquals("mock.jwt.token", successTokenRef.get());
     }
 
     @Test
-    public void testHandleCredentialResponseEmptyTokenInvokesOnError() {
-        AtomicReference<String> errorRef = new AtomicReference<>();
+    public void testHandleCredentialResponseEmptyTokenReportsEmptyToken() {
+        AtomicReference<GoogleAuthManager.GoogleAuthFailure> failureRef = new AtomicReference<>();
 
         GoogleAuthManager testManager = new GoogleAuthManager(mockCredentialManager, TEST_CLIENT_ID) {
             @Override
@@ -200,26 +259,14 @@ public class GoogleAuthManagerTest {
 
         GetCredentialResponse response = new GetCredentialResponse(customCredential);
 
-        testManager.handleCredentialResponse(response, new GoogleAuthManager.GoogleAuthCallback() {
-            @Override
-            public void onSuccess(@NonNull String idToken) {}
+        testManager.handleCredentialResponse(response, failureCallback(failureRef));
 
-            @Override
-            public void onCancelled() {}
-
-            @Override
-            public void onError(@NonNull String errorMessage) {
-                errorRef.set(errorMessage);
-            }
-        });
-
-        assertNotNull(errorRef.get());
-        assertTrue(errorRef.get().contains("Empty Google ID token returned."));
+        assertEquals(GoogleAuthManager.GoogleAuthFailure.EMPTY_TOKEN, failureRef.get());
     }
 
     @Test
-    public void testHandleCredentialResponseParsingExceptionInvokesOnError() {
-        AtomicReference<String> errorRef = new AtomicReference<>();
+    public void testHandleCredentialResponseParsingExceptionReportsParseFailed() {
+        AtomicReference<GoogleAuthManager.GoogleAuthFailure> failureRef = new AtomicReference<>();
 
         GoogleAuthManager testManager = new GoogleAuthManager(mockCredentialManager, TEST_CLIENT_ID) {
             @Override
@@ -235,20 +282,8 @@ public class GoogleAuthManagerTest {
 
         GetCredentialResponse response = new GetCredentialResponse(customCredential);
 
-        testManager.handleCredentialResponse(response, new GoogleAuthManager.GoogleAuthCallback() {
-            @Override
-            public void onSuccess(@NonNull String idToken) {}
+        testManager.handleCredentialResponse(response, failureCallback(failureRef));
 
-            @Override
-            public void onCancelled() {}
-
-            @Override
-            public void onError(@NonNull String errorMessage) {
-                errorRef.set(errorMessage);
-            }
-        });
-
-        assertNotNull(errorRef.get());
-        assertTrue(errorRef.get().contains("Failed to parse Google ID token: Malformed payload"));
+        assertEquals(GoogleAuthManager.GoogleAuthFailure.PARSE_FAILED, failureRef.get());
     }
 }

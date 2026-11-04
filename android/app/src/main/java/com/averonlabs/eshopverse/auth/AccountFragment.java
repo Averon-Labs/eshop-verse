@@ -140,8 +140,8 @@ public class AccountFragment extends Fragment {
                 }
 
                 @Override
-                public void onError(@NonNull String errorMessage) {
-                    showAnchoredSnackbar(errorMessage);
+                public void onError(@NonNull GoogleAuthManager.GoogleAuthFailure failure) {
+                    showAnchoredSnackbar(GoogleAuthManager.messageResFor(failure));
                 }
             });
         });
