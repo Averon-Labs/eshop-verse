@@ -16,6 +16,9 @@ import androidx.credentials.GetCredentialRequest;
 import androidx.credentials.GetCredentialResponse;
 import androidx.credentials.exceptions.GetCredentialCancellationException;
 import androidx.credentials.exceptions.GetCredentialException;
+import androidx.credentials.exceptions.GetCredentialInterruptedException;
+import androidx.credentials.exceptions.GetCredentialProviderConfigurationException;
+import androidx.credentials.exceptions.GetCredentialUnsupportedException;
 import androidx.credentials.exceptions.NoCredentialException;
 
 import com.averonlabs.eshopverse.BuildConfig;
@@ -172,30 +175,31 @@ public class GoogleAuthManager {
             return;
         }
 
-        GoogleAuthFailure failure = classify(e.getType(), e.getMessage());
-
-        if (failure == GoogleAuthFailure.UNKNOWN && e instanceof NoCredentialException) {
-            failure = GoogleAuthFailure.NO_CREDENTIAL;
-        }
-
-        callback.onError(failure);
+        callback.onError(classify(e));
     }
 
     /**
-     * Maps a Credential Manager error type/message onto a {@link GoogleAuthFailure}.
+     * Maps a Credential Manager failure onto a {@link GoogleAuthFailure}.
      *
-     * <p>Matching is done on the exception type and message instead of concrete
-     * subclasses so the classification also covers provider-specific errors raised
-     * by Google Play services. No credential material is read here.</p>
+     * <p>Uses the public exception subclasses; {@code GetCredentialException.getType()}
+     * is a restricted API and is deliberately not called. Message checks cover
+     * provider-specific errors that are reported as a generic subclass, for example
+     * Google's "[28444] Developer console is not set up correctly" for an
+     * unregistered OAuth client. No credential material is read here.</p>
      */
     @NonNull
-    static GoogleAuthFailure classify(@Nullable String exceptionType, @Nullable String exceptionMessage) {
-        String type = exceptionType == null ? "" : exceptionType;
-        String message = exceptionMessage == null ? "" : exceptionMessage.toLowerCase(Locale.US);
+    static GoogleAuthFailure classify(@Nullable GetCredentialException exception) {
+        if (exception == null) {
+            return GoogleAuthFailure.UNKNOWN;
+        }
 
-        if (type.contains("USER_CANCELED") || type.contains("CANCEL")) {
+        if (exception instanceof GetCredentialCancellationException) {
             return GoogleAuthFailure.CANCELLED;
         }
+
+        String message = exception.getMessage() == null
+                ? ""
+                : exception.getMessage().toLowerCase(Locale.US);
 
         // Checked before NO_CREDENTIAL: a missing or outdated Play services install
         // is reported as "no credential" even when the device has accounts.
@@ -203,23 +207,26 @@ public class GoogleAuthManager {
             return GoogleAuthFailure.PLAY_SERVICES_UNAVAILABLE;
         }
 
-        // Credential Manager reports an unregistered OAuth client (package name and
-        // SHA-1 fingerprint) as a provider configuration issue, or as error 28444.
-        if (type.contains("CONFIGURATION")
-                || message.contains("developer console")
-                || message.contains("28444")) {
+        if (exception instanceof GetCredentialProviderConfigurationException) {
             return GoogleAuthFailure.NOT_CONFIGURED;
         }
 
-        if (type.contains("NO_CREDENTIAL")) {
+        // Google reports an unregistered package name/SHA-1 pair this way, usually
+        // inside a NoCredentialException, so the message is checked before the
+        // subclass fallbacks below.
+        if (message.contains("developer console") || message.contains("28444")) {
+            return GoogleAuthFailure.NOT_CONFIGURED;
+        }
+
+        if (exception instanceof NoCredentialException) {
             return GoogleAuthFailure.NO_CREDENTIAL;
         }
 
-        if (type.contains("UNSUPPORTED")) {
+        if (exception instanceof GetCredentialUnsupportedException) {
             return GoogleAuthFailure.UNSUPPORTED;
         }
 
-        if (type.contains("INTERRUPTED")) {
+        if (exception instanceof GetCredentialInterruptedException) {
             return GoogleAuthFailure.INTERRUPTED;
         }
 

@@ -9,6 +9,9 @@ import androidx.credentials.CustomCredential;
 import androidx.credentials.GetCredentialRequest;
 import androidx.credentials.GetCredentialResponse;
 import androidx.credentials.exceptions.GetCredentialCancellationException;
+import androidx.credentials.exceptions.GetCredentialInterruptedException;
+import androidx.credentials.exceptions.GetCredentialProviderConfigurationException;
+import androidx.credentials.exceptions.GetCredentialUnsupportedException;
 import androidx.credentials.exceptions.NoCredentialException;
 
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
@@ -112,68 +115,57 @@ public class GoogleAuthManagerTest {
     public void testClassifyPlayServicesMessageReportsPlayServicesUnavailable() {
         assertEquals(
                 GoogleAuthManager.GoogleAuthFailure.PLAY_SERVICES_UNAVAILABLE,
-                GoogleAuthManager.classify(
-                        "android.credentials.GetCredentialException.TYPE_NO_CREDENTIAL",
-                        "Google Play services is not available on this device")
+                GoogleAuthManager.classify(new NoCredentialException(
+                        "Google Play services is not available on this device"))
         );
     }
 
     @Test
-    public void testClassifyConfigurationIssueTypeReportsNotConfigured() {
+    public void testClassifyConfigurationIssueReportsNotConfigured() {
         assertEquals(
                 GoogleAuthManager.GoogleAuthFailure.NOT_CONFIGURED,
-                GoogleAuthManager.classify(
-                        "android.credentials.GetCredentialException.TYPE_GET_CREDENTIAL_PROVIDER_CONFIGURATION_ISSUE",
-                        "Provider configuration is invalid")
+                GoogleAuthManager.classify(new GetCredentialProviderConfigurationException(
+                        "Provider configuration is invalid"))
         );
     }
 
     @Test
     public void testClassifyDeveloperConsoleMessageReportsNotConfigured() {
+        // An unregistered package name/SHA-1 pair surfaces as this Google error.
         assertEquals(
                 GoogleAuthManager.GoogleAuthFailure.NOT_CONFIGURED,
-                GoogleAuthManager.classify(
-                        "android.credentials.GetCredentialException.TYPE_UNKNOWN",
-                        "[28444] Developer console is not set up correctly.")
+                GoogleAuthManager.classify(new NoCredentialException(
+                        "[28444] Developer console is not set up correctly."))
         );
     }
 
     @Test
-    public void testClassifyUserCanceledTypeReportsCancelled() {
+    public void testClassifyCancellationReportsCancelled() {
         assertEquals(
                 GoogleAuthManager.GoogleAuthFailure.CANCELLED,
-                GoogleAuthManager.classify(
-                        "android.credentials.GetCredentialException.TYPE_USER_CANCELED",
-                        null)
+                GoogleAuthManager.classify(new GetCredentialCancellationException("User cancelled"))
         );
     }
 
     @Test
-    public void testClassifyUnsupportedTypeReportsUnsupported() {
+    public void testClassifyUnsupportedReportsUnsupported() {
         assertEquals(
                 GoogleAuthManager.GoogleAuthFailure.UNSUPPORTED,
-                GoogleAuthManager.classify(
-                        "android.credentials.GetCredentialException.TYPE_UNSUPPORTED",
-                        null)
+                GoogleAuthManager.classify(new GetCredentialUnsupportedException("Unsupported"))
         );
     }
 
     @Test
-    public void testClassifyInterruptedTypeReportsInterrupted() {
+    public void testClassifyInterruptedReportsInterrupted() {
         assertEquals(
                 GoogleAuthManager.GoogleAuthFailure.INTERRUPTED,
-                GoogleAuthManager.classify(
-                        "android.credentials.GetCredentialException.TYPE_INTERRUPTED",
-                        null)
+                GoogleAuthManager.classify(new GetCredentialInterruptedException("Interrupted"))
         );
     }
 
     @Test
     public void testClassifyUnrecognizedErrorReportsUnknown() {
-        assertEquals(
-                GoogleAuthManager.GoogleAuthFailure.UNKNOWN,
-                GoogleAuthManager.classify(null, null)
-        );
+        assertEquals(GoogleAuthManager.GoogleAuthFailure.UNKNOWN, GoogleAuthManager.classify(null));
     }
 
     @Test
