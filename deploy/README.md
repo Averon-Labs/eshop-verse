@@ -1,7 +1,25 @@
 # Deployment Assets
 
-Prepared files for the optional ByetHost demo. Full instructions, environment guidance, and verification
+Prepared files for the optional public demo. Full instructions, environment guidance, and verification
 checklist: [`docs/DEPLOYMENT.md`](../docs/DEPLOYMENT.md).
+
+## Build scripts
+
+```text
+deploy/build-release.sh    bash (Git Bash / Linux / macOS)
+deploy/build-release.ps1   PowerShell (Windows, no bash required)
+```
+
+Both produce the same archives under `output/`:
+
+| Archive | Contents |
+|---------|----------|
+| `eshopverse-full-deploy.zip` | The complete host root — `index.php`, `.htaccess`, `index.html`, `assets/`, `fonts/`, and `eshopverse_app/` including its `.env` |
+| `eshopverse_app.zip` | `eshopverse_app/` only (no `.env`) |
+| `eshopverse-admin.zip` | `index.html`, `assets/`, `fonts/` |
+
+The full bundle is produced only when `output/eshopverse-backend.env` exists; that file supplies
+`eshopverse_app/.env` and keeps real database credentials out of Git.
 
 ## Admin update archive
 
@@ -13,7 +31,7 @@ output/eshopverse-admin.zip   # ~1.08 MB; contents extract directly into htdocs/
 ```
 
 The current packages (admin bundle **and** the Laravel application archive) are generated under
-`output/`; see [`docs/DEPLOYMENT.md`](../DEPLOYMENT.md#upload-packages-2026-10-28). The earlier
+`output/`; see [`docs/DEPLOYMENT.md`](../docs/DEPLOYMENT.md#upload-packages-2026-10-28). The earlier
 `deploy/eshopverse-admin-dist.zip` name described the same admin layout and is no longer kept in the tree.
 
 Upload the archive to `htdocs`, extract it over the existing `index.html`, `assets/`, and `fonts/`, delete any

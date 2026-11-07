@@ -36,8 +36,33 @@ the repository plus `npm run build`). Upload steps and per-package notes: `outpu
 
 | Package | Size | Goes to |
 |---------|------|---------|
-| `output/eshopverse_app.zip` (root folder `eshopverse_app/`) | 16.95 MB | `htdocs/` — extracts into the existing application directory |
+| `output/eshopverse-full-deploy.zip` (complete `htdocs/` root, including `eshopverse_app/.env`) | 18.84 MB | `htdocs/` — replaces the whole deployment in one upload |
+| `output/eshopverse_app.zip` (root folder `eshopverse_app/`) | 17.76 MB | `htdocs/` — extracts into the existing application directory |
 | `output/eshopverse-admin.zip` (`index.html`, `assets/`, `fonts/` at the root) | 1.08 MB | `htdocs/` — overwrites the SPA files |
+
+Build them with `deploy/build-release.sh` (bash) or `deploy/build-release.ps1` (Windows PowerShell).
+The PowerShell script is the one used on the maintainer's machine, which has no bash.
+
+### Full host bundle (2026-11-08)
+
+`output/eshopverse-full-deploy.zip` is the archive to use when the host can only be replaced as a
+whole rather than file by file. Its root is the complete `htdocs/` directory:
+
+```text
+index.php          Laravel front controller (deploy/byethost/htdocs/index.php)
+.htaccess          API + SPA rewrites, denies direct .env access
+index.html         admin SPA (public /privacy and /terms included)
+assets/            admin JS/CSS (index-DctyOm6T.js, index-BMo7PNKp.css)
+fonts/             Lato
+eshopverse_app/    Laravel application with vendor/ and .env
+```
+
+It contains no `tests/`, no local logs, no `bootstrap/cache` config, and no local `storage/` content.
+`eshopverse_app/.env` comes from the generated `output/eshopverse-backend.env`
+([Ready-to-deploy production `.env`](#ready-to-deploy-production-env)); the four database values are
+deliberately left as `CHANGE_ME_*` placeholders, so fill them (and the host's existing `APP_KEY`)
+inside the archive **before** extracting it on the host. Without that, the application cannot connect
+to MySQL.
 
 ### Admin build with public legal pages (2026-11-08)
 
@@ -59,10 +84,12 @@ over the existing `index.html`, `assets/`, and `fonts/` on the host, then hard-r
 
 No backend change or `.env` change is required for the legal pages.
 
-Backend upload rules: never overwrite `htdocs/eshopverse_app/.env` (it is not in the archive), keep the
-host's `storage/` content — in particular `storage/app/product-images/` — and keep `storage/` and
-`bootstrap/cache/` writable. The archive ships `vendor/` because `backend/composer.lock` changed on
-2026-10-23 (`config.platform.php` pinned to 8.3.36) and the host cannot run Composer.
+Backend upload rules: `eshopverse_app.zip` does not contain `.env`, so never overwrite the host's
+`htdocs/eshopverse_app/.env` when using that archive. The full bundle above does contain `.env`, so
+fill its placeholders first. Keep the host's `storage/` content — in particular
+`storage/app/product-images/` — and keep `storage/` and `bootstrap/cache/` writable. The archive ships
+`vendor/` because `backend/composer.lock` changed on 2026-10-23 (`config.platform.php` pinned to
+8.3.36) and the host cannot run Composer.
 
 ### Verification record (2026-10-28)
 
