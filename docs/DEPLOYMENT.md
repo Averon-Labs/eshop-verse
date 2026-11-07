@@ -36,8 +36,33 @@ the repository plus `npm run build`). Upload steps and per-package notes: `outpu
 
 | Package | Size | Goes to |
 |---------|------|---------|
-| `output/eshopverse_app.zip` (root folder `eshopverse_app/`) | 16.95 MB | `htdocs/` — extracts into the existing application directory |
+| `output/eshopverse-full-deploy.zip` (complete `htdocs/` root, including `eshopverse_app/.env`) | 18.84 MB | `htdocs/` — replaces the whole deployment in one upload |
+| `output/eshopverse_app.zip` (root folder `eshopverse_app/`) | 17.76 MB | `htdocs/` — extracts into the existing application directory |
 | `output/eshopverse-admin.zip` (`index.html`, `assets/`, `fonts/` at the root) | 1.08 MB | `htdocs/` — overwrites the SPA files |
+
+Build them with `deploy/build-release.sh` (bash) or `deploy/build-release.ps1` (Windows PowerShell).
+The PowerShell script is the one used on the maintainer's machine, which has no bash.
+
+### Full host bundle (2026-11-08)
+
+`output/eshopverse-full-deploy.zip` is the archive to use when the host can only be replaced as a
+whole rather than file by file. Its root is the complete `htdocs/` directory:
+
+```text
+index.php          Laravel front controller (deploy/byethost/htdocs/index.php)
+.htaccess          API + SPA rewrites, denies direct .env access
+index.html         admin SPA (public /privacy and /terms included)
+assets/            admin JS/CSS (index-DctyOm6T.js, index-BMo7PNKp.css)
+fonts/             Lato
+eshopverse_app/    Laravel application with vendor/ and .env
+```
+
+It contains no `tests/`, no local logs, no `bootstrap/cache` config, and no local `storage/` content.
+`eshopverse_app/.env` comes from the generated `output/eshopverse-backend.env`
+([Ready-to-deploy production `.env`](#ready-to-deploy-production-env)). That file is complete — the
+live PostgreSQL connection, host origins, Google client ID, and a rotated `APP_KEY` are already set —
+so the archive can be extracted as-is. Keep the `.env` from the deployed archive afterwards so the key
+stays stable.
 
 ### Admin build with public legal pages (2026-11-08)
 
@@ -59,10 +84,12 @@ over the existing `index.html`, `assets/`, and `fonts/` on the host, then hard-r
 
 No backend change or `.env` change is required for the legal pages.
 
-Backend upload rules: never overwrite `htdocs/eshopverse_app/.env` (it is not in the archive), keep the
-host's `storage/` content — in particular `storage/app/product-images/` — and keep `storage/` and
-`bootstrap/cache/` writable. The archive ships `vendor/` because `backend/composer.lock` changed on
-2026-10-23 (`config.platform.php` pinned to 8.3.36) and the host cannot run Composer.
+Backend upload rules: `eshopverse_app.zip` does not contain `.env`, so never overwrite the host's
+`htdocs/eshopverse_app/.env` when using that archive. The full bundle above does contain `.env`, so
+fill its placeholders first. Keep the host's `storage/` content — in particular
+`storage/app/product-images/` — and keep `storage/` and `bootstrap/cache/` writable. The archive ships
+`vendor/` because `backend/composer.lock` changed on 2026-10-23 (`config.platform.php` pinned to
+8.3.36) and the host cannot run Composer.
 
 ### Verification record (2026-10-28)
 
@@ -125,8 +152,8 @@ values.
 | `APP_ENV` | `production` |
 | `APP_DEBUG` | `false` |
 | `APP_URL` | `https://eshopverse.wasmer.app` |
-| `DB_CONNECTION` | `mysql` (the Laravel driver name; do not change it to the host name) |
-| `DB_HOST` / `DB_PORT` / `DB_DATABASE` / `DB_USERNAME` / `DB_PASSWORD` | Values from the database provider's control panel; never commit them |
+| `DB_CONNECTION` | `pgsql` (the Laravel driver name for PostgreSQL; `postgres` is not a valid driver name) |
+| `DB_HOST` / `DB_PORT` / `DB_DATABASE` / `DB_USERNAME` / `DB_PASSWORD` | PostgreSQL instance values — see [Database of record](#database-of-record-2026-11-08); never commit the password |
 | `SESSION_DRIVER` | `database` |
 | `SESSION_SECURE_COOKIE` | `true` behind HTTPS |
 | `SESSION_DOMAIN` | `null` for this single-host layout |
@@ -137,26 +164,46 @@ values.
 | `DEMO_ADMIN_PASSWORD` | Private demo value used when seeding; leave empty to auto-generate; never commit it or place it in docs |
 | `APP_KEY` | Generated once on the host with `php artisan key:generate` when the app was prepared; keep the same key or sessions/cookies invalidate |
 
+### Database of record (2026-11-08)
+
+The public demo runs on a **PostgreSQL 17.11** instance hosted by Wasmer, not MySQL. The schema and
+queries are portable — the framework's schema builder, `LOWER(email)` comparisons, and all 17
+migrations work unchanged — and every migration is already applied on that instance.
+
+| Item | Value |
+|------|-------|
+| Engine | PostgreSQL 17.11 (x86_64 Linux) |
+| Host / port | `psql.fr-roub1.bengt.wasmernet.com` / `20184` |
+| Database | `eshop_info_db` |
+| User | `user_f09ea0ab` (password only in the host `.env`) |
+| Schema | 20 tables, `search_path=public` |
+| Migrations | 17/17 applied (latest `2026_10_23_000100_normalize_user_emails`) |
+| Data at verification | 18 users, 50 products, 15 categories, 171 orders |
+| Driver tables | `sessions`, `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` all present, so the database session/cache/queue drivers are safe |
+
+Verification used the exact production `.env` with `php artisan migrate:status --env=prod` against this
+instance: exit code 0 and all 17 migrations reported `Ran`.
+
+> This differs from the MySQL decision recorded in the backend architecture table. The demo's host
+> provides PostgreSQL, and the application code was verified to run on it unchanged; if the project
+> wants to make that permanent, it needs an ADR rather than a silent documentation change.
+
 ### Ready-to-deploy production `.env`
 
-`output/eshopverse-backend.env` (generated, `.gitignore`d — never commit it) is a complete production
-environment file: all 56 variables from `backend/.env.example`, with the live host values, the
-published Google Web client ID, `APP_ENV=production`, `APP_DEBUG=false`, `LOG_LEVEL=warning`, and
-`SESSION_SECURE_COOKIE=true` already set.
+`output/eshopverse-backend.env` (generated, `.gitignore`d — never commit it) is a **complete**
+production environment file: all 56 variables from `backend/.env.example`, with the live host values,
+the PostgreSQL connection above, the published Google Web client ID, `APP_ENV=production`,
+`APP_DEBUG=false`, `LOG_LEVEL=warning`, and `SESSION_SECURE_COOKIE=true`. Nothing needs editing before
+upload.
 
-Only these values are left for the operator to fill, because they are secrets held only by the host:
+`APP_KEY` is a freshly generated 32-byte key. Rotating it invalidates existing session cookies, so
+administrators and customers sign in again once; nothing is encrypted with the key in this deployment
+(`SESSION_ENCRYPT=false`), so no data is lost. Keep the value from the deployed file stable afterwards.
 
-| Placeholder | Replace with |
-|-------------|--------------|
-| `DB_HOST=CHANGE_ME_mysql_host` | MySQL host from the database provider |
-| `DB_DATABASE=CHANGE_ME_database_name` | Database name |
-| `DB_USERNAME=CHANGE_ME_database_user` | Database user |
-| `DB_PASSWORD=CHANGE_ME_database_password` | Database password |
-| `APP_KEY=base64:...` | **Keep the host's existing key** (copy it from the current `.env`) so administrator sessions stay valid. The shipped key is valid for a fresh install only |
-| `DEMO_ADMIN_PASSWORD=` | Optional private demo password; empty auto-generates one on a new install |
-| `DB_SSL_CA` (commented) | Uncomment and point at the provider CA file when MySQL requires TLS verification |
+`DEMO_ADMIN_PASSWORD` stays empty: no new administrator is created and no existing password changes.
+`DB_SSLMODE` is commented out and defaults to `prefer`, which negotiates TLS when the server offers it.
 
-Deploy it by backing up the current host `.env`, uploading the filled file as
+Deploy it by backing up the current host `.env`, uploading this file as
 `htdocs/eshopverse_app/.env` (UTF-8, no BOM), then clearing cached configuration
 (`php artisan config:clear`, or `config:cache` if the host caches) and restarting the app. Verify with
 `GET /up` (`{"status":"up"}`) and `GET /api/v1/products` (`200`).
