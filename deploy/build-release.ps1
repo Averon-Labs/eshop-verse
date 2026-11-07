@@ -73,6 +73,8 @@ Get-ChildItem (Join-Path $app 'storage\logs') -File -Filter *.log -ErrorAction S
 Get-ChildItem (Join-Path $app 'storage\framework\cache\data') -Force -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force
 Get-ChildItem (Join-Path $app 'storage\framework\sessions') -Force -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force
 Get-ChildItem (Join-Path $app 'storage\framework\views') -File -Filter *.php -ErrorAction SilentlyContinue | Remove-Item -Force
+# Package/service manifests are generated per install and embed local absolute paths.
+Get-ChildItem (Join-Path $app 'bootstrap\cache') -File -Filter *.php -ErrorAction SilentlyContinue | Remove-Item -Force
 $images = Join-Path $app 'storage\app\product-images'
 New-Item -ItemType Directory -Force -Path $images | Out-Null
 Set-Content -Path (Join-Path $images '.gitignore') -Value "*`n!.gitignore" -NoNewline
