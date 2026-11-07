@@ -19,10 +19,9 @@ Use `eshopverse-full-deploy.zip` when the whole server has to be replaced instea
 
 1. **Back up the host first:** `htdocs/eshopverse_app/.env`, `htdocs/eshopverse_app/storage/`, and
    `htdocs/eshopverse_app/storage/app/product-images/`.
-2. **Fill `eshopverse_app/.env` inside the archive before uploading.** Its `DB_HOST`, `DB_DATABASE`,
-   `DB_USERNAME`, and `DB_PASSWORD` are `CHANGE_ME_*` placeholders, and `APP_KEY` must be the key the
-   host already uses. The site cannot connect to MySQL until they are set. Open the archive, edit the
-   file, and save it back into the archive.
+2. **Nothing to edit in `eshopverse_app/.env`.** It is complete: the live PostgreSQL connection,
+   host origins, Google client ID, and a rotated `APP_KEY` are already set. The rotation only
+   invalidates existing session cookies, so everyone signs in again once.
 3. Extract the archive into `htdocs/`, replacing `index.php`, `.htaccess`, `index.html`, `assets/`,
    `fonts/`, and `eshopverse_app/`. Enable "Show hidden files" so `.htaccess` and `.env` are written.
 4. Restore any `storage/app/product-images/` files from the backup, and keep `storage/` and

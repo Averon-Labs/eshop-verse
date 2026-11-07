@@ -86,10 +86,10 @@ sign-in required), covered by `admin/src/pages/LegalPages.test.tsx`.
 
 ## Operator actions still required
 
-1. **Host `.env`:** deploy the generated production file `output/eshopverse-backend.env` (complete,
-   git-ignored, only the database credentials and the existing `APP_KEY` left to fill). It already sets
-   `GOOGLE_CLIENT_ID` to the Web client ID above, `APP_ENV=production`, `APP_DEBUG=false`,
-   `SESSION_SECURE_COOKIE=true`, and the live host origins. Clear any cached config afterwards.
+1. **Host `.env`:** deploy the generated production file `output/eshopverse-backend.env`. It is
+   complete — PostgreSQL connection, `APP_ENV=production`, `APP_DEBUG=false`, `SESSION_SECURE_COOKIE=true`,
+   the live host origins, and the published `GOOGLE_CLIENT_ID` are already set. It ships a rotated
+   `APP_KEY`, so existing sessions sign in again once. Clear any cached config afterwards.
    Details: [`DEPLOYMENT.md`](DEPLOYMENT.md#ready-to-deploy-production-env).
 2. **Admin upload:** deploy `output/eshopverse-admin.zip` so `/privacy` and `/terms` stop returning
    404. Details are in [`DEPLOYMENT.md`](DEPLOYMENT.md#admin-build-with-public-legal-pages-2026-11-08).
