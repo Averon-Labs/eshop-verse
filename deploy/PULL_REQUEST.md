@@ -1,5 +1,10 @@
 # Pull request — Google Sign-In diagnostics + deploy-ready host bundle
 
+> **Update 2026-11-08:** the Google project and client ID referenced below are historical. The live
+> configuration is the `eshop-verse` project with Web client
+> `629866052539-50edn5o2jbjg449u5pjui72bnm4atojo.apps.googleusercontent.com`, as recorded in
+> `docs/RELEASE_NOTES_2026-11-08.md`. Do not reuse `702430048689-...`.
+
 Branch `feature/android-phase-12` → base `develop`
 Compare: `https://github.com/Averon-Labs/eshop-verse/compare/develop...feature/android-phase-12?expand=1`
 

@@ -33,6 +33,26 @@ the repository plus `npm run build`). Upload steps and per-package notes: `outpu
 | `output/eshopverse_app.zip` (root folder `eshopverse_app/`) | 16.95 MB | `htdocs/` — extracts into the existing application directory |
 | `output/eshopverse-admin.zip` (`index.html`, `assets/`, `fonts/` at the root) | 1.08 MB | `htdocs/` — overwrites the SPA files |
 
+### Admin build with public legal pages (2026-11-08)
+
+The Google OAuth consent screen links to `/privacy` and `/terms`, and the bundle deployed before this
+date returns "Page not found" for both. Rebuild and redeploy the admin SPA so those public pages exist:
+
+```powershell
+Set-Location admin
+npm.cmd run build
+```
+
+The resulting `admin/dist` bundle (`index.html`, `assets/index-DctyOm6T.js`,
+`assets/index-BMo7PNKp.css`, `fonts/`) is packaged as `output/eshopverse-admin.zip`. Upload/extract it
+over the existing `index.html`, `assets/`, and `fonts/` on the host, then hard-refresh and confirm:
+
+- `https://eshopverse.wasmer.app/privacy` renders the privacy policy (no admin sign-in required);
+- `https://eshopverse.wasmer.app/terms` renders the terms of service;
+- `https://eshopverse.wasmer.app/login` still renders the admin sign-in.
+
+No backend change or `.env` change is required for the legal pages.
+
 Backend upload rules: never overwrite `htdocs/eshopverse_app/.env` (it is not in the archive), keep the
 host's `storage/` content — in particular `storage/app/product-images/` — and keep `storage/` and
 `bootstrap/cache/` writable. The archive ships `vendor/` because `backend/composer.lock` changed on
@@ -115,20 +135,53 @@ These values live only in `htdocs/eshopverse_app/.env` on the host (git-ignored 
 only verifier: it checks the ID token locally against Google's published keys, so no client secret is
 stored in the backend.
 
-1. Open Google Cloud Console, select the project that owns the demo, and go to
+#### Project of record (verified 2026-11-08)
+
+The demo uses exactly one Google Cloud project. Do not create clients in, or copy IDs from, any other
+project.
+
+| Item | Value |
+|------|-------|
+| Project | `eshop-verse` (project number `629866052539`) |
+| Web application client (server audience) | `629866052539-50edn5o2jbjg449u5pjui72bnm4atojo.apps.googleusercontent.com` |
+| Android client | `629866052539-tsufikugav489t4rkg360ehmepsp9afm.apps.googleusercontent.com` |
+| Android package | `com.averonlabs.eshopverse` |
+| Debug signing SHA-1 | `0F:F9:A0:C3:87:03:B1:07:C2:6D:76:F2:10:FA:7E:74:2D:BD:C2:D8` |
+| OAuth consent screen | External; **In production** since 2026-11-08, so any Google Account can sign in |
+| Scopes | `openid`, `email`, `profile` only; no sensitive or restricted scopes |
+| Privacy policy / Terms | `https://eshopverse.wasmer.app/privacy` / `https://eshopverse.wasmer.app/terms` |
+
+Both the Android build (`defaultGoogleWebClientId` in `android/app/build.gradle.kts`, overridable with
+the `GOOGLE_WEB_CLIENT_ID` Gradle property) and the host `.env` (`GOOGLE_CLIENT_ID`) must use the
+**Web application** client ID above. The Android client only lets Google Play services recognise the
+APK; it is not the ID-token audience.
+
+> **Historical warning.** Earlier builds and `RELEASE_NOTES_2026-11-03.md` referenced the Web client
+> `702430048689-...apps.googleusercontent.com` from a different Cloud project. That project is not
+> accessible to the current owner account and must not be used again. Mixing the two projects produces
+> a `401 INVALID_CREDENTIALS` response from `POST /api/v1/auth/google` or a
+> `[28444] Developer console is not set up correctly` error in the app.
+
+To provision a replacement deployment from scratch:
+
+1. Open Google Cloud Console, select the **`eshop-verse`** project, and go to
    **APIs & Services → Credentials**.
 2. Choose **Create credentials → OAuth client ID**, application type **Web application**. The Android
    app uses this Web client ID as its server client ID and ID-token audience; an Android-type or
    installed-app client ID is not accepted here (Google issues the ID token for the Web client, so its
    `aud` would not match).
-3. For the web admin sign-in, add the deployed origin (for example
-   `https://eshopverse.byethost8.com`) under **Authorized JavaScript origins**.
-4. Copy the **Client ID** (it ends with `.apps.googleusercontent.com`) exactly, without spaces, into
-   `htdocs/eshopverse_app/.env` as `GOOGLE_CLIENT_ID=...`.
-5. If other first-party clients (admin web panel, iOS) also request ID tokens, list their client IDs
+3. For the web admin sign-in, add the deployed origin (`https://eshopverse.wasmer.app`) under
+   **Authorized JavaScript origins**. Register the APK's package name and SHA-1 as an **Android**
+   client in the same project.
+4. Publish the OAuth consent screen (**Audience → Publish app**). The demo requests only
+   `openid`/`email`/`profile`, so publishing does not require app verification. While the status is
+   **Testing**, only the accounts listed under **Test users** can sign in.
+5. Copy the **Client ID** (it ends with `.apps.googleusercontent.com`) exactly, without spaces, into
+   `.env` on the host as `GOOGLE_CLIENT_ID=...`.
+6. If other first-party clients (admin web panel, iOS) also request ID tokens, list their client IDs
    comma-separated in `GOOGLE_CLIENT_IDS=...`. A token is accepted when its `aud` claim matches any
    configured client ID.
-6. Save `.env` through the file manager. If the deployment caches configuration, rebuild that cache.
+7. Save `.env` through the host file manager. If the deployment caches configuration, rebuild that cache.
 
 The Android OAuth client created for the app (package `com.averonlabs.eshopverse`, plus the debug and
 release SHA-1 fingerprints registered in Google Cloud Console) is still required so Google Play services
