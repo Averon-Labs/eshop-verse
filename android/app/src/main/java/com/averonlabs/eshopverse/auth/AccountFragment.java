@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
@@ -118,6 +119,10 @@ public class AccountFragment extends Fragment {
 
         binding.btnSignOut.setOnClickListener(v -> {
             sessionViewModel.signOut();
+            // Forget the Google account picked during sign-in so the next
+            // sign-in shows the account picker again instead of auto-selecting it.
+            googleAuthManager.clearCredentialState(
+                    ContextCompat.getMainExecutor(requireContext()), null);
         });
 
         binding.btnGuestSignIn.setOnClickListener(v -> {

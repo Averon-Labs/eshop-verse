@@ -1,13 +1,17 @@
 package com.averonlabs.eshopverse.auth;
 
 import android.os.Bundle;
+import android.os.CancellationSignal;
 
 import androidx.annotation.NonNull;
+import androidx.credentials.ClearCredentialStateRequest;
 import androidx.credentials.Credential;
 import androidx.credentials.CredentialManager;
+import androidx.credentials.CredentialManagerCallback;
 import androidx.credentials.CustomCredential;
 import androidx.credentials.GetCredentialRequest;
 import androidx.credentials.GetCredentialResponse;
+import androidx.credentials.exceptions.ClearCredentialException;
 import androidx.credentials.exceptions.GetCredentialCancellationException;
 import androidx.credentials.exceptions.GetCredentialInterruptedException;
 import androidx.credentials.exceptions.GetCredentialProviderConfigurationException;
@@ -18,8 +22,10 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -65,6 +71,61 @@ public class GoogleAuthManagerTest {
     @Test
     public void testServerClientIdPreserved() {
         assertEquals(TEST_CLIENT_ID, googleAuthManager.getServerClientId());
+    }
+
+    @Test
+    public void testClearCredentialStateDelegatesToCredentialManager() {
+        Executor executor = Runnable::run;
+
+        googleAuthManager.clearCredentialState(executor, null);
+
+        Mockito.verify(mockCredentialManager).clearCredentialStateAsync(
+                Mockito.any(ClearCredentialStateRequest.class),
+                Mockito.any(CancellationSignal.class),
+                Mockito.eq(executor),
+                Mockito.any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testClearCredentialStateRunsCompletionAfterResult() {
+        Executor executor = Runnable::run;
+        AtomicBoolean completed = new AtomicBoolean(false);
+
+        googleAuthManager.clearCredentialState(executor, () -> completed.set(true));
+
+        ArgumentCaptor<CredentialManagerCallback<Void, ClearCredentialException>> captor =
+                ArgumentCaptor.forClass(CredentialManagerCallback.class);
+        Mockito.verify(mockCredentialManager).clearCredentialStateAsync(
+                Mockito.any(ClearCredentialStateRequest.class),
+                Mockito.any(CancellationSignal.class),
+                Mockito.eq(executor),
+                captor.capture());
+
+        captor.getValue().onResult(null);
+
+        assertTrue(completed.get());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testClearCredentialStateRunsCompletionAfterError() {
+        Executor executor = Runnable::run;
+        AtomicBoolean completed = new AtomicBoolean(false);
+
+        googleAuthManager.clearCredentialState(executor, () -> completed.set(true));
+
+        ArgumentCaptor<CredentialManagerCallback<Void, ClearCredentialException>> captor =
+                ArgumentCaptor.forClass(CredentialManagerCallback.class);
+        Mockito.verify(mockCredentialManager).clearCredentialStateAsync(
+                Mockito.any(ClearCredentialStateRequest.class),
+                Mockito.any(CancellationSignal.class),
+                Mockito.eq(executor),
+                captor.capture());
+
+        captor.getValue().onError(Mockito.mock(ClearCredentialException.class));
+
+        assertTrue(completed.get());
     }
 
     @Test

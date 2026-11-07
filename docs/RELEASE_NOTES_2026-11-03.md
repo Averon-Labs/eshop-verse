@@ -1,5 +1,9 @@
 # Release notes — 2026-11-03
 
+> **Superseded for Google configuration.** The client ID and host setting described below came from a
+> different Cloud project. The current project, client IDs, and published consent screen are recorded
+> in [`RELEASE_NOTES_2026-11-08.md`](RELEASE_NOTES_2026-11-08.md); use those values.
+
 Two deliveries on `feature/android-phase-12`: the Google Sign-In failure fix and the host release packages.
 
 ## 1. Google Sign-In / Sign-Up
