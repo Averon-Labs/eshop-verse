@@ -224,7 +224,12 @@ cd eshop-verse
 
 ### 1 · Backend API
 
-Create two MySQL databases — `eshopverse_dev` for development and `eshopverse_test` for the disposable test suite — then:
+Create two MySQL databases — `eshopverse_dev` for development and `eshopverse_test` for the disposable test suite — then grant the application user access to both:
+
+```sql
+CREATE DATABASE eshopverse_dev CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE eshopverse_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
 
 ```bash
 cd backend
@@ -281,7 +286,7 @@ cd android
 ./gradlew installDebug        # with an emulator or device attached
 ```
 
-> On Windows, use `.\gradlew.bat` instead of `./gradlew`.
+> On Windows, use `.\gradlew.bat` instead of `./gradlew`. You can also open the `android/` directory in Android Studio and run the app from there after a Gradle sync.
 
 Debug and release builds point at the hosted demo API by default. To use a local Laravel backend from an emulator:
 
