@@ -8,12 +8,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.core.content.ContextCompat;
+import androidx.credentials.ClearCredentialStateRequest;
 import androidx.credentials.Credential;
 import androidx.credentials.CredentialManager;
 import androidx.credentials.CredentialManagerCallback;
 import androidx.credentials.CustomCredential;
 import androidx.credentials.GetCredentialRequest;
 import androidx.credentials.GetCredentialResponse;
+import androidx.credentials.exceptions.ClearCredentialException;
 import androidx.credentials.exceptions.GetCredentialCancellationException;
 import androidx.credentials.exceptions.GetCredentialException;
 import androidx.credentials.exceptions.GetCredentialInterruptedException;
@@ -28,6 +30,7 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 
 import java.util.Locale;
 import java.util.Objects;
+import java.util.concurrent.Executor;
 
 /**
  * Coordinates Google Sign-In using Android Credential Manager (AUTH-007).
@@ -129,6 +132,44 @@ public class GoogleAuthManager {
                     @Override
                     public void onError(GetCredentialException e) {
                         handleCredentialError(e, callback);
+                    }
+                }
+        );
+    }
+
+    /**
+     * Clears Google's stored credential state for this app.
+     *
+     * <p>Without this call, Credential Manager can reuse the previously selected
+     * Google account on the next sign-in even after the customer signed out. Clearing
+     * the state makes the next sign-in show the account picker again, so a customer can
+     * log out and sign in with a different Google account.</p>
+     *
+     * @param executor   executor for the completion callback, normally the main executor
+     * @param onComplete optional callback invoked after success or failure; never null-checked
+     */
+    public void clearCredentialState(@NonNull Executor executor, @Nullable Runnable onComplete) {
+        Objects.requireNonNull(executor, "executor cannot be null");
+
+        credentialManager.clearCredentialStateAsync(
+                new ClearCredentialStateRequest(),
+                new CancellationSignal(),
+                executor,
+                new CredentialManagerCallback<Void, ClearCredentialException>() {
+                    @Override
+                    public void onResult(Void result) {
+                        if (onComplete != null) {
+                            onComplete.run();
+                        }
+                    }
+
+                    @Override
+                    public void onError(@NonNull ClearCredentialException e) {
+                        // Sign-out must still complete when Google cannot clear its
+                        // local state; the backend session is already gone.
+                        if (onComplete != null) {
+                            onComplete.run();
+                        }
                     }
                 }
         );

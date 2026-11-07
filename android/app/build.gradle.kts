@@ -8,7 +8,7 @@ val googleWebClientIdOverride = providers.gradleProperty("googleWebClientId")
 // Hosted demo backend (Laravel API + admin SPA on the same origin).
 // Local servers can still be used with -PapiBaseUrl="http://10.0.2.2:8000/api/v1".
 val defaultApiBaseUrl = "https://eshopverse.wasmer.app/api/v1"
-val defaultGoogleWebClientId = "702430048689-4gc06300mfqbf217l2ipp06nn14gtmla.apps.googleusercontent.com"
+val defaultGoogleWebClientId = "629866052539-50edn5o2jbjg449u5pjui72bnm4atojo.apps.googleusercontent.com"
 
 android {
     namespace = "com.averonlabs.eshopverse"
