@@ -5,11 +5,17 @@ This document records the optional public deployment of the portfolio demo. It c
 reviewer walkthrough. No credential, database password, or application key belongs in this file or in the
 repository.
 
+> **Live host (2026-11-08).** The public demo is served from **Wasmer Edge** at
+> `https://eshopverse.wasmer.app` (Laravel API and admin SPA on one origin, PHP runtime
+> `x-phpix-version: 0.3.1`). The ByetHost steps below are kept as a historical reference for that
+> earlier host; where the two differ, use the `eshopverse.wasmer.app` values in
+> [Required production settings](#required-production-settings).
+
 ## Current status (2026-10-19)
 
 | Item | Status |
 |------|--------|
-| Host | ByetHost free hosting — `https://eshopverse.byethost8.com` |
+| Host | ByetHost free hosting — `https://eshopverse.byethost8.com` (superseded; live host is `https://eshopverse.wasmer.app`) |
 | PHP | 8.3 selected in VistaPanel (Laravel 13 requires PHP 8.3+) |
 | Database | MySQL database created in VistaPanel; schema and fictional demo data imported through phpMyAdmin |
 | Backend | Laravel app deployed under `htdocs/eshopverse_app`; `https://eshopverse.byethost8.com/up` returns HTTP 200 (`{"status":"up"}` with `Accept: application/json`) |
@@ -109,25 +115,51 @@ falls back to `index.html` for React Router paths such as `/products`. It also d
 
 ## Required production settings
 
-These values live only in `htdocs/eshopverse_app/.env` on the host (git-ignored locally). The checked-in
-`backend/.env.example` documents the variables; substitute the real host, database, and key there.
+These values live only in the host `.env` (git-ignored locally). The checked-in
+`backend/.env.example` documents every variable; the ready-to-deploy file described in
+[Ready-to-deploy production `.env`](#ready-to-deploy-production-env) already contains the live host
+values.
 
 | Variable | Production value / guidance |
 |----------|-----------------------------|
 | `APP_ENV` | `production` |
 | `APP_DEBUG` | `false` |
-| `APP_URL` | `https://eshopverse.byethost8.com` |
+| `APP_URL` | `https://eshopverse.wasmer.app` |
 | `DB_CONNECTION` | `mysql` (the Laravel driver name; do not change it to the host name) |
-| `DB_HOST` / `DB_PORT` / `DB_DATABASE` / `DB_USERNAME` / `DB_PASSWORD` | Values from VistaPanel → MySQL Databases; never commit them |
+| `DB_HOST` / `DB_PORT` / `DB_DATABASE` / `DB_USERNAME` / `DB_PASSWORD` | Values from the database provider's control panel; never commit them |
 | `SESSION_DRIVER` | `database` |
 | `SESSION_SECURE_COOKIE` | `true` behind HTTPS |
 | `SESSION_DOMAIN` | `null` for this single-host layout |
-| `SANCTUM_STATEFUL_DOMAINS` | `eshopverse.byethost8.com` (add the port only for local development) |
-| `CORS_ALLOWED_ORIGINS` | `https://eshopverse.byethost8.com` |
-| `GOOGLE_CLIENT_ID` | Google **Web application** OAuth client ID (Google Cloud Console → APIs & Services → Credentials). Required for `POST /auth/google`; not a secret. Empty makes the endpoint fail closed with `500` plus an explicit log entry |
-| `GOOGLE_CLIENT_IDS` | Optional comma-separated additional trusted Google client IDs (for example the admin web panel or an iOS build) |
-| `DEMO_ADMIN_PASSWORD` | Private demo value used when seeding; never commit it or place it in docs |
+| `SANCTUM_STATEFUL_DOMAINS` | `eshopverse.wasmer.app` (add the port only for local development) |
+| `CORS_ALLOWED_ORIGINS` | `https://eshopverse.wasmer.app` |
+| `GOOGLE_CLIENT_ID` | `629866052539-50edn5o2jbjg449u5pjui72bnm4atojo.apps.googleusercontent.com` (the `eshop-verse` **Web application** client). Required for `POST /auth/google`; not a secret. Empty makes the endpoint fail closed with `500` plus an explicit log entry |
+| `GOOGLE_CLIENT_IDS` | Optional comma-separated additional trusted Google client IDs (for example the admin web panel or an iOS build). Empty for the current release |
+| `DEMO_ADMIN_PASSWORD` | Private demo value used when seeding; leave empty to auto-generate; never commit it or place it in docs |
 | `APP_KEY` | Generated once on the host with `php artisan key:generate` when the app was prepared; keep the same key or sessions/cookies invalidate |
+
+### Ready-to-deploy production `.env`
+
+`output/eshopverse-backend.env` (generated, `.gitignore`d — never commit it) is a complete production
+environment file: all 56 variables from `backend/.env.example`, with the live host values, the
+published Google Web client ID, `APP_ENV=production`, `APP_DEBUG=false`, `LOG_LEVEL=warning`, and
+`SESSION_SECURE_COOKIE=true` already set.
+
+Only these values are left for the operator to fill, because they are secrets held only by the host:
+
+| Placeholder | Replace with |
+|-------------|--------------|
+| `DB_HOST=CHANGE_ME_mysql_host` | MySQL host from the database provider |
+| `DB_DATABASE=CHANGE_ME_database_name` | Database name |
+| `DB_USERNAME=CHANGE_ME_database_user` | Database user |
+| `DB_PASSWORD=CHANGE_ME_database_password` | Database password |
+| `APP_KEY=base64:...` | **Keep the host's existing key** (copy it from the current `.env`) so administrator sessions stay valid. The shipped key is valid for a fresh install only |
+| `DEMO_ADMIN_PASSWORD=` | Optional private demo password; empty auto-generates one on a new install |
+| `DB_SSL_CA` (commented) | Uncomment and point at the provider CA file when MySQL requires TLS verification |
+
+Deploy it by backing up the current host `.env`, uploading the filled file as
+`htdocs/eshopverse_app/.env` (UTF-8, no BOM), then clearing cached configuration
+(`php artisan config:clear`, or `config:cache` if the host caches) and restarting the app. Verify with
+`GET /up` (`{"status":"up"}`) and `GET /api/v1/products` (`200`).
 
 ### Google Sign-In client ID
 
