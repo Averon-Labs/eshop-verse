@@ -111,22 +111,21 @@ the debug APK installed on a Samsung SM-A125F running Android 12.
 | Public endpoints | `/up`, `/api/v1/categories`, `/api/v1/products`, `/api/v1/products/{id}`, `/login`, `/privacy`, `/terms` all `200` |
 | Live API smoke suite | 33/33 checks: catalog list/filter/search/detail/404, guest `401` guards, register `201` / duplicate `409`, login (case-insensitive) / wrong password `401`, profile `GET`+`PATCH`, cart add + merge + update + unknown product `404`, checkout quote + validation `422`, order create `201` + idempotent replay + missing `Idempotency-Key` `400`, payment `200`, orders list/detail, logout `204`, post-logout `401`, Google forged token `401` / missing token `422`, admin `401`. The suite creates and deletes its own customer, order, and inventory change; `users` returned to 18 rows |
 | Product images | 50/50 stored URLs answer `200 image/webp` through the CDN; 0 products without an image row; 0 blank URLs; list and detail payloads return the new URLs |
-| Catalog search | **Defect found:** `q=bag` → 0 hits while `q=Bag` → 3, because PostgreSQL `LIKE` is case-sensitive. Fixed in the shipped code; the live host still runs the old code until the bundle is uploaded |
-| Rate limiting | **Defect found:** the app saw every visitor as the proxy address `127.0.0.100` (confirmed in `sessions.ip_address`), so per-IP limiters were site-wide. Fixed by trusting the loopback proxy range; shipped in the bundle |
-| Android build | `:app:assembleDebug` and `:app:testDebugUnitTest` — BUILD SUCCESSFUL |
+| Catalog search | **Defect found and fixed:** `q=bag` returned 0 hits while `q=Bag` returned 3, because PostgreSQL `LIKE` is case-sensitive. After the bundle upload both return **3**, confirming the `whereLike(..., caseSensitive: false)` fix is live |
+| Rate limiting | **Defect found and fixed:** the app saw every visitor as the proxy address `127.0.0.100` (confirmed in `sessions.ip_address`), so per-IP limiters were site-wide. After the upload, `sessions.ip_address` records the real visitor (`::ffff:172.232.219.243`, `136.87.25.118`) |
+| Android build | `:app:assembleDebug` and `:app:testDebugUnitTest` — BUILD SUCCESSFUL, 258 unit tests / 0 failures |
 | Android on device | Fresh debug APK launches, reaches the live API over HTTPS (`GET /api/v1/cart` → expected guest `401`), and renders the catalog with images, prices, categories, and bottom navigation |
 | Google account picker | Opens with the signed-in Google Account; the request reaches `POST /api/v1/auth/google` |
+| **Google sign-in end to end** | Account picker → "Continue as Farokh" → `POST /api/v1/auth/google` answered `200/201`; the signed-in profile and cart become available. Owner confirmed the flow works |
 | Google ID-token claims (on device) | `iss=https://accounts.google.com`, `email_verified=true`, `aud` = the `eshop-verse` **Web** client, `azp` = the `eshop-verse` Android client — i.e. exactly the audiences the shipped `.env` trusts |
-| Google JWKS shape | `https://www.googleapis.com/oauth2/v3/certs` returns RSA `n`/`e` members **without** `x5c`; the verifier required `x5c`, so genuine tokens were rejected. Fixed in the shipped code and checked against both live keys |
+| Google JWKS shape | `https://www.googleapis.com/oauth2/v3/certs` returns RSA `n`/`e` members **without** `x5c`; the verifier required `x5c`, so genuine tokens were rejected. The shipped service rebuilds the key from `n`/`e`; both live keys were checked |
 | Google verifier with the shipped IDs | `aud` = Web client + `azp` = Android client → `201`; `aud` = Android client → `201`; any other client → `401` |
+| Live deep health suite | **32/32 PASS** on the public deployment |
 | Host clock | ~1 s skew, so token `exp`/`nbf` checks are not the cause of a rejection |
 
-At the time of this record the host still ran the **previous** `.env` and code, so
-`POST /api/v1/auth/google` answered `401 INVALID_CREDENTIALS` for a genuine device token. Two independent
-defects explain that: the host's audience value did not match the token's `aud`, and the verifier could
-not build a key from Google's certificate-less JWKS. Both are fixed in the shipped bundle; replacing
-`htdocs/eshopverse_app/.env`, extracting the new code, and clearing cached configuration is the remaining
-step. Re-test "Continue with Google" on the device afterwards.
+The host now runs the shipped `.env` and code. The two defects that rejected genuine device tokens are
+fixed and verified end to end: the audience configuration now matches both token shapes, and the verifier
+builds a key from Google's certificate-less JWKS. "Continue with Google" completes on the device.
 
 ## Why the admin and API share one origin
 

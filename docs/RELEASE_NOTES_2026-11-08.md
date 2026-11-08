@@ -130,33 +130,44 @@ sign-in required), covered by `admin/src/pages/LegalPages.test.tsx`.
 | Android routes vs live API | all 22 endpoints the app declares answer with the contract status (public `200`, guarded `401`) |
 | Android on device (SM-A125F, Android 12) | live catalog loads over HTTPS with images, prices, categories, and bottom navigation |
 | Google ID token on device | `iss=https://accounts.google.com`, `email_verified=true`, `aud` = Web client, `azp` = Android client |
-| Live catalog search | `q=bag` → 0 / `q=Bag` → 3, reproducing the PostgreSQL case-sensitivity defect now fixed in the bundle |
+| **Google sign-in on device** | account picker → "Continue as Farokh" → token exchanged with `POST /api/v1/auth/google` (`200/201`), profile and cart become available — **owner confirmed 100% working** |
+| Images on device | Glide disk cache held 42 images (3,884 KB) after browsing the home feed |
+| Live catalog search (after upload) | `q=bag` → 3 and `q=BAG` → 3 — the PostgreSQL fix is live |
+| Live deep health suite (after upload) | **32/32 PASS**: `/up`, six SPA routes, catalog/pagination/filter/sort, 50/50 images, error shapes, CORS, four admin guards, no `.env` exposure |
+| Live client IPs (after upload) | new `sessions` rows record the real visitor (`::ffff:172.232.219.243`, `136.87.25.118`) instead of the proxy `127.0.0.100` |
+| Live Google audience (after upload) | a claim-valid token with `aud` = the Web client passed the audience check and forced a JWKS fetch (cache expiry `1794153561 → 1794160568`) before failing at the deliberately invalid signature |
 
-## Operator actions still required
+## Deployment state
 
-1. **Host `.env` / full bundle:** upload `output/eshopverse-full-deploy.zip` (SHA-256
-   `3A0C076890481AB13B8BC22ACA84F0C59C102C78CFEE618A7E0F9F809E6412EF`, 19,766,181 bytes / 18.85 MB) to
-   `htdocs/`. Back up `htdocs/eshopverse_app/storage/` first, extract over the existing tree, keep the
-   extracted `eshopverse_app/.env`, and clear cached configuration. The archive contains the complete
-   PostgreSQL connection, the live origins, both Google client IDs, the Google JWKS fix, the search and
-   trusted-proxy fixes, and a rotated `APP_KEY`, so existing sessions sign in again once. Details:
+The bundle has been generated and verified, and the owner uploaded it to the host:
+
+1. **Host `.env` / full bundle:** `output/eshopverse-full-deploy.zip` (SHA-256
+   `3A0C076890481AB13B8BC22ACA84F0C59C102C78CFEE618A7E0F9F809E6412EF`, 19,766,181 bytes / 18.85 MB) is
+   the exact archive uploaded to `htdocs/`. It contains the complete PostgreSQL connection, the live
+   origins, both Google client IDs, the Google JWKS fix, the search and trusted-proxy fixes, and a
+   rotated `APP_KEY`, so existing sessions sign in again once. Details:
    [`DEPLOYMENT.md`](DEPLOYMENT.md#full-host-bundle-2026-11-08) and
    [`DEPLOYMENT.md`](DEPLOYMENT.md#ready-to-deploy-production-env).
-2. **Legal pages:** the same bundle also ships the admin SPA build, so `/privacy` and `/terms` stop
-   returning 404. Only `output/eshopverse-admin.zip` is needed if the host is updated file by file.
-3. **APK:** install the rebuilt `android/app/build/outputs/apk/debug/app-debug.apk` on test devices and
-   complete "Continue with Google" once the host `.env` is in place.
+2. **Legal pages:** the same bundle ships the admin SPA build, so `/privacy` and `/terms` return `200`.
+3. **APK:** the rebuilt `android/app/build/outputs/apk/debug/app-debug.apk` is installed on the test
+   device, and "Continue with Google" completed end to end.
 
-Product images need no operator action — the live `product_images` rows already point at the CDN.
+Product images needed no operator action — the live `product_images` rows already point at the CDN.
 
-## Known limitation
+## Google sign-in: root cause and resolution
 
-The host `.env` had not been replaced when this audit ran, so `POST /api/v1/auth/google` still returned
-`401 INVALID_CREDENTIALS` for a genuine device-minted token. Two independent defects explain it and both
-are fixed in the bundle: the host's audience value did not match the token's `aud`, and the verifier
-rejected Google's certificate-less JWKS. Replacing `htdocs/eshopverse_app/.env` with the generated file,
-extracting the new code, and clearing cached configuration is the only remaining step; re-test "Continue
-with Google" on the device afterwards.
+Two independent defects rejected genuine Google ID tokens:
+
+1. **The verifier required an `x5c` certificate.** Google's live
+   `https://www.googleapis.com/oauth2/v3/certs` publishes only the RSA `n`/`e` members, so the public key
+   could not be built and every token failed signature verification. The service now reconstructs the RSA
+   key from `n`/`e` (DER `SubjectPublicKeyInfo`) when no certificate is present, still preferring `x5c`
+   when a key set provides it.
+2. **The host's audience value did not match the token's `aud`.** The shipped `.env` now sets
+   `GOOGLE_CLIENT_ID` to the Web client (the token's `aud`) and `GOOGLE_CLIENT_IDS` to the Android client
+   (the token's `azp`), so both token shapes are accepted.
+
+Both fixes are in the uploaded bundle and the on-device flow is confirmed working.
 
 A password walk-through on the device could not be automated because `adb shell input text` drops and
 duplicates characters on this handset; the authenticated journey was verified through the live API
