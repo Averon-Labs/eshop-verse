@@ -90,3 +90,11 @@ admin/.env
 # backend/ and admin/dist for a host upload; the source of truth is the repo
 # and the instructions live in docs/DEPLOYMENT.md.
 output/
+
+# =====================
+# Operator-only production secrets
+# =====================
+# IMPORTANT/ holds the live production .env (PostgreSQL password, APP_KEY),
+# the database/Google configuration notes, and the uploaded deployment
+# bundle. Never commit or push it; see IMPORTANT/README.md locally.
+IMPORTANT/
