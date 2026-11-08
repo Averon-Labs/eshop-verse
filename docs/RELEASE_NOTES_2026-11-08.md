@@ -51,8 +51,21 @@ completed the flow.
 
 ### Backend
 
-No application code change. The live endpoint already verifies Google ID tokens correctly; only the
-host environment value changes:
+The Google verification code needed no change. Two defects found by the full-stack audit are fixed in
+the shipped application code:
+
+- **Case-sensitive search on PostgreSQL.** The catalog and admin filters used `LIKE`, which is
+  case-insensitive on MySQL but case-sensitive on PostgreSQL, so `q=bag` returned 0 products while
+  `q=Bag` returned 3. `ProductController`, `AdminProductController`, and `AdminInventoryController` now
+  use `whereLike(..., caseSensitive: false)`, which emits `ilike` on PostgreSQL and keeps the existing
+  behaviour on MySQL. A regression test asserts the PostgreSQL and MySQL SQL shapes.
+- **All rate limiters shared one bucket.** Every visitor was seen as the proxy address
+  (`127.0.0.100`), so `auth-register` (5/hour), `auth-login` (10/minute), and `public-read`
+  (120/minute) applied site-wide instead of per client — five sign-ups per hour for the whole demo.
+  `bootstrap/app.php` now trusts the loopback proxy range, so `$request->ip()` is the forwarded client
+  address. A regression test proves two forwarded clients get independent buckets.
+
+The host environment value changes as well:
 
 ```dotenv
 GOOGLE_CLIENT_ID=629866052539-50edn5o2jbjg449u5pjui72bnm4atojo.apps.googleusercontent.com
@@ -101,17 +114,19 @@ sign-in required), covered by `admin/src/pages/LegalPages.test.tsx`.
 | Live API smoke suite | 33/33 checks passed, including register → login → profile → cart → quote → order (idempotent replay) → payment → logout; test data and inventory removed afterwards |
 | Product images | 50/50 CDN URLs `200 image/webp`; no missing or blank rows |
 | Android `assembleDebug` / `testDebugUnitTest` | BUILD SUCCESSFUL |
+| Backend `php artisan test` (SQLite fallback) | 205 tests / 2,484 assertions — 203 pass. The 2 failures are the documented engine-only cases (`DatabaseWorkflowTest` asserts the `mysql` driver; `AdminCategoryTest` duplicate-name relies on the MySQL collation). `vendor/bin/pint --test` passed |
 | Android on device (SM-A125F, Android 12) | live catalog loads over HTTPS with images, prices, categories, and bottom navigation |
 | Google ID token on device | `iss=https://accounts.google.com`, `email_verified=true`, `aud` = Web client, `azp` = Android client |
+| Live catalog search | `q=bag` → 0 / `q=Bag` → 3, reproducing the PostgreSQL case-sensitivity defect now fixed in the bundle |
 
 ## Operator actions still required
 
 1. **Host `.env` / full bundle:** upload `output/eshopverse-full-deploy.zip` (SHA-256
-   `15EA10066B80205654F11A7B8B3B7117DA0991560183AA71A48978D7651CD15B`, 18.85 MB) to `htdocs/`. Back up
-   `htdocs/eshopverse_app/storage/` first, extract over the existing tree, keep the extracted
-   `eshopverse_app/.env`, and clear cached configuration. The archive contains the complete PostgreSQL
-   connection, the live origins, both Google client IDs, and a rotated `APP_KEY`, so existing sessions
-   sign in again once. Details:
+   `8C3910A1457DB9D63471AD8122CB081FF92E282FD0FFC2797649207AE62C31D1`, 19,765,460 bytes / 18.85 MB) to
+   `htdocs/`. Back up `htdocs/eshopverse_app/storage/` first, extract over the existing tree, keep the
+   extracted `eshopverse_app/.env`, and clear cached configuration. The archive contains the complete
+   PostgreSQL connection, the live origins, both Google client IDs, the search and trusted-proxy fixes,
+   and a rotated `APP_KEY`, so existing sessions sign in again once. Details:
    [`DEPLOYMENT.md`](DEPLOYMENT.md#full-host-bundle-2026-11-08) and
    [`DEPLOYMENT.md`](DEPLOYMENT.md#ready-to-deploy-production-env).
 2. **Legal pages:** the same bundle also ships the admin SPA build, so `/privacy` and `/terms` stop
