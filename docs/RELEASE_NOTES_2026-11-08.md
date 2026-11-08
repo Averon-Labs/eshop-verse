@@ -56,7 +56,21 @@ host environment value changes:
 
 ```dotenv
 GOOGLE_CLIENT_ID=629866052539-50edn5o2jbjg449u5pjui72bnm4atojo.apps.googleusercontent.com
+GOOGLE_CLIENT_IDS=629866052539-tsufikugav489t4rkg360ehmepsp9afm.apps.googleusercontent.com
 ```
+
+`GOOGLE_CLIENT_ID` is the Web client whose `aud` Google puts on the ID token. The Android client is
+listed as an additional trusted audience so a build that requests its token for the Android client is
+not rejected.
+
+### Product images
+
+The Android catalog rendered product cards with empty image viewports because the 50 seeded image rows
+pointed at `raw.githubusercontent.com`, which some networks block or throttle. The rows were re-pointed
+at the commit-pinned jsDelivr mirror of the same files
+(`https://cdn.jsdelivr.net/gh/Averon-Labs/eshop-verse@4507bb98…/android/app/src/main/assets/products/…`).
+All 50 URLs answer `200 image/webp`, and the API now returns the new URLs. This is a data-only change in
+the live database: no migration, code, or `.env` change, and admin uploads are unaffected.
 
 ### Google Cloud
 
@@ -83,20 +97,39 @@ sign-in required), covered by `admin/src/pages/LegalPages.test.tsx`.
 | Admin `npm run typecheck`, `npm run lint` | passed |
 | Admin `npm test` | 13 files / 98 tests passed |
 | Admin `npm run build` | passed (`index-DctyOm6T.js`, `index-BMo7PNKp.css`) |
+| Public deployment endpoints | `/up`, `/api/v1/categories`, `/api/v1/products`, `/api/v1/products/{id}`, `/login`, `/privacy`, `/terms` all `200` |
+| Live API smoke suite | 33/33 checks passed, including register → login → profile → cart → quote → order (idempotent replay) → payment → logout; test data and inventory removed afterwards |
+| Product images | 50/50 CDN URLs `200 image/webp`; no missing or blank rows |
+| Android `assembleDebug` / `testDebugUnitTest` | BUILD SUCCESSFUL |
+| Android on device (SM-A125F, Android 12) | live catalog loads over HTTPS with images, prices, categories, and bottom navigation |
+| Google ID token on device | `iss=https://accounts.google.com`, `email_verified=true`, `aud` = Web client, `azp` = Android client |
 
 ## Operator actions still required
 
-1. **Host `.env`:** deploy the generated production file `output/eshopverse-backend.env`. It is
-   complete — PostgreSQL connection, `APP_ENV=production`, `APP_DEBUG=false`, `SESSION_SECURE_COOKIE=true`,
-   the live host origins, and the published `GOOGLE_CLIENT_ID` are already set. It ships a rotated
-   `APP_KEY`, so existing sessions sign in again once. Clear any cached config afterwards.
-   Details: [`DEPLOYMENT.md`](DEPLOYMENT.md#ready-to-deploy-production-env).
-2. **Admin upload:** deploy `output/eshopverse-admin.zip` so `/privacy` and `/terms` stop returning
-   404. Details are in [`DEPLOYMENT.md`](DEPLOYMENT.md#admin-build-with-public-legal-pages-2026-11-08).
-3. **APK:** install the rebuilt `android/app/build/outputs/apk/debug/app-debug.apk` on test devices.
+1. **Host `.env` / full bundle:** upload `output/eshopverse-full-deploy.zip` (SHA-256
+   `15EA10066B80205654F11A7B8B3B7117DA0991560183AA71A48978D7651CD15B`, 18.85 MB) to `htdocs/`. Back up
+   `htdocs/eshopverse_app/storage/` first, extract over the existing tree, keep the extracted
+   `eshopverse_app/.env`, and clear cached configuration. The archive contains the complete PostgreSQL
+   connection, the live origins, both Google client IDs, and a rotated `APP_KEY`, so existing sessions
+   sign in again once. Details:
+   [`DEPLOYMENT.md`](DEPLOYMENT.md#full-host-bundle-2026-11-08) and
+   [`DEPLOYMENT.md`](DEPLOYMENT.md#ready-to-deploy-production-env).
+2. **Legal pages:** the same bundle also ships the admin SPA build, so `/privacy` and `/terms` stop
+   returning 404. Only `output/eshopverse-admin.zip` is needed if the host is updated file by file.
+3. **APK:** install the rebuilt `android/app/build/outputs/apk/debug/app-debug.apk` on test devices and
+   complete "Continue with Google" once the host `.env` is in place.
+
+Product images need no operator action — the live `product_images` rows already point at the CDN.
 
 ## Known limitation
 
-A real Google ID token cannot be minted on this machine and no Android device or emulator was
-attached, so the successful on-device journey is verified by the service tests, the published consent
-screen, the embedded client ID, and the operator steps above rather than by a live tap-through.
+The host `.env` had not been replaced when this audit ran, so `POST /api/v1/auth/google` still returned
+`401 INVALID_CREDENTIALS` for a genuine device-minted token whose `aud` matches the shipped
+configuration. Every other layer was verified end to end. Replacing `htdocs/eshopverse_app/.env` with the
+generated file and clearing cached configuration is the only remaining step; re-test "Continue with
+Google" on the device afterwards. A missing/blank audience or a JWKS failure returns `500`, not `401`,
+which is why the rejection is attributed to the host's current audience value.
+
+A password walk-through on the device could not be automated because `adb shell input text` drops and
+duplicates characters on this handset; the authenticated journey was verified through the live API
+suite instead. Keyboard entry itself is not affected.
