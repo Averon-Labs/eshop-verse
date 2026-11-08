@@ -51,9 +51,18 @@ completed the flow.
 
 ### Backend
 
-The Google verification code needed no change. Two defects found by the full-stack audit are fixed in
+The Google verification code needed a real fix. Three defects found by the full-stack audit are fixed in
 the shipped application code:
 
+- **Live Google tokens were always rejected: Google's JWKS carries no certificates.** The verifier only
+  built a public key from the JWK `x5c` certificate chain, but
+  `https://www.googleapis.com/oauth2/v3/certs` currently publishes only the RSA `n` and `e` members, so
+  every genuine ID token failed signature verification with `401 INVALID_CREDENTIALS` regardless of
+  audience. `GoogleAuthService` now rebuilds the RSA public key from `n`/`e` (DER `SubjectPublicKeyInfo`)
+  when no certificate is present, while still preferring `x5c` when a key set provides it. Verified
+  against Google's two live keys — both reconstruct to the exact modulus and exponent — and covered by a
+  regression test that serves Google's real JWKS shape. **This was the decisive Google sign-in blocker;
+  the audience mismatch below was a second, independent one.**
 - **Case-sensitive search on PostgreSQL.** The catalog and admin filters used `LIKE`, which is
   case-insensitive on MySQL but case-sensitive on PostgreSQL, so `q=bag` returned 0 products while
   `q=Bag` returned 3. `ProductController`, `AdminProductController`, and `AdminInventoryController` now
@@ -114,7 +123,11 @@ sign-in required), covered by `admin/src/pages/LegalPages.test.tsx`.
 | Live API smoke suite | 33/33 checks passed, including register → login → profile → cart → quote → order (idempotent replay) → payment → logout; test data and inventory removed afterwards |
 | Product images | 50/50 CDN URLs `200 image/webp`; no missing or blank rows |
 | Android `assembleDebug` / `testDebugUnitTest` | BUILD SUCCESSFUL |
-| Backend `php artisan test` (SQLite fallback) | 205 tests / 2,484 assertions — 203 pass. The 2 failures are the documented engine-only cases (`DatabaseWorkflowTest` asserts the `mysql` driver; `AdminCategoryTest` duplicate-name relies on the MySQL collation). `vendor/bin/pint --test` passed |
+| Backend `php artisan test` (SQLite fallback) | 208 tests / 2,492 assertions — 205 pass, 1 skipped (the shipped-ID pairing test runs only when its IDs are exported), 2 failures are the documented engine-only cases (`DatabaseWorkflowTest` asserts the `mysql` driver; `AdminCategoryTest` duplicate-name relies on the MySQL collation). `vendor/bin/pint --test` passed |
+| Google verifier vs the shipped client IDs | `aud` = Web client with `azp` = Android client → `201`, `aud` = Android client → `201`, any other client → `401` |
+| Google verifier vs Google's real JWKS | both live keys (`n`/`e`, no `x5c`) reconstruct to the exact modulus and exponent and parse in OpenSSL |
+| Admin auth surface | CSRF handshake `204`, missing CSRF `403 CSRF_TOKEN_MISMATCH`, wrong password `401 INVALID_CREDENTIALS`, guest session `401` |
+| Android routes vs live API | all 22 endpoints the app declares answer with the contract status (public `200`, guarded `401`) |
 | Android on device (SM-A125F, Android 12) | live catalog loads over HTTPS with images, prices, categories, and bottom navigation |
 | Google ID token on device | `iss=https://accounts.google.com`, `email_verified=true`, `aud` = Web client, `azp` = Android client |
 | Live catalog search | `q=bag` → 0 / `q=Bag` → 3, reproducing the PostgreSQL case-sensitivity defect now fixed in the bundle |
@@ -122,11 +135,11 @@ sign-in required), covered by `admin/src/pages/LegalPages.test.tsx`.
 ## Operator actions still required
 
 1. **Host `.env` / full bundle:** upload `output/eshopverse-full-deploy.zip` (SHA-256
-   `8C3910A1457DB9D63471AD8122CB081FF92E282FD0FFC2797649207AE62C31D1`, 19,765,460 bytes / 18.85 MB) to
+   `3A0C076890481AB13B8BC22ACA84F0C59C102C78CFEE618A7E0F9F809E6412EF`, 19,766,181 bytes / 18.85 MB) to
    `htdocs/`. Back up `htdocs/eshopverse_app/storage/` first, extract over the existing tree, keep the
    extracted `eshopverse_app/.env`, and clear cached configuration. The archive contains the complete
-   PostgreSQL connection, the live origins, both Google client IDs, the search and trusted-proxy fixes,
-   and a rotated `APP_KEY`, so existing sessions sign in again once. Details:
+   PostgreSQL connection, the live origins, both Google client IDs, the Google JWKS fix, the search and
+   trusted-proxy fixes, and a rotated `APP_KEY`, so existing sessions sign in again once. Details:
    [`DEPLOYMENT.md`](DEPLOYMENT.md#full-host-bundle-2026-11-08) and
    [`DEPLOYMENT.md`](DEPLOYMENT.md#ready-to-deploy-production-env).
 2. **Legal pages:** the same bundle also ships the admin SPA build, so `/privacy` and `/terms` stop
@@ -139,11 +152,11 @@ Product images need no operator action — the live `product_images` rows alread
 ## Known limitation
 
 The host `.env` had not been replaced when this audit ran, so `POST /api/v1/auth/google` still returned
-`401 INVALID_CREDENTIALS` for a genuine device-minted token whose `aud` matches the shipped
-configuration. Every other layer was verified end to end. Replacing `htdocs/eshopverse_app/.env` with the
-generated file and clearing cached configuration is the only remaining step; re-test "Continue with
-Google" on the device afterwards. A missing/blank audience or a JWKS failure returns `500`, not `401`,
-which is why the rejection is attributed to the host's current audience value.
+`401 INVALID_CREDENTIALS` for a genuine device-minted token. Two independent defects explain it and both
+are fixed in the bundle: the host's audience value did not match the token's `aud`, and the verifier
+rejected Google's certificate-less JWKS. Replacing `htdocs/eshopverse_app/.env` with the generated file,
+extracting the new code, and clearing cached configuration is the only remaining step; re-test "Continue
+with Google" on the device afterwards.
 
 A password walk-through on the device could not be automated because `adb shell input text` drops and
 duplicates characters on this handset; the authenticated journey was verified through the live API

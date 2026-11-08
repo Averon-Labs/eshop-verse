@@ -36,8 +36,8 @@ the repository plus `npm run build`). Upload steps and per-package notes: `outpu
 
 | Package | Size | Goes to |
 |---------|------|---------|
-| `output/eshopverse-full-deploy.zip` (complete `htdocs/` root, including `eshopverse_app/.env`) | 18.84 MB | `htdocs/` — replaces the whole deployment in one upload |
-| `output/eshopverse_app.zip` (root folder `eshopverse_app/`) | 17.76 MB | `htdocs/` — extracts into the existing application directory |
+| `output/eshopverse-full-deploy.zip` (complete `htdocs/` root, including `eshopverse_app/.env`) | 18.85 MB | `htdocs/` — replaces the whole deployment in one upload |
+| `output/eshopverse_app.zip` (root folder `eshopverse_app/`) | 17.77 MB | `htdocs/` — extracts into the existing application directory |
 | `output/eshopverse-admin.zip` (`index.html`, `assets/`, `fonts/` at the root) | 1.08 MB | `htdocs/` — overwrites the SPA files |
 
 Build them with `deploy/build-release.sh` (bash) or `deploy/build-release.ps1` (Windows PowerShell).
@@ -117,14 +117,16 @@ the debug APK installed on a Samsung SM-A125F running Android 12.
 | Android on device | Fresh debug APK launches, reaches the live API over HTTPS (`GET /api/v1/cart` → expected guest `401`), and renders the catalog with images, prices, categories, and bottom navigation |
 | Google account picker | Opens with the signed-in Google Account; the request reaches `POST /api/v1/auth/google` |
 | Google ID-token claims (on device) | `iss=https://accounts.google.com`, `email_verified=true`, `aud` = the `eshop-verse` **Web** client, `azp` = the `eshop-verse` Android client — i.e. exactly the audiences the shipped `.env` trusts |
+| Google JWKS shape | `https://www.googleapis.com/oauth2/v3/certs` returns RSA `n`/`e` members **without** `x5c`; the verifier required `x5c`, so genuine tokens were rejected. Fixed in the shipped code and checked against both live keys |
+| Google verifier with the shipped IDs | `aud` = Web client + `azp` = Android client → `201`; `aud` = Android client → `201`; any other client → `401` |
 | Host clock | ~1 s skew, so token `exp`/`nbf` checks are not the cause of a rejection |
 
-At the time of this record the host still ran the **previous** `.env`, so `POST /api/v1/auth/google`
-answered `401 INVALID_CREDENTIALS` for a genuine token whose audience matched the configuration above.
-A misconfigured or empty audience returns `500`, and a JWKS/network failure also returns `500`, so the
-`401` isolates the cause to the host's audience value. Replacing the host `.env` with the generated file
-(which sets `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_IDS`) is the remaining step; re-test "Continue with
-Google" on the device afterwards.
+At the time of this record the host still ran the **previous** `.env` and code, so
+`POST /api/v1/auth/google` answered `401 INVALID_CREDENTIALS` for a genuine device token. Two independent
+defects explain that: the host's audience value did not match the token's `aud`, and the verifier could
+not build a key from Google's certificate-less JWKS. Both are fixed in the shipped bundle; replacing
+`htdocs/eshopverse_app/.env`, extracting the new code, and clearing cached configuration is the remaining
+step. Re-test "Continue with Google" on the device afterwards.
 
 ## Why the admin and API share one origin
 
@@ -322,6 +324,11 @@ When `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_IDS` are both empty, the endpoint ans
 `500 INTERNAL_ERROR`, writes `Google Auth failed: GOOGLE_CLIENT_ID is not configured in .env` to
 `storage/logs/laravel.log`, and creates no account. That log line is the signal to fix this setting; it
 never contains a token or credential.
+
+Token verification uses Google's published JWKS. That key set currently provides only the RSA `n`/`e`
+members (no `x5c` certificate chain), so the verifier reconstructs the public key from those members when
+no certificate is present; a key set that does provide `x5c` is still accepted. The JWKS is cached for an
+hour, and an unknown key id triggers one refetch before rejection.
 
 The admin production build uses `admin/.env.production`:
 
