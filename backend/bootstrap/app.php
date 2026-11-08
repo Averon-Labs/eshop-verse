@@ -24,6 +24,21 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        /*
+         * The hosted demo runs behind Wasmer's reverse proxy, which connects
+         * from 127.0.0.100. Without this, $request->ip() is the proxy address
+         * for every visitor, so every per-IP limiter (5 registrations/hour,
+         * 10 logins/minute, 120 catalog reads/minute) becomes a single
+         * site-wide bucket. Trusting only the loopback range keeps the
+         * forwarded client address authoritative while remaining
+         * spoof-resistant: Symfony resolves the right-most untrusted address,
+         * so a client-supplied X-Forwarded-For cannot bypass a limiter.
+         */
+        $middleware->trustProxies(at: [
+            '127.0.0.0/8',
+            '::1',
+        ]);
+
         // AUTH-003/CAT-004: the admin SPA is a first-party browser client.
         // Guests must always receive the contracted 401 JSON instead of a
         // redirect attempt to a non-existent `login` route, which would
