@@ -48,13 +48,13 @@ class AdminProductController extends Controller
         $query = Product::query()->with(['category', 'inventory', 'images']);
 
         if (isset($data['q'])) {
-            // MySQL's *_ci collations make LIKE case-insensitive; escape
-            // the LIKE wildcards so user input stays literal.
+            // Case-insensitive on MySQL and PostgreSQL alike; escape the LIKE
+            // wildcards so user input stays literal.
             $needle = '%'.addcslashes($data['q'], '%_\\').'%';
 
             $query->where(function (Builder $builder) use ($needle): void {
-                $builder->where('name', 'like', $needle)
-                    ->orWhere('description', 'like', $needle);
+                $builder->whereLike('name', $needle, caseSensitive: false)
+                    ->orWhereLike('description', $needle, caseSensitive: false);
             });
         }
 

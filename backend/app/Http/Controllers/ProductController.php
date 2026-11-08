@@ -32,13 +32,15 @@ class ProductController extends Controller
             ->with(['category', 'inventory', 'images']);
 
         if (isset($data['q'])) {
-            // MySQL's *_ci collations make LIKE case-insensitive; escape the
-            // LIKE wildcards so user input stays literal.
+            // Case-insensitive on every supported engine: MySQL's *_ci
+            // collations and PostgreSQL's `ilike` (emitted by whereLike with
+            // caseSensitive: false). Escape the LIKE wildcards so user input
+            // stays literal.
             $needle = '%'.addcslashes($data['q'], '%_\\').'%';
 
             $query->where(function (Builder $builder) use ($needle): void {
-                $builder->where('name', 'like', $needle)
-                    ->orWhere('description', 'like', $needle);
+                $builder->whereLike('name', $needle, caseSensitive: false)
+                    ->orWhereLike('description', $needle, caseSensitive: false);
             });
         }
 

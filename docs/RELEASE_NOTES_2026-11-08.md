@@ -51,12 +51,48 @@ completed the flow.
 
 ### Backend
 
-No application code change. The live endpoint already verifies Google ID tokens correctly; only the
-host environment value changes:
+The Google verification code needed a real fix. Three defects found by the full-stack audit are fixed in
+the shipped application code:
+
+- **Live Google tokens were always rejected: Google's JWKS carries no certificates.** The verifier only
+  built a public key from the JWK `x5c` certificate chain, but
+  `https://www.googleapis.com/oauth2/v3/certs` currently publishes only the RSA `n` and `e` members, so
+  every genuine ID token failed signature verification with `401 INVALID_CREDENTIALS` regardless of
+  audience. `GoogleAuthService` now rebuilds the RSA public key from `n`/`e` (DER `SubjectPublicKeyInfo`)
+  when no certificate is present, while still preferring `x5c` when a key set provides it. Verified
+  against Google's two live keys — both reconstruct to the exact modulus and exponent — and covered by a
+  regression test that serves Google's real JWKS shape. **This was the decisive Google sign-in blocker;
+  the audience mismatch below was a second, independent one.**
+- **Case-sensitive search on PostgreSQL.** The catalog and admin filters used `LIKE`, which is
+  case-insensitive on MySQL but case-sensitive on PostgreSQL, so `q=bag` returned 0 products while
+  `q=Bag` returned 3. `ProductController`, `AdminProductController`, and `AdminInventoryController` now
+  use `whereLike(..., caseSensitive: false)`, which emits `ilike` on PostgreSQL and keeps the existing
+  behaviour on MySQL. A regression test asserts the PostgreSQL and MySQL SQL shapes.
+- **All rate limiters shared one bucket.** Every visitor was seen as the proxy address
+  (`127.0.0.100`), so `auth-register` (5/hour), `auth-login` (10/minute), and `public-read`
+  (120/minute) applied site-wide instead of per client — five sign-ups per hour for the whole demo.
+  `bootstrap/app.php` now trusts the loopback proxy range, so `$request->ip()` is the forwarded client
+  address. A regression test proves two forwarded clients get independent buckets.
+
+The host environment value changes as well:
 
 ```dotenv
 GOOGLE_CLIENT_ID=629866052539-50edn5o2jbjg449u5pjui72bnm4atojo.apps.googleusercontent.com
+GOOGLE_CLIENT_IDS=629866052539-tsufikugav489t4rkg360ehmepsp9afm.apps.googleusercontent.com
 ```
+
+`GOOGLE_CLIENT_ID` is the Web client whose `aud` Google puts on the ID token. The Android client is
+listed as an additional trusted audience so a build that requests its token for the Android client is
+not rejected.
+
+### Product images
+
+The Android catalog rendered product cards with empty image viewports because the 50 seeded image rows
+pointed at `raw.githubusercontent.com`, which some networks block or throttle. The rows were re-pointed
+at the commit-pinned jsDelivr mirror of the same files
+(`https://cdn.jsdelivr.net/gh/Averon-Labs/eshop-verse@4507bb98…/android/app/src/main/assets/products/…`).
+All 50 URLs answer `200 image/webp`, and the API now returns the new URLs. This is a data-only change in
+the live database: no migration, code, or `.env` change, and admin uploads are unaffected.
 
 ### Google Cloud
 
@@ -83,20 +119,56 @@ sign-in required), covered by `admin/src/pages/LegalPages.test.tsx`.
 | Admin `npm run typecheck`, `npm run lint` | passed |
 | Admin `npm test` | 13 files / 98 tests passed |
 | Admin `npm run build` | passed (`index-DctyOm6T.js`, `index-BMo7PNKp.css`) |
+| Public deployment endpoints | `/up`, `/api/v1/categories`, `/api/v1/products`, `/api/v1/products/{id}`, `/login`, `/privacy`, `/terms` all `200` |
+| Live API smoke suite | 33/33 checks passed, including register → login → profile → cart → quote → order (idempotent replay) → payment → logout; test data and inventory removed afterwards |
+| Product images | 50/50 CDN URLs `200 image/webp`; no missing or blank rows |
+| Android `assembleDebug` / `testDebugUnitTest` | BUILD SUCCESSFUL |
+| Backend `php artisan test` (SQLite fallback) | 208 tests / 2,492 assertions — 205 pass, 1 skipped (the shipped-ID pairing test runs only when its IDs are exported), 2 failures are the documented engine-only cases (`DatabaseWorkflowTest` asserts the `mysql` driver; `AdminCategoryTest` duplicate-name relies on the MySQL collation). `vendor/bin/pint --test` passed |
+| Google verifier vs the shipped client IDs | `aud` = Web client with `azp` = Android client → `201`, `aud` = Android client → `201`, any other client → `401` |
+| Google verifier vs Google's real JWKS | both live keys (`n`/`e`, no `x5c`) reconstruct to the exact modulus and exponent and parse in OpenSSL |
+| Admin auth surface | CSRF handshake `204`, missing CSRF `403 CSRF_TOKEN_MISMATCH`, wrong password `401 INVALID_CREDENTIALS`, guest session `401` |
+| Android routes vs live API | all 22 endpoints the app declares answer with the contract status (public `200`, guarded `401`) |
+| Android on device (SM-A125F, Android 12) | live catalog loads over HTTPS with images, prices, categories, and bottom navigation |
+| Google ID token on device | `iss=https://accounts.google.com`, `email_verified=true`, `aud` = Web client, `azp` = Android client |
+| **Google sign-in on device** | account picker → "Continue as Farokh" → token exchanged with `POST /api/v1/auth/google` (`200/201`), profile and cart become available — **owner confirmed 100% working** |
+| Images on device | Glide disk cache held 42 images (3,884 KB) after browsing the home feed |
+| Live catalog search (after upload) | `q=bag` → 3 and `q=BAG` → 3 — the PostgreSQL fix is live |
+| Live deep health suite (after upload) | **32/32 PASS**: `/up`, six SPA routes, catalog/pagination/filter/sort, 50/50 images, error shapes, CORS, four admin guards, no `.env` exposure |
+| Live client IPs (after upload) | new `sessions` rows record the real visitor (`::ffff:172.232.219.243`, `136.87.25.118`) instead of the proxy `127.0.0.100` |
+| Live Google audience (after upload) | a claim-valid token with `aud` = the Web client passed the audience check and forced a JWKS fetch (cache expiry `1794153561 → 1794160568`) before failing at the deliberately invalid signature |
 
-## Operator actions still required
+## Deployment state
 
-1. **Host `.env`:** deploy the generated production file `output/eshopverse-backend.env`. It is
-   complete — PostgreSQL connection, `APP_ENV=production`, `APP_DEBUG=false`, `SESSION_SECURE_COOKIE=true`,
-   the live host origins, and the published `GOOGLE_CLIENT_ID` are already set. It ships a rotated
-   `APP_KEY`, so existing sessions sign in again once. Clear any cached config afterwards.
-   Details: [`DEPLOYMENT.md`](DEPLOYMENT.md#ready-to-deploy-production-env).
-2. **Admin upload:** deploy `output/eshopverse-admin.zip` so `/privacy` and `/terms` stop returning
-   404. Details are in [`DEPLOYMENT.md`](DEPLOYMENT.md#admin-build-with-public-legal-pages-2026-11-08).
-3. **APK:** install the rebuilt `android/app/build/outputs/apk/debug/app-debug.apk` on test devices.
+The bundle has been generated and verified, and the owner uploaded it to the host:
 
-## Known limitation
+1. **Host `.env` / full bundle:** `output/eshopverse-full-deploy.zip` (SHA-256
+   `3A0C076890481AB13B8BC22ACA84F0C59C102C78CFEE618A7E0F9F809E6412EF`, 19,766,181 bytes / 18.85 MB) is
+   the exact archive uploaded to `htdocs/`. It contains the complete PostgreSQL connection, the live
+   origins, both Google client IDs, the Google JWKS fix, the search and trusted-proxy fixes, and a
+   rotated `APP_KEY`, so existing sessions sign in again once. Details:
+   [`DEPLOYMENT.md`](DEPLOYMENT.md#full-host-bundle-2026-11-08) and
+   [`DEPLOYMENT.md`](DEPLOYMENT.md#ready-to-deploy-production-env).
+2. **Legal pages:** the same bundle ships the admin SPA build, so `/privacy` and `/terms` return `200`.
+3. **APK:** the rebuilt `android/app/build/outputs/apk/debug/app-debug.apk` is installed on the test
+   device, and "Continue with Google" completed end to end.
 
-A real Google ID token cannot be minted on this machine and no Android device or emulator was
-attached, so the successful on-device journey is verified by the service tests, the published consent
-screen, the embedded client ID, and the operator steps above rather than by a live tap-through.
+Product images needed no operator action — the live `product_images` rows already point at the CDN.
+
+## Google sign-in: root cause and resolution
+
+Two independent defects rejected genuine Google ID tokens:
+
+1. **The verifier required an `x5c` certificate.** Google's live
+   `https://www.googleapis.com/oauth2/v3/certs` publishes only the RSA `n`/`e` members, so the public key
+   could not be built and every token failed signature verification. The service now reconstructs the RSA
+   key from `n`/`e` (DER `SubjectPublicKeyInfo`) when no certificate is present, still preferring `x5c`
+   when a key set provides it.
+2. **The host's audience value did not match the token's `aud`.** The shipped `.env` now sets
+   `GOOGLE_CLIENT_ID` to the Web client (the token's `aud`) and `GOOGLE_CLIENT_IDS` to the Android client
+   (the token's `azp`), so both token shapes are accepted.
+
+Both fixes are in the uploaded bundle and the on-device flow is confirmed working.
+
+A password walk-through on the device could not be automated because `adb shell input text` drops and
+duplicates characters on this handset; the authenticated journey was verified through the live API
+suite instead. Keyboard entry itself is not affected.

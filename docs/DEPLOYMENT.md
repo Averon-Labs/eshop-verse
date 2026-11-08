@@ -36,8 +36,8 @@ the repository plus `npm run build`). Upload steps and per-package notes: `outpu
 
 | Package | Size | Goes to |
 |---------|------|---------|
-| `output/eshopverse-full-deploy.zip` (complete `htdocs/` root, including `eshopverse_app/.env`) | 18.84 MB | `htdocs/` — replaces the whole deployment in one upload |
-| `output/eshopverse_app.zip` (root folder `eshopverse_app/`) | 17.76 MB | `htdocs/` — extracts into the existing application directory |
+| `output/eshopverse-full-deploy.zip` (complete `htdocs/` root, including `eshopverse_app/.env`) | 18.85 MB | `htdocs/` — replaces the whole deployment in one upload |
+| `output/eshopverse_app.zip` (root folder `eshopverse_app/`) | 17.77 MB | `htdocs/` — extracts into the existing application directory |
 | `output/eshopverse-admin.zip` (`index.html`, `assets/`, `fonts/` at the root) | 1.08 MB | `htdocs/` — overwrites the SPA files |
 
 Build them with `deploy/build-release.sh` (bash) or `deploy/build-release.ps1` (Windows PowerShell).
@@ -60,9 +60,9 @@ eshopverse_app/    Laravel application with vendor/ and .env
 It contains no `tests/`, no local logs, no `bootstrap/cache` config, and no local `storage/` content.
 `eshopverse_app/.env` comes from the generated `output/eshopverse-backend.env`
 ([Ready-to-deploy production `.env`](#ready-to-deploy-production-env)). That file is complete — the
-live PostgreSQL connection, host origins, Google client ID, and a rotated `APP_KEY` are already set —
-so the archive can be extracted as-is. Keep the `.env` from the deployed archive afterwards so the key
-stays stable.
+live PostgreSQL connection, host origins, both Google client IDs, and a rotated `APP_KEY` are already
+set — so the archive can be extracted as-is. Keep the `.env` from the deployed archive afterwards so the
+key stays stable.
 
 ### Admin build with public legal pages (2026-11-08)
 
@@ -100,6 +100,32 @@ fill its placeholders first. Keep the host's `storage/` content — in particula
 | Admin panel | `npm run typecheck`, `npm run lint`, `npm test` (11 files / 89 tests), `npm run check:contrast` (34/34) and `npm run build` all pass; the build reproduces `index-DwFFOLMM.js` exactly. |
 | Live API smoke, host layout | 88/88 checks against a local mirror of this document's `htdocs/` layout (front controller + SPA + `eshopverse_app/`): `/up`, catalog reads and 404s, registration/login/profile, cart → quote → order (`Idempotency-Key` enforced) → simulated payment, admin session + CSRF (including token rotation), category/product/inventory/order administration, order status chain `confirmed → processing → shipped → delivered` with `409 INVALID_TRANSITION` afterwards, image upload → public read → delete, Google `500` fail-closed with the explicit log line, and every SPA route. |
 | Admin browser walkthrough | Sign-in with the seeded administrator, products/categories/inventory/orders rendering live API data, theme toggle switching and persisting across reload; no console or network errors beyond the expected guest `401` on `/api/v1/admin/auth/session`. |
+
+### Full-stack verification record (2026-11-08)
+
+Run against the public deployment (`https://eshopverse.wasmer.app`), the live PostgreSQL database, and
+the debug APK installed on a Samsung SM-A125F running Android 12.
+
+| Check | Result |
+|-------|--------|
+| Public endpoints | `/up`, `/api/v1/categories`, `/api/v1/products`, `/api/v1/products/{id}`, `/login`, `/privacy`, `/terms` all `200` |
+| Live API smoke suite | 33/33 checks: catalog list/filter/search/detail/404, guest `401` guards, register `201` / duplicate `409`, login (case-insensitive) / wrong password `401`, profile `GET`+`PATCH`, cart add + merge + update + unknown product `404`, checkout quote + validation `422`, order create `201` + idempotent replay + missing `Idempotency-Key` `400`, payment `200`, orders list/detail, logout `204`, post-logout `401`, Google forged token `401` / missing token `422`, admin `401`. The suite creates and deletes its own customer, order, and inventory change; `users` returned to 18 rows |
+| Product images | 50/50 stored URLs answer `200 image/webp` through the CDN; 0 products without an image row; 0 blank URLs; list and detail payloads return the new URLs |
+| Catalog search | **Defect found and fixed:** `q=bag` returned 0 hits while `q=Bag` returned 3, because PostgreSQL `LIKE` is case-sensitive. After the bundle upload both return **3**, confirming the `whereLike(..., caseSensitive: false)` fix is live |
+| Rate limiting | **Defect found and fixed:** the app saw every visitor as the proxy address `127.0.0.100` (confirmed in `sessions.ip_address`), so per-IP limiters were site-wide. After the upload, `sessions.ip_address` records the real visitor (`::ffff:172.232.219.243`, `136.87.25.118`) |
+| Android build | `:app:assembleDebug` and `:app:testDebugUnitTest` — BUILD SUCCESSFUL, 258 unit tests / 0 failures |
+| Android on device | Fresh debug APK launches, reaches the live API over HTTPS (`GET /api/v1/cart` → expected guest `401`), and renders the catalog with images, prices, categories, and bottom navigation |
+| Google account picker | Opens with the signed-in Google Account; the request reaches `POST /api/v1/auth/google` |
+| **Google sign-in end to end** | Account picker → "Continue as Farokh" → `POST /api/v1/auth/google` answered `200/201`; the signed-in profile and cart become available. Owner confirmed the flow works |
+| Google ID-token claims (on device) | `iss=https://accounts.google.com`, `email_verified=true`, `aud` = the `eshop-verse` **Web** client, `azp` = the `eshop-verse` Android client — i.e. exactly the audiences the shipped `.env` trusts |
+| Google JWKS shape | `https://www.googleapis.com/oauth2/v3/certs` returns RSA `n`/`e` members **without** `x5c`; the verifier required `x5c`, so genuine tokens were rejected. The shipped service rebuilds the key from `n`/`e`; both live keys were checked |
+| Google verifier with the shipped IDs | `aud` = Web client + `azp` = Android client → `201`; `aud` = Android client → `201`; any other client → `401` |
+| Live deep health suite | **32/32 PASS** on the public deployment |
+| Host clock | ~1 s skew, so token `exp`/`nbf` checks are not the cause of a rejection |
+
+The host now runs the shipped `.env` and code. The two defects that rejected genuine device tokens are
+fixed and verified end to end: the audience configuration now matches both token shapes, and the verifier
+builds a key from Google's certificate-less JWKS. "Continue with Google" completes on the device.
 
 ## Why the admin and API share one origin
 
@@ -160,7 +186,7 @@ values.
 | `SANCTUM_STATEFUL_DOMAINS` | `eshopverse.wasmer.app` (add the port only for local development) |
 | `CORS_ALLOWED_ORIGINS` | `https://eshopverse.wasmer.app` |
 | `GOOGLE_CLIENT_ID` | `629866052539-50edn5o2jbjg449u5pjui72bnm4atojo.apps.googleusercontent.com` (the `eshop-verse` **Web application** client). Required for `POST /auth/google`; not a secret. Empty makes the endpoint fail closed with `500` plus an explicit log entry |
-| `GOOGLE_CLIENT_IDS` | Optional comma-separated additional trusted Google client IDs (for example the admin web panel or an iOS build). Empty for the current release |
+| `GOOGLE_CLIENT_IDS` | `629866052539-tsufikugav489t4rkg360ehmepsp9afm.apps.googleusercontent.com` (the `eshop-verse` **Android** client). Optional, comma-separated list of additional trusted audiences; the Android client is listed so a build that requests its ID token for the Android client is still accepted |
 | `DEMO_ADMIN_PASSWORD` | Private demo value used when seeding; leave empty to auto-generate; never commit it or place it in docs |
 | `APP_KEY` | Generated once on the host with `php artisan key:generate` when the app was prepared; keep the same key or sessions/cookies invalidate |
 
@@ -187,6 +213,32 @@ instance: exit code 0 and all 17 migrations reported `Ran`.
 > This differs from the MySQL decision recorded in the backend architecture table. The demo's host
 > provides PostgreSQL, and the application code was verified to run on it unchanged; if the project
 > wants to make that permanent, it needs an ADR rather than a silent documentation change.
+
+### Catalog image hosting (2026-11-08)
+
+All 50 demo products have exactly one row in `product_images`. The seeded URLs originally pointed at
+`raw.githubusercontent.com`, which some networks block or throttle; the API stayed healthy but Android
+cards rendered empty image viewports. The rows now point at the jsDelivr CDN mirror of the same
+commit-pinned files:
+
+```text
+https://cdn.jsdelivr.net/gh/Averon-Labs/eshop-verse@4507bb9808201f8c888944f7fe24e33064052c18/android/app/src/main/assets/products/<file>.webp
+```
+
+Each URL was checked live: 50/50 answered `200` with `Content-Type: image/webp`, and the public API now
+returns the new URLs in both the list and detail payloads. The URL is pinned to a commit, so the bytes
+cannot change under the demo. This was a data-only change — no migration, code, or `.env` value changed
+— and it is already applied to the live database. Admin uploads are unaffected: they still use
+`ProductImageStorage` and are served from the API host.
+
+The equivalent statement, if the rows ever need to be restored or re-pointed:
+
+```sql
+update product_images
+set url = replace(url,
+      'https://raw.githubusercontent.com/Averon-Labs/eshop-verse/4507bb98',
+      'https://cdn.jsdelivr.net/gh/Averon-Labs/eshop-verse@4507bb98');
+```
 
 ### Ready-to-deploy production `.env`
 
@@ -271,6 +323,11 @@ When `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_IDS` are both empty, the endpoint ans
 `500 INTERNAL_ERROR`, writes `Google Auth failed: GOOGLE_CLIENT_ID is not configured in .env` to
 `storage/logs/laravel.log`, and creates no account. That log line is the signal to fix this setting; it
 never contains a token or credential.
+
+Token verification uses Google's published JWKS. That key set currently provides only the RSA `n`/`e`
+members (no `x5c` certificate chain), so the verifier reconstructs the public key from those members when
+no certificate is present; a key set that does provide `x5c` is still accepted. The JWKS is cached for an
+hour, and an unknown key id triggers one refetch before rejection.
 
 The admin production build uses `admin/.env.production`:
 

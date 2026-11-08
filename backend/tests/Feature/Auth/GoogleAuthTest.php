@@ -30,6 +30,9 @@ class GoogleAuthTest extends TestCase
 
     private bool $googleKeysAvailable = true;
 
+    /** When false, the JWKS mirrors Google's live response (`n`/`e`, no `x5c`). */
+    private bool $jwksIncludesCertificates = true;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -46,13 +49,28 @@ class GoogleAuthTest extends TestCase
                     return Http::response('', 503);
                 }
 
+                if ($this->jwksIncludesCertificates) {
+                    return Http::response([
+                        'keys' => [[
+                            'kty' => 'RSA',
+                            'alg' => 'RS256',
+                            'use' => 'sig',
+                            'kid' => self::KEY_ID,
+                            'x5c' => [self::keyPair()[1]],
+                        ]],
+                    ]);
+                }
+
+                $details = openssl_pkey_get_details(self::keyPair()[0]);
+
                 return Http::response([
                     'keys' => [[
                         'kty' => 'RSA',
                         'alg' => 'RS256',
                         'use' => 'sig',
                         'kid' => self::KEY_ID,
-                        'x5c' => [self::keyPair()[1]],
+                        'n' => $this->encode($details['rsa']['n']),
+                        'e' => $this->encode($details['rsa']['e']),
                     ]],
                 ]);
             },
@@ -194,6 +212,81 @@ class GoogleAuthTest extends TestCase
         $this->assertApiError($response, 401, 'INVALID_CREDENTIALS');
     }
 
+    public function test_google_sign_in_verifies_a_token_against_googles_published_jwks_shape(): void
+    {
+        // Google's /oauth2/v3/certs returns only `n` and `e` (no `x5c`), so the
+        // verifier has to rebuild the RSA key from those members.
+        $this->useCertificateLessJwks();
+
+        $response = $this->postJson('/api/v1/auth/google', ['idToken' => $this->token()]);
+
+        $response->assertCreated()
+            ->assertJsonPath('data.user.email', 'grace@example.com');
+    }
+
+    public function test_google_sign_in_rejects_another_key_when_jwks_has_no_certificates(): void
+    {
+        $this->useCertificateLessJwks();
+
+        $rogueKey = openssl_pkey_new([
+            'private_key_bits' => 2048,
+            'private_key_type' => OPENSSL_KEYTYPE_RSA,
+            'config' => self::opensslConfigPath(),
+        ]);
+
+        $response = $this->postJson('/api/v1/auth/google', [
+            'idToken' => $this->token([], $rogueKey),
+        ]);
+
+        $this->assertApiError($response, 401, 'INVALID_CREDENTIALS');
+        $this->assertSame(0, User::count());
+    }
+
+    public function test_google_sign_in_accepts_the_shipped_production_client_pairing(): void
+    {
+        $web = (string) env('SHIPPED_GOOGLE_WEB_CLIENT_ID', '');
+        $android = (string) env('SHIPPED_GOOGLE_ANDROID_CLIENT_ID', '');
+
+        if ($web === '' || $android === '') {
+            $this->markTestSkipped('Set SHIPPED_GOOGLE_WEB_CLIENT_ID and SHIPPED_GOOGLE_ANDROID_CLIENT_ID to check the shipped IDs.');
+        }
+
+        config([
+            'services.google.client_id' => $web,
+            'services.google.client_ids' => $android,
+        ]);
+
+        // The shape observed on the device: the ID token's `aud` is the Web
+        // client while `azp` names the Android client.
+        $deviceShape = $this->postJson('/api/v1/auth/google', [
+            'idToken' => $this->token([
+                'aud' => $web,
+                'azp' => $android,
+                'sub' => 'production-web-subject',
+                'email' => 'production.web@example.com',
+            ]),
+        ]);
+        $deviceShape->assertCreated()
+            ->assertJsonPath('data.user.email', 'production.web@example.com');
+
+        // A build that asks Google for a token addressed to the Android client.
+        $androidShape = $this->postJson('/api/v1/auth/google', [
+            'idToken' => $this->token([
+                'aud' => $android,
+                'sub' => 'production-android-subject',
+                'email' => 'production.android@example.com',
+            ]),
+        ]);
+        $androidShape->assertCreated()
+            ->assertJsonPath('data.user.email', 'production.android@example.com');
+
+        // Any other client is still refused.
+        $foreign = $this->postJson('/api/v1/auth/google', [
+            'idToken' => $this->token(['aud' => 'foreign-client.apps.googleusercontent.com']),
+        ]);
+        $this->assertApiError($foreign, 401, 'INVALID_CREDENTIALS');
+    }
+
     public function test_google_sign_in_rejects_malformed_token(): void
     {
         $response = $this->postJson('/api/v1/auth/google', ['idToken' => 'not-a-valid-jwt-token']);
@@ -331,6 +424,16 @@ class GoogleAuthTest extends TestCase
 
         $this->assertApiError($blocked, 429, 'RATE_LIMITED');
         $this->assertTrue($blocked->headers->has('Retry-After'));
+    }
+
+    /**
+     * Serve Google's real JWKS shape: RSA `n`/`e` members without certificates.
+     */
+    private function useCertificateLessJwks(): void
+    {
+        $this->jwksIncludesCertificates = false;
+
+        Cache::flush();
     }
 
     /**

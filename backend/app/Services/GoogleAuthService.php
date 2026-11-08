@@ -185,20 +185,97 @@ class GoogleAuthService
 
     private function verifySignature(string $signedInput, string $signature, string $keyId): void
     {
-        $jwk = $this->findJwk($keyId);
-        $certificate = $jwk['x5c'][0] ?? null;
-
-        if (! is_string($certificate) || $certificate === '') {
-            $this->reject();
-        }
-
-        $publicKey = openssl_pkey_get_public(
-            "-----BEGIN CERTIFICATE-----\n".chunk_split($certificate, 64, "\n").'-----END CERTIFICATE-----',
-        );
+        $publicKey = $this->publicKeyFor($this->findJwk($keyId));
 
         if ($publicKey === false || openssl_verify($signedInput, $signature, $publicKey, OPENSSL_ALGO_SHA256) !== 1) {
             $this->reject();
         }
+    }
+
+    /**
+     * Build an OpenSSL public key from a JWKS entry.
+     *
+     * `x5c` is used when present, but Google's current
+     * `https://www.googleapis.com/oauth2/v3/certs` response publishes only the
+     * RSA `n`/`e` members, so the key must also be reconstructed from them or
+     * every real ID token would be rejected.
+     *
+     * @param  array<string, mixed>  $jwk
+     */
+    private function publicKeyFor(array $jwk): \OpenSSLAsymmetricKey|false
+    {
+        $certificate = $jwk['x5c'][0] ?? null;
+
+        if (is_string($certificate) && $certificate !== '') {
+            $publicKey = openssl_pkey_get_public(
+                "-----BEGIN CERTIFICATE-----\n".chunk_split($certificate, 64, "\n").'-----END CERTIFICATE-----',
+            );
+
+            if ($publicKey !== false) {
+                return $publicKey;
+            }
+        }
+
+        $modulus = $jwk['n'] ?? null;
+        $exponent = $jwk['e'] ?? null;
+
+        if (! is_string($modulus) || ! is_string($exponent)) {
+            return false;
+        }
+
+        $modulusBytes = $this->decodeBase64Url($modulus);
+        $exponentBytes = $this->decodeBase64Url($exponent);
+
+        if ($modulusBytes === false || $exponentBytes === false || $modulusBytes === '' || $exponentBytes === '') {
+            return false;
+        }
+
+        $der = $this->rsaPublicKeyDer($modulusBytes, $exponentBytes);
+
+        return openssl_pkey_get_public(
+            "-----BEGIN PUBLIC KEY-----\n".chunk_split(base64_encode($der), 64, "\n").'-----END PUBLIC KEY-----',
+        );
+    }
+
+    /**
+     * DER-encode a JWK RSA modulus/exponent as SubjectPublicKeyInfo
+     * (RFC 5280) with the `rsaEncryption` algorithm identifier.
+     */
+    private function rsaPublicKeyDer(string $modulus, string $exponent): string
+    {
+        $rsaPublicKey = $this->derEncode(0x30, $this->derInteger($modulus).$this->derInteger($exponent));
+
+        $algorithmIdentifier = $this->derEncode(0x30, $this->derEncode(0x06, "\x2a\x86\x48\x86\xf7\x0d\x01\x01\x01")."\x05\x00");
+
+        return $this->derEncode(0x30, $algorithmIdentifier.$this->derEncode(0x03, "\x00".$rsaPublicKey));
+    }
+
+    private function derInteger(string $bytes): string
+    {
+        $bytes = ltrim($bytes, "\x00");
+
+        if ($bytes === '') {
+            $bytes = "\x00";
+        } elseif ((ord($bytes[0]) & 0x80) !== 0) {
+            // DER integers are signed; keep the value positive.
+            $bytes = "\x00".$bytes;
+        }
+
+        return $this->derEncode(0x02, $bytes);
+    }
+
+    private function derEncode(int $tag, string $value): string
+    {
+        $length = strlen($value);
+
+        if ($length < 0x80) {
+            $encodedLength = chr($length);
+        } else {
+            $lengthBytes = ltrim(pack('N', $length), "\x00");
+            $encodedLength = chr(0x80 | strlen($lengthBytes)).$lengthBytes;
+        }
+
+        return chr($tag).$encodedLength.$value;
     }
 
     /**

@@ -32,11 +32,12 @@ class AdminInventoryController extends Controller
         $query = Product::query()->with('inventory');
 
         if (isset($data['q'])) {
+            // Case-insensitive on MySQL and PostgreSQL alike.
             $needle = '%'.addcslashes($data['q'], '%_\\').'%';
 
             $query->where(function (Builder $builder) use ($needle): void {
-                $builder->where('name', 'like', $needle)
-                    ->orWhere('sku', 'like', $needle);
+                $builder->whereLike('name', $needle, caseSensitive: false)
+                    ->orWhereLike('sku', $needle, caseSensitive: false);
             });
         }
 
