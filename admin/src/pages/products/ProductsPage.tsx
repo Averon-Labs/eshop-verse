@@ -7,10 +7,14 @@ import {
   listAdminProducts,
 } from '../../api/catalog';
 import { ApiError } from '../../api/http';
-import type { AdminCategory, AdminProduct, Pagination as PaginationMeta, ProductStatus } from '../../api/types';
+import type {
+  AdminCategory,
+  AdminProduct,
+  Pagination as PaginationMeta,
+  ProductStatus,
+} from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { Pagination } from '../../components/Pagination';
-import { StatusBadge } from '../../components/StatusBadge';
 import { EmptyPanel, ErrorPanel, FeedbackBanner, TableSkeleton } from '../../components/StatePanels';
 import { formatUsd } from '../../lib/format';
 import { useDebouncedValue } from '../../lib/useDebouncedValue';
@@ -27,22 +31,53 @@ const PER_PAGE = 20;
 
 function ProductStatusBadge({ status }: { status: ProductStatus }) {
   if (status === 'active') {
-    return <StatusBadge tone="success">Active</StatusBadge>;
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-primary-container px-3 py-1 text-xs font-bold text-brand-on-primary-container border border-brand-primary/20">
+        <span className="h-1.5 w-1.5 rounded-full bg-brand-primary" aria-hidden="true" />
+        Active
+      </span>
+    );
   }
 
   if (status === 'inactive') {
-    return <StatusBadge tone="neutral">Inactive</StatusBadge>;
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-bg-surface-variant px-3 py-1 text-xs font-semibold text-text-secondary border border-border-outline/40">
+        <span className="h-1.5 w-1.5 rounded-full bg-text-disabled" aria-hidden="true" />
+        Inactive
+      </span>
+    );
   }
 
-  return <StatusBadge tone="neutral">Archived</StatusBadge>;
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-bg-surface-variant/80 px-3 py-1 text-xs font-semibold text-text-disabled border border-border-outline/30">
+      <span className="h-1.5 w-1.5 rounded-full bg-text-disabled/70" aria-hidden="true" />
+      Archived
+    </span>
+  );
 }
 
 function StockValue({ product }: { product: AdminProduct }) {
   if (!product.inStock) {
-    return <span className="font-semibold text-destructive">Out of stock</span>;
+    return (
+      <span className="inline-flex items-center gap-1.5 font-semibold text-status-error">
+        <span className="h-2 w-2 rounded-full bg-status-error" aria-hidden="true" />
+        <span className="font-semibold text-destructive">Out of stock</span>
+      </span>
+    );
   }
 
-  return <span className="tabular-nums">{product.stockQuantity} in stock</span>;
+  const isLow = product.stockQuantity !== null && product.stockQuantity <= 10;
+  return (
+    <span className="inline-flex items-center gap-1.5 font-medium text-text-secondary">
+      <span
+        className={`h-2 w-2 rounded-full ${isLow ? 'bg-status-warning' : 'bg-status-success'}`}
+        aria-hidden="true"
+      />
+      <span className="tabular-nums font-semibold text-text-on-surface">
+        {product.stockQuantity} in stock
+      </span>
+    </span>
+  );
 }
 
 function ProductThumb({ product }: { product: AdminProduct }) {
@@ -51,25 +86,37 @@ function ProductThumb({ product }: { product: AdminProduct }) {
       <img
         src={product.imageUrl}
         alt=""
-        className="h-10 w-10 shrink-0 rounded-lg border border-border object-cover"
+        className="h-12 w-12 shrink-0 rounded-xl border border-border-outline/40 object-cover shadow-xs"
       />
     );
   }
 
   return (
-    <span
+    <div
       aria-hidden="true"
-      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-dashed border-border text-[10px] text-muted-foreground"
+      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-dashed border-border-outline/60 bg-bg-surface-variant text-text-disabled"
     >
-      No image
-    </span>
+      <svg
+        className="h-5 w-5 opacity-50"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={1.5}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+        />
+      </svg>
+    </div>
   );
 }
 
 /**
- * A-02 — Products. Filters and pagination follow the admin API query
- * parameters; archiving keeps row data authoritative by refetching the page
- * after every confirmed action.
+ * PROD-101 — Products catalog list with Bento Grid styling and Evergreen Material 3 tokens.
+ * Filters and pagination follow the admin API query parameters;
+ * archiving keeps row data authoritative by refetching the page after every confirmed action.
  */
 export default function ProductsPage() {
   const location = useLocation();
@@ -219,33 +266,75 @@ export default function ProductsPage() {
   }
 
   return (
-    <section aria-labelledby="products-title" className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 id="products-title" className="text-2xl font-bold tracking-tight">
-            Products
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Create, edit, archive, or delete catalog products. Stock is managed in Inventory.
-          </p>
+    <section aria-labelledby="products-title" className="space-y-5">
+      {/* Breadcrumb & Page Header */}
+      <div className="space-y-1.5">
+        <nav
+          aria-label="Breadcrumb"
+          className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary"
+        >
+          <span>Catalog</span>
+          <span aria-hidden="true" className="text-border-outline">
+            /
+          </span>
+          <span className="text-brand-primary">Products</span>
+        </nav>
+        <div className="flex flex-wrap items-center justify-between gap-4 pt-1">
+          <div>
+            <h1 id="products-title" className="text-2xl font-bold tracking-tight text-text-on-surface">
+              Products
+            </h1>
+            <p className="mt-1 text-sm text-text-secondary">
+              Manage your catalog and keep product information up to date.
+            </p>
+          </div>
+          <Link
+            to="/products/new"
+            aria-label="Add product"
+            className={primaryButtonClass}
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>Create product</span>
+          </Link>
         </div>
-        <Link to="/products/new" className={primaryButtonClass}>
-          Add product
-        </Link>
       </div>
 
       {feedback && <FeedbackBanner message={feedback} />}
       {actionError && (
-        <p
+        <div
           role="alert"
-          className="rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          className="flex items-center gap-2.5 rounded-2xl border border-status-error/30 bg-status-error-container/30 px-4 py-3 text-sm font-semibold text-status-on-error-container shadow-xs"
         >
-          {actionError}
-        </p>
+          <svg
+            className="h-5 w-5 shrink-0 text-status-error"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <span>{actionError}</span>
+        </div>
       )}
 
+      {/* Bento Search and Filters Bar */}
       <form
-        className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"
+        className="grid grid-cols-1 gap-3 rounded-2xl border border-border-outline/50 bg-bg-surface p-4 shadow-xs sm:grid-cols-2 lg:grid-cols-4"
         aria-label="Product filters"
         onSubmit={(event) => event.preventDefault()}
       >
@@ -253,17 +342,35 @@ export default function ProductsPage() {
           <label htmlFor="products-search" className={labelClass}>
             Search products
           </label>
-          <input
-            id="products-search"
-            type="search"
-            className={`${inputClass} mt-1`}
-            value={search}
-            placeholder="Name or SKU"
-            onChange={(event) => {
-              setSearch(event.target.value);
-              setPage(1);
-            }}
-          />
+          <div className="relative mt-1">
+            <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-text-disabled">
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </span>
+            <input
+              id="products-search"
+              type="search"
+              className={`${inputClass} pl-10`}
+              value={search}
+              placeholder="Name or SKU"
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setPage(1);
+              }}
+            />
+          </div>
         </div>
 
         <div>
@@ -311,13 +418,28 @@ export default function ProductsPage() {
 
         {hasFilters && (
           <div className="flex items-end">
-            <button type="button" className={secondaryButtonClass} onClick={clearFilters}>
+            <button
+              type="button"
+              className={`${secondaryButtonClass} w-full sm:w-auto`}
+              onClick={clearFilters}
+            >
+              <svg
+                className="h-4 w-4 text-text-secondary"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
               Clear filters
             </button>
           </div>
         )}
       </form>
 
+      {/* Main Content Area */}
       {loading && products.length === 0 ? (
         <div className={cardClass}>
           <TableSkeleton label="Loading products" />
@@ -341,74 +463,118 @@ export default function ProductsPage() {
         ) : (
           <EmptyPanel
             title="No products yet"
-            description="Add the first product to start building the catalog."
+            description="Your catalog is ready for its first product. Add the first product to start building the catalog."
           >
-            <Link to="/products/new" className={primaryButtonClass}>
-              Add product
+            <Link to="/products/new" aria-label="Add product" className={primaryButtonClass}>
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              <span>Add product</span>
             </Link>
           </EmptyPanel>
         )
       ) : (
-        <div className={cardClass}>
+        <div className="overflow-hidden rounded-3xl border border-border-outline/50 bg-bg-surface shadow-xs">
+          {/* Desktop Table View */}
           <div className="hidden overflow-x-auto md:block" aria-busy={loading}>
-            <table className="w-full min-w-[760px] text-left text-sm">
+            <table className="w-full min-w-[780px] text-left text-sm">
               <caption className="sr-only">Products</caption>
-              <thead className="border-b border-border bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
+              <thead className="border-b border-border-outline/40 bg-bg-surface-variant/40 text-[11px] font-bold uppercase tracking-wider text-text-secondary">
                 <tr>
-                  <th scope="col" className="px-4 py-3 font-semibold">
+                  <th scope="col" className="px-5 py-3.5 font-bold">
                     Product
                   </th>
-                  <th scope="col" className="px-4 py-3 font-semibold">
+                  <th scope="col" className="px-5 py-3.5 font-bold">
                     SKU
                   </th>
-                  <th scope="col" className="px-4 py-3 font-semibold">
+                  <th scope="col" className="px-5 py-3.5 font-bold">
                     Category
                   </th>
-                  <th scope="col" className="px-4 py-3 font-semibold">
+                  <th scope="col" className="px-5 py-3.5 font-bold">
                     Price (USD)
                   </th>
-                  <th scope="col" className="px-4 py-3 font-semibold">
+                  <th scope="col" className="px-5 py-3.5 font-bold">
                     Stock
                   </th>
-                  <th scope="col" className="px-4 py-3 font-semibold">
+                  <th scope="col" className="px-5 py-3.5 font-bold">
                     Status
                   </th>
-                  <th scope="col" className="px-4 py-3 text-right font-semibold">
+                  <th scope="col" className="px-5 py-3.5 text-right font-bold">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody className="divide-y divide-border-outline/30">
                 {products.map((product) => (
-                  <tr key={product.id}>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
+                  <tr
+                    key={product.id}
+                    className="hover:bg-bg-surface-variant/30 transition-colors"
+                  >
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3.5">
                         <ProductThumb product={product} />
-                        <span className="font-semibold">{product.name}</span>
+                        <div className="min-w-0">
+                          <Link
+                            to={`/products/${product.id}`}
+                            className="font-bold text-text-on-surface hover:text-brand-primary transition-colors line-clamp-1"
+                          >
+                            {product.name}
+                          </Link>
+                          <p className="text-xs text-text-secondary">
+                            SKU {product.sku ?? '—'}
+                          </p>
+                        </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">{product.sku ?? '—'}</td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {product.categoryName ?? '—'}
+                    <td className="px-5 py-4 font-mono text-xs text-text-secondary">
+                      {product.sku ?? '—'}
                     </td>
-                    <td className="px-4 py-3 tabular-nums">{formatUsd(product.price)}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-5 py-4">
+                      <span className="inline-flex items-center rounded-lg bg-bg-surface-variant px-2.5 py-1 text-xs font-semibold text-text-secondary border border-border-outline/30">
+                        {product.categoryName ?? '—'}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 font-bold tabular-nums text-text-on-surface">
+                      {formatUsd(product.price)}
+                    </td>
+                    <td className="px-5 py-4">
                       <StockValue product={product} />
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-5 py-4">
                       <ProductStatusBadge status={product.status} />
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-1">
+                    <td className="px-5 py-4">
+                      <div className="flex items-center justify-end gap-1.5">
                         <Link
                           to={`/products/${product.id}/edit`}
                           aria-label={`Edit ${product.name}`}
                           className={actionButtonClass}
                         >
+                          <svg
+                            className="mr-1 h-3.5 w-3.5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                            aria-hidden="true"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                            />
+                          </svg>
                           Edit
                         </Link>
                         {product.status === 'archived' ? (
-                          <span className="px-3 text-xs font-semibold text-muted-foreground">
+                          <span className="px-3 py-1.5 text-xs font-semibold text-text-disabled">
                             Archived
                           </span>
                         ) : (
@@ -427,7 +593,7 @@ export default function ProductsPage() {
                         <button
                           type="button"
                           aria-label={`Delete ${product.name}`}
-                          className={actionButtonClass}
+                          className="inline-flex min-h-9 items-center rounded-xl px-3 text-xs font-semibold text-status-error hover:bg-status-error-container/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-status-error disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
                           onClick={() => {
                             setActionError(null);
                             setDeleteTarget(product);
@@ -443,40 +609,50 @@ export default function ProductsPage() {
             </table>
           </div>
 
-          <ul className="divide-y divide-border md:hidden" aria-label="Products list">
+          {/* Mobile Card List View */}
+          <ul className="divide-y divide-border-outline/30 md:hidden" aria-label="Products list">
             {products.map((product) => (
-              <li key={product.id} className="p-4">
+              <li key={product.id} className="p-4 space-y-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <ProductThumb product={product} />
                     <div>
-                      <p className="font-semibold">{product.name}</p>
-                      <p className="text-xs text-muted-foreground">SKU {product.sku ?? '—'}</p>
+                      <Link
+                        to={`/products/${product.id}`}
+                        className="font-bold text-text-on-surface hover:text-brand-primary transition-colors"
+                      >
+                        {product.name}
+                      </Link>
+                      <p className="text-xs text-text-secondary">SKU {product.sku ?? '—'}</p>
                     </div>
                   </div>
                   <ProductStatusBadge status={product.status} />
                 </div>
-                <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                <dl className="grid grid-cols-2 gap-2 rounded-2xl bg-bg-surface-variant/40 p-3 text-xs">
                   <div>
-                    <dt className="text-xs text-muted-foreground">Category</dt>
-                    <dd>{product.categoryName ?? '—'}</dd>
+                    <dt className="text-text-secondary">Category</dt>
+                    <dd className="font-semibold text-text-on-surface">
+                      {product.categoryName ?? '—'}
+                    </dd>
                   </div>
                   <div>
-                    <dt className="text-xs text-muted-foreground">Price (USD)</dt>
-                    <dd className="tabular-nums">{formatUsd(product.price)}</dd>
+                    <dt className="text-text-secondary">Price (USD)</dt>
+                    <dd className="font-bold tabular-nums text-text-on-surface">
+                      {formatUsd(product.price)}
+                    </dd>
                   </div>
-                  <div>
-                    <dt className="text-xs text-muted-foreground">Stock</dt>
-                    <dd>
+                  <div className="col-span-2 pt-1 border-t border-border-outline/30">
+                    <dt className="text-text-secondary">Stock</dt>
+                    <dd className="mt-0.5">
                       <StockValue product={product} />
                     </dd>
                   </div>
                 </dl>
-                <div className="mt-3 flex gap-1">
+                <div className="flex items-center gap-2 pt-1">
                   <Link
                     to={`/products/${product.id}/edit`}
                     aria-label={`Edit ${product.name}`}
-                    className={actionButtonClass}
+                    className={`${actionButtonClass} flex-1 justify-center`}
                   >
                     Edit
                   </Link>
@@ -484,7 +660,7 @@ export default function ProductsPage() {
                     <button
                       type="button"
                       aria-label={`Archive ${product.name}`}
-                      className={actionButtonClass}
+                      className={`${actionButtonClass} flex-1 justify-center`}
                       onClick={() => {
                         setActionError(null);
                         setArchiveTarget(product);
@@ -496,7 +672,7 @@ export default function ProductsPage() {
                   <button
                     type="button"
                     aria-label={`Delete ${product.name}`}
-                    className={actionButtonClass}
+                    className="inline-flex min-h-9 flex-1 items-center justify-center rounded-xl px-3 text-xs font-semibold text-status-error hover:bg-status-error-container/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-status-error disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
                     onClick={() => {
                       setActionError(null);
                       setDeleteTarget(product);
@@ -509,6 +685,7 @@ export default function ProductsPage() {
             ))}
           </ul>
 
+          {/* Bento Pagination */}
           {pagination && (
             <Pagination
               pagination={pagination}
@@ -520,6 +697,7 @@ export default function ProductsPage() {
         </div>
       )}
 
+      {/* Confirmation Modals */}
       <ConfirmDialog
         open={archiveTarget !== null}
         title={archiveTarget ? `Archive ${archiveTarget.name}?` : 'Archive product?'}

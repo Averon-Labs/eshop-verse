@@ -136,18 +136,18 @@ The redesigned panel is tailored for a boutique store operator: zero redundant b
 **Goal:** Implement the primary workspace for creating, editing, and listing products with multi-image dropzones, pricing validation, stock orchestration, and robust draft auto-recovery.
 
 #### Step 1 — PROD-101 — Populated Products List (`/products`)
-- [ ] **a.** Bento Table layout:
-  - Header: Breadcrumb `Settings / Products`, H1 `Products`, subtitle `Manage your catalog and keep product information up to date.`, and `+ Create product` primary button.
+- [x] **a.** Bento Table layout:
+  - Header: Breadcrumb `Catalog / Products`, H1 `Products`, subtitle `Manage your catalog and keep product information up to date.`, and `+ Create product` primary button.
   - Search & filter row: keyword search (`q`), category dropdown filter, and status filter (`active`, `inactive`, `archived`).
-- [ ] **b.** Table columns:
+- [x] **b.** Table columns:
   - `Product`: 48px rounded thumbnail + Title + SKU.
   - `Category`: category badge.
   - `Price`: formatted USD price (`$129.00`).
   - `Inventory`: current quantity with color indicator (Green > 10, Orange 1-10, Red 0).
   - `Status`: rounded-16px badge (`Active` in purple, `Draft` in neutral).
   - `Actions`: quick edit icon, archive/delete action (with confirmation modal).
-- [ ] **c.** Pagination component: rounded pagination bar matching Figma (`‹ 1 2 3 ›` with page size selector).
-- [ ] **d.** Empty State: implement exact Figma empty state (*"Your catalog is ready for its first product"* + purple plus icon + `Create your first product` button).
+- [x] **c.** Pagination component: rounded pagination bar matching Figma (`‹ 1 2 3 ›` with page size selector).
+- [x] **d.** Empty State: implement exact Figma empty state (*"Your catalog is ready for its first product"* + purple plus icon + `Create your first product` button).
 
 #### Step 2 — PROD-102 — Create Product Form & Orchestration (`/products/new`)
 - [ ] **a.** Implement the exact 2-column Bento Grid from **Figma Screen 12**:
