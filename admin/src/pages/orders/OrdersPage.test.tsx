@@ -106,7 +106,9 @@ describe('OrdersPage (A-06)', () => {
     render(<App />);
 
     expect(await screen.findByText('Orders could not be loaded')).toBeInTheDocument();
+    expect(screen.getByText("We couldn't load your orders")).toBeInTheDocument();
     expect(screen.getByText('The server failed to handle the request.')).toBeInTheDocument();
+    expect(screen.getByText('Error reference: ORD-LOAD-042')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
 
@@ -244,5 +246,27 @@ describe('OrdersPage (A-06)', () => {
       'href',
       '/orders/17',
     );
+  });
+
+  it('orders_status_tabs_filter_by_status', async () => {
+    const urls: string[] = [];
+    mockApi([
+      sessionRoute(),
+      ordersRoute((request) => {
+        urls.push(request.url);
+        return jsonResponse(200, { data: [orderSummary()], pagination: pagination(1, 20, 1, 1) });
+      }),
+    ]);
+
+    render(<App />);
+
+    await findOrdersTable();
+
+    const processingTab = screen.getByRole('tab', { name: 'Processing' });
+    fireEvent.click(processingTab);
+
+    await waitFor(() => {
+      expect(urls.some((url) => url.includes('status=processing'))).toBe(true);
+    });
   });
 });

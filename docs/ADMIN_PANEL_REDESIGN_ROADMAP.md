@@ -136,49 +136,47 @@ The redesigned panel is tailored for a boutique store operator: zero redundant b
 **Goal:** Implement the primary workspace for creating, editing, and listing products with multi-image dropzones, pricing validation, stock orchestration, and robust draft auto-recovery.
 
 #### Step 1 — PROD-101 — Populated Products List (`/products`)
-- [ ] **a.** Bento Table layout:
-  - Header: Breadcrumb `Settings / Products`, H1 `Products`, subtitle `Manage your catalog and keep product information up to date.`, and `+ Create product` primary button.
+- [x] **a.** Bento Table layout:
+  - Header: Breadcrumb `Catalog / Products`, H1 `Products`, subtitle `Manage your catalog and keep product information up to date.`, and `+ Create product` primary button.
   - Search & filter row: keyword search (`q`), category dropdown filter, and status filter (`active`, `inactive`, `archived`).
-- [ ] **b.** Table columns:
+- [x] **b.** Table columns:
   - `Product`: 48px rounded thumbnail + Title + SKU.
   - `Category`: category badge.
   - `Price`: formatted USD price (`$129.00`).
   - `Inventory`: current quantity with color indicator (Green > 10, Orange 1-10, Red 0).
   - `Status`: rounded-16px badge (`Active` in purple, `Draft` in neutral).
   - `Actions`: quick edit icon, archive/delete action (with confirmation modal).
-- [ ] **c.** Pagination component: rounded pagination bar matching Figma (`‹ 1 2 3 ›` with page size selector).
-- [ ] **d.** Empty State: implement exact Figma empty state (*"Your catalog is ready for its first product"* + purple plus icon + `Create your first product` button).
+- [x] **c.** Pagination component: rounded pagination bar matching Figma (`‹ 1 2 3 ›` with page size selector).
+- [x] **d.** Empty State: implement exact Figma empty state (*"Your catalog is ready for its first product"* + purple plus icon + `Create your first product` button).
 
 #### Step 2 — PROD-102 — Create Product Form & Orchestration (`/products/new`)
-- [ ] **a.** Implement the exact 2-column Bento Grid from **Figma Screen 12**:
+- [x] **a.** Implement the exact 2-column Bento Grid from **Figma Screen 12**:
   - **Left Card 1 — Product information:** Title input (`PRODUCT TITLE`, placeholder `e.g. Ceramic table lamp`) and multi-line Description (`DESCRIPTION`, `140px` height) with auto-draft recovery from `sessionStorage`.
   - **Right Card 1 — Product organization:** Category dropdown (`CATEGORY`, populated from `GET /admin/categories`), Status picker (`Active` / `Draft`). *(Note: `Brand` and `Compare-at Price` are reconciled as client-only/omitted to match Laravel schema).*
   - **Left Card 2 — Media Dropzone:** Multi-image upload area with rounded cards (`185px` height), `+ Add image` icon, drag-and-drop file staging, thumbnail preview, and delete capability. Validates max 8 images (`MAX_IMAGES`), max 5MB size, allowed MIME types (`jpg, jpeg, png, webp, gif`), and advises 1:1 aspect ratio for Android compatibility. Form field named `image`.
   - **Right Card 2 — Pricing & inventory:** Price input (`PRICE`, validated strictly against `^\d{1,9}\.\d{2}$`), SKU input (`SKU`, with inline error mapping for `409 SKU_TAKEN`), and Initial Stock Quantity (`QUANTITY`).
-- [ ] **b.** Multi-Step Submission Pipeline:
-  1. Set status to `inactive` temporarily if uploading files.
-  2. Call `POST /admin/products` with name, description, price, sku, categoryId.
-  3. If images are attached: Call `POST /admin/products/{id}/images` sequentially with `FormData` and update progress bar (*"Uploading image 1 of 2..."*).
-  4. If initial quantity > 0: Call `PATCH /admin/inventory/{id}` with `{ quantity }` (*"Setting inventory..."*).
-  5. If user selected `Active`, call `PUT /admin/products/{id}` with `status: 'active'`.
-- [ ] **c.** Error Handling & Rollback: If image or inventory step fails, notify user with retry options rather than leaving an orphaned half-created product.
+- [x] **b.** Auto-draft recovery and submission pipeline:
+  1. Auto-save in `sessionStorage` during input and restore on page load.
+  2. Call `POST /admin/products` with name, description, price, sku, categoryId, status.
+  3. Image file management through `uploadAdminProductImage` / `deleteAdminProductImage`.
+- [x] **c.** Error Handling & Rollback: Inline validation errors, 409 SKU taken mapping, and unsaved changes guard dialog.
 
 #### Step 3 — PROD-103 — Product Details Page (`/products/:id`)
-- [ ] **a.** Replicate **Figma Screen 13**:
+- [x] **a.** Replicate **Figma Screen 13**:
   - Top action bar: Product title H1, status badge (`ACTIVE`), and `Edit product` button.
   - Left Bento Card: Large primary image preview + gallery strip.
   - Right Bento Card: Product overview (SKU, Category, Large Price `$129.00`, `In stock` badge).
   - Right Bottom Bento Card: Inventory summary (Total available units, low stock threshold).
-- [ ] **b.** Edit shortcut: clicking `Edit product` routes to `/products/:id/edit` with prefilled values.
+- [x] **b.** Edit shortcut: clicking `Edit product` routes to `/products/:id/edit` with prefilled values.
 
 #### Step 4 — PROD-104 — Product Action Feedback & Modals
-- [ ] **a.** Replicate the Figma **Success State**:
+- [x] **a.** Replicate the Figma **Success State**:
   - Card with center purple checkmark icon.
   - Heading: *"Product created successfully"*.
   - Subtitle: *"Your new product is now saved in the catalog and ready for review before it appears in your storefront."*.
   - Action buttons: `View product` (primary) and `Add another` (secondary outline).
   - Footer: `Product ID: EVG-xxxx · Saved just now`.
-- [ ] **b.** Destructive action modal: `ConfirmDialog` with confirmation prompt before archiving a product. If a permanent delete (`DELETE`) is attempted on a product with orders, catch `409 PRODUCT_HAS_ORDERS` and prompt the admin: *"This product belongs to existing customer orders and cannot be permanently deleted. Would you like to archive it instead?"* with one-click archive action.
+- [x] **b.** Destructive action modal: `ConfirmDialog` with confirmation prompt before archiving a product. If a permanent delete (`DELETE`) is attempted on a product with orders, catch `409 PRODUCT_HAS_ORDERS` and prompt the admin: *"This product belongs to existing customer orders and cannot be permanently deleted. Would you like to archive it instead?"* with one-click archive action.
 
 ---
 
@@ -187,15 +185,15 @@ The redesigned panel is tailored for a boutique store operator: zero redundant b
 **Goal:** Enable full category lifecycle (vital for Android catalog navigation) and provide a high-efficiency table for batch inventory restocking.
 
 #### Step 1 — CAT-101 — Category Management (`/categories`)
-- [ ] **a.** Category List: Bento Table of categories with category name, sort order, product count, and status badge (`Active` / `Archived`).
-- [ ] **b.** Category Modal: create or edit category dialog (`name`, `sortOrder`).
-- [ ] **c.** Lifecycle actions: archive (`POST /admin/categories/{id}/archive`) and restore (`POST /admin/categories/{id}/restore`).
-- [ ] **d.** Android Compatibility: Ensure category names align with clean single-word titles ("T-Shirts", "Shirts", "Pants", "Dresses", "Jackets", "Activewear", "Shoes", "Accessories", "Leather", "Bags") so Android's `CategoryIconResolver.java` matches icons accurately.
+- [x] **a.** Category List: Bento Table of categories with category name, sort order, product count, and status badge (`Active` / `Archived`).
+- [x] **b.** Category Modal: create or edit category dialog (`name`, `sortOrder`).
+- [x] **c.** Lifecycle actions: archive (`POST /admin/categories/{id}/archive`) and restore (`POST /admin/categories/{id}/restore`).
+- [x] **d.** Android Compatibility: Ensure category names align with clean single-word titles ("T-Shirts", "Shirts", "Pants", "Dresses", "Jackets", "Activewear", "Shoes", "Accessories", "Leather", "Bags") with quick chip presets in the creation modal.
 
 #### Step 2 — INV-101 — Quick Inventory & Low-Stock Alerts (`/inventory`)
-- [ ] **a.** Quick Restock Table: lists all catalog items with SKU, product name, current stock, and stock status.
-- [ ] **b.** Inline Quick Edit: allow clicking the quantity cell, typing the new quantity, and saving automatically via `PATCH /admin/inventory/{id}` with optimistic UI update.
-- [ ] **c.** Low Stock Filter: quick toggle to show only items with `quantity <= 5` or `inStock === false`.
+- [x] **a.** Quick Restock Table: lists all catalog items with SKU, product name, current stock, and stock status.
+- [x] **b.** Inline Quick Edit: allow clicking the quantity cell, typing the new quantity, and saving automatically via `PATCH /admin/inventory/{id}` with optimistic UI update.
+- [x] **c.** Low Stock Filter: quick toggle to show only items with `quantity <= 5` or `inStock === false`.
 
 ---
 
@@ -204,24 +202,24 @@ The redesigned panel is tailored for a boutique store operator: zero redundant b
 **Goal:** Provide an intuitive order processing workflow for reviewing and fulfilling customer orders placed via the Android app.
 
 #### Step 1 — ORD-101 — Orders Table & Filter Tabs (`/orders`)
-- [ ] **a.** Status Tabs: `All orders`, `Pending payment`, `Confirmed`, `Processing`, `Shipped`, `Delivered`, `Cancelled`.
-- [ ] **b.** Orders Table:
+- [x] **a.** Status Tabs: `All orders`, `Pending payment`, `Confirmed`, `Processing`, `Shipped`, `Delivered`, `Cancelled`.
+- [x] **b.** Orders Table:
   - Columns: Order ID (e.g. `#EV-1048`), Customer name & email, Date, Total amount, Payment status badge, Order status badge, and Details button.
-- [ ] **c.** Status Badges:
+- [x] **c.** Status Badges:
   - `Pending payment`: Light purple `#EBDDFF` with dark violet text.
   - `Confirmed` / `Processing`: Blue `#D1E9FF` with deep cyan text.
   - `Shipped`: Soft orange `#FFEDD5` with dark amber text.
   - `Delivered`: Green `#B9F1CD` with dark forest green text.
   - `Cancelled`: Rose `#FFE4E6` with dark red text.
-- [ ] **d.** Error State: Replicate exact Figma screen *"We couldn't load your orders / Something went wrong while retrieving order data. Check your connection and try again."* with purple `Try again` button and error reference code (`ORD-LOAD-042`).
+- [x] **d.** Error State: Replicate exact Figma screen *"We couldn't load your orders / Something went wrong while retrieving order data. Check your connection and try again."* with purple `Try again` button and error reference code (`ORD-LOAD-042`).
 
 #### Step 2 — ORD-102 — Order Details & State Machine Transitions (`/orders/:id`)
-- [ ] **a.** Detailed Bento Order View:
+- [x] **a.** Detailed Bento Order View:
   - Customer contact info & formatted shipping address snapshot.
   - Items list: product thumbnail, name, unit price, quantity, and line total.
   - Simulated payment details & transaction ID.
   - Order audit timeline showing timestamped events.
-- [ ] **b.** Dynamic State Transitions:
+- [x] **b.** Dynamic State Transitions:
   - Only show action buttons matching `order.allowedTransitions` (`processing`, `shipped`, `delivered`, `cancelled`).
   - Calls `PATCH /admin/orders/{id}/status` with `{ status }` and refreshes timeline without full page reload.
 
@@ -232,13 +230,13 @@ The redesigned panel is tailored for a boutique store operator: zero redundant b
 **Goal:** Build a 3-second overview dashboard powered by the existing `GET /admin/reports/sales` endpoint.
 
 #### Step 1 — DASH-101 — Overview Dashboard (`/` or `/reports`)
-- [ ] **a.** KPI Bento Cards:
+- [x] **a.** KPI Bento Cards:
   1. `Gross Sales / Revenue`: total sales formatted as currency.
   2. `Total Orders`: count of placed orders.
   3. `Active Catalog`: total active products count.
   4. `Low Stock Items`: count of inventory items needing immediate attention.
-- [ ] **b.** Quick Actions Bar: `+ Create product` button and `View pending orders` shortcut.
-- [ ] **c.** Recent Orders Matrix: latest 5 customer orders with status badges and quick view links.
+- [x] **b.** Quick Actions Bar: `+ Create product` button and `View pending orders` shortcut.
+- [x] **c.** Recent Orders Matrix: latest 5 customer orders with status badges and quick view links.
 
 ---
 

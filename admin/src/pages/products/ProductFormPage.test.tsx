@@ -15,6 +15,7 @@ function categoryListRoute(): MockRoute {
 
 beforeEach(() => {
   window.localStorage.clear();
+  window.sessionStorage.clear();
 });
 
 afterEach(() => {
@@ -367,6 +368,45 @@ describe('ProductFormPage (A-03)', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('The image failed to upload.');
     expect(screen.getByText('No images yet.')).toBeInTheDocument();
     expect(screen.getByLabelText('Name')).toHaveValue('Aurora Desk Lamp');
+  });
+
+  it('create_form_restores_and_clears_draft_from_session_storage', async () => {
+    window.sessionStorage.setItem(
+      'eshopverse_admin_product_draft',
+      JSON.stringify({
+        name: 'Restored Ceramic Lamp',
+        price: '49.00',
+        sku: 'REST-01',
+      }),
+    );
+    mockApi([
+      sessionRoute(),
+      categoryListRoute(),
+      {
+        method: 'POST',
+        path: '/admin/products',
+        handler: () => jsonResponse(201, { data: product({ name: 'Restored Ceramic Lamp' }) }),
+      },
+      {
+        method: 'GET',
+        path: '/admin/products',
+        handler: () => jsonResponse(200, { data: [], pagination: pagination() }),
+      },
+    ]);
+    window.history.pushState({}, '', '/products/new');
+
+    render(<App />);
+
+    await screen.findByRole('heading', { level: 1, name: 'Create product' });
+    expect(screen.getByLabelText('Name')).toHaveValue('Restored Ceramic Lamp');
+    expect(screen.getByLabelText('Price (USD)')).toHaveValue('49.00');
+    expect(screen.getByLabelText(/^SKU/)).toHaveValue('REST-01');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    expect(
+      await screen.findByText('Restored Ceramic Lamp was created. Set its stock in Inventory.'),
+    ).toBeInTheDocument();
+    expect(window.sessionStorage.getItem('eshopverse_admin_product_draft')).toBeNull();
   });
 });
 

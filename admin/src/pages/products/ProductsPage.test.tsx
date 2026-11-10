@@ -331,5 +331,43 @@ describe('ProductsPage (A-02)', () => {
       'This product belongs to an existing order and cannot be deleted.',
     );
     expect(within(await findProductsTable()).getByText('Aurora Desk Lamp')).toBeInTheDocument();
+
+    // PROD-104: 1-click fallback to archive the conflicted product
+    fireEvent.click(screen.getByRole('button', { name: 'Archive product instead' }));
+    expect(await screen.findByRole('dialog', { name: 'Archive Aurora Desk Lamp?' })).toBeInTheDocument();
+  });
+
+  it('product_creation_success_state_renders_view_and_add_another_actions', async () => {
+    mockApi([
+      sessionRoute(),
+      categoryListRoute([]),
+      productsRoute(() =>
+        jsonResponse(200, { data: [product({ id: 42, name: 'Ceramic Lamp' })], pagination: pagination(1, 20, 1, 1) }),
+      ),
+    ]);
+    window.history.pushState(
+      {
+        usr: {
+          feedback: 'Ceramic Lamp was created. Set its stock in Inventory.',
+          createdProduct: { id: 42, name: 'Ceramic Lamp' },
+        },
+        key: 'default',
+      },
+      '',
+      '/products',
+    );
+
+    render(<App />);
+
+    expect(await screen.findByText('Product created successfully')).toBeInTheDocument();
+    expect(screen.getByText(/Product ID: EVG-0042/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'View product' })).toHaveAttribute(
+      'href',
+      '/products/42',
+    );
+    expect(screen.getByRole('link', { name: 'Add another' })).toHaveAttribute(
+      'href',
+      '/products/new',
+    );
   });
 });
