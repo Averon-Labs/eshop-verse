@@ -245,7 +245,6 @@ export default function OrdersPage() {
               id="orders-date-range"
               fromValue={fromFilter}
               toValue={toFilter}
-              label="Date range"
               placeholder="All dates"
               onChange={(from, to) => {
                 setFromFilter(from);
