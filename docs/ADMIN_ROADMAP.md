@@ -285,3 +285,125 @@ upload archive is `deploy/eshopverse-admin-dist.zip`; live upload is the owner's
 - [x] **c.** Loading, empty, error/retry, and `401` states follow the shared panels; a custom range with `from` after `to` is rejected before the request, and no report data is invented client-side.
 
 **Verification (2026-10-29, builder):** `admin/src/api/reports.ts` wraps the contract endpoint, `types.ts` mirrors the `SalesReport*` schemas, and `ReportsPage` derives the KPI/chart/status-mix presentation from the server response while inline SVG bars avoid a chart dependency. `App.tsx` and `AppShell` add the route and destination. `ReportsPage.test.tsx` covers the rendered summary, chart and rankings, preset/custom range requests, the local range guard, empty and error/retry states, and the `401` redirect. Evidence: `npm run typecheck`, `npm run lint`, `npm test`, `npm run check:contrast`, and `npm run build` all pass. Pending: independent tester stage and the owner's Git/PR step.
+
+## Phase 6 — Store Settings and Security
+
+**Project phase gate:** admin-owned store settings and profile security enhancements.
+
+### Step 1 — SET-101 — Store settings and admin profile security
+
+**Status:** `[x]`
+
+**Depends on:** AUTH-003
+
+**Scope:** implement store profile management, regional preferences, and authenticated password changes.
+
+**Acceptance criteria:**
+- [x] **a.** Store profile form updates store name, support email, and currency preferences.
+- [x] **b.** Regional settings configure timezone, date formatting, and measurement units.
+- [x] **c.** Password change securely validates existing password and enforces password confirmation.
+
+**Verification:** covered by `SettingsPage.test.tsx` and full suite verification.
+
+## Phase 7 — Quality Assurance and Sidebar Responsive Polish
+
+**Project phase gate:** repository maintenance, WCAG contrast verification, and responsive navigation polish.
+
+### Step 1 — QA-001 — Full test suite verification, contrast audit, and sidebar portal clipping fix
+
+**Status:** `[x]`
+
+**Depends on:** SET-101, RPT-002
+
+**Scope:** audit color contrast across Light/Dark modes, resolve sidebar overflow clipping via React Portal, and verify 100% passing test suite.
+
+**Acceptance criteria:**
+- [x] **a.** Verify 100% pass rate across all Vitest test suites (116/116 tests green).
+- [x] **b.** Audit all 34 color contrast pairs for WCAG 2.2 AA compliance.
+- [x] **c.** Fix sidebar "More" navigation overflow clipping using `createPortal` with fixed floating positioning.
+
+**Verification:** 17 test files passed (116 tests), `npm run check:contrast` clean, production build deployed to Wasmer Edge.
+
+## Phase 8 — Dribbble-Grade UI/UX Controls and Mobile Polish
+
+**Project phase gate:** Dribbble-level aesthetic modernization, custom form controls, and mobile-first touch ergonomics.
+
+### Step 1 — UI-801 — CustomSelect and DateRangePicker core components
+
+**Status:** `[ ]`
+
+**Depends on:** QA-001
+
+**Scope:** build reusable, accessible, Dribbble-grade custom dropdown and date range picker components in `admin/src/components/ui/` adhering to the Evergreen design system tokens.
+
+**Acceptance criteria:**
+- [ ] **a.** Build `CustomSelect`: floating portal menu, animated chevron, status dot indicator for order/product states, full keyboard navigation (Up/Down/Enter/Escape), and 44px touch targets.
+- [ ] **b.** Build `DateRangePicker`: unified capsule trigger displaying selected date range, quick presets column (Today, Yesterday, Last 7/30 days, This month), and interactive calendar grid styled with `--brand-primary` and continuous range highlights.
+- [ ] **c.** Support responsive rendering: floating popover on desktop viewports, and native-feeling **Bottom Sheet modal** on mobile screens (`< 640px`) to prevent viewport clipping.
+- [ ] **d.** Zero new external dependencies (pure React 19 + Tailwind v4); 100% Light and Dark mode parity using existing CSS tokens (`globals.css`).
+
+**Verification:** unit tests for `CustomSelect` and `DateRangePicker`, keyboard accessibility checks, and mobile viewport bounding tests.
+
+### Step 2 — UI-802 — Orders page filter modernization and mobile ergonomics
+
+**Status:** `[ ]`
+
+**Depends on:** UI-801
+
+**Scope:** replace native HTML selects and dual date inputs in `OrdersPage.tsx` with `CustomSelect` and `DateRangePicker`, optimizing mobile layout and touch experience.
+
+**Acceptance criteria:**
+- [ ] **a.** Replace native `<select id="orders-status">` with `CustomSelect` showing color-coded status dots (Delivered: green, Processing: amber, Confirmed: purple, Cancelled: red).
+- [ ] **b.** Replace dual native `<input type="date">` (`orders-from` and `orders-to`) with single unified `DateRangePicker`.
+- [ ] **c.** Optimize mobile layout: prevent filter stacking from taking excessive vertical viewport space, ensuring quick reach to order cards.
+- [ ] **d.** Preserve 100% backwards compatibility with existing URL search parameters, filter state, and all 10 `OrdersPage.test.tsx` test scenarios.
+
+**Verification:** `npm test OrdersPage.test.tsx`, visual inspection across mobile (375px) and desktop (1280px) viewports.
+
+### Step 3 — UI-803 — Order detail status pipeline and transition ergonomics
+
+**Status:** `[ ]`
+
+**Depends on:** UI-801, UI-802
+
+**Scope:** modernize the fulfillment status transition UI in `OrderDetailPage.tsx` from a plain select box to an interactive status pipeline.
+
+**Acceptance criteria:**
+- [ ] **a.** Transform status transition into an interactive visual pipeline displaying order flow and permitted next transitions.
+- [ ] **b.** Provide clear visual feedback for permitted transitions vs terminal states.
+- [ ] **c.** Optimize touch interactions on mobile for confirming status changes.
+- [ ] **d.** Maintain all existing server confirmation safety guards and passing tests in `OrderDetailPage.test.tsx`.
+
+**Verification:** `npm test OrderDetailPage.test.tsx` and manual transition testing.
+
+### Step 4 — UI-804 — Catalog, inventory, and reports filter modernization
+
+**Status:** `[ ]`
+
+**Depends on:** UI-801, UI-802
+
+**Scope:** roll out `CustomSelect` and `DateRangePicker` across `ProductsPage.tsx`, `CategoriesPage.tsx`, `InventoryPage.tsx`, and `ReportsPage.tsx`.
+
+**Acceptance criteria:**
+- [ ] **a.** Modernize category and status filters on `ProductsPage.tsx` using `CustomSelect`.
+- [ ] **b.** Modernize status filter on `CategoriesPage.tsx` and inventory availability filter on `InventoryPage.tsx`.
+- [ ] **c.** Modernize custom date range selection in `ReportsPage.tsx` using `DateRangePicker`, maintaining date preset synchronization.
+- [ ] **d.** Verify that all existing page unit tests continue passing without regression.
+
+**Verification:** `npm test` across all affected page test suites.
+
+### Step 5 — UI-805 — Responsive mobile drawer and desktop-mode-on-mobile polish
+
+**Status:** `[ ]`
+
+**Depends on:** UI-802, UI-803, UI-804
+
+**Scope:** eliminate redundant titles in mobile navigation drawer, verify touch targets, and audit "Desktop site" on mobile devices.
+
+**Acceptance criteria:**
+- [ ] **a.** Remove duplicate "EVERGREEN" brand header inside the mobile drawer in `Sidebar.tsx` when `isMobile` is true.
+- [ ] **b.** Audit and enforce minimum 44px touch targets across all interactive buttons, calendar cells, and select options for mobile and touch devices.
+- [ ] **c.** Ensure table scroll containers on touch screens have proper scroll indicators and boundary clipping guards.
+- [ ] **d.** Verify complete test suite (all 116+ tests), production build, and live deployment to Wasmer Edge host.
+
+**Verification:** `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`, and live Wasmer deployment verification.
