@@ -79,32 +79,32 @@ The redesigned panel is tailored for a boutique store operator: zero redundant b
 **Goal:** Establish the foundational CSS variables, Inter typography, dark mode engine, and the signature floating sidebar with inverted fillet active states and mobile/tablet responsiveness.
 
 #### Step 1 — TOK-001 — Evergreen Material 3 Design Tokens & Theme Engine
-- [ ] **a.** Inject the full 102 semantic variables into `admin/src/globals.css` with `:root` (Light) and `.dark` (Dark) definitions.
-- [ ] **b.** Configure Tailwind CSS theme extensions in `admin/tailwind.config.js` or CSS variable mappings (`bg-surface`, `bg-sidebar`, `text-primary`, `text-secondary`, `brand-primary`, `border-outline`).
-- [ ] **c.** Integrate font **Inter** (weights 400 Regular, 500 Medium, 600 SemiBold, 700 Bold) as the primary font family.
-- [ ] **d.** Modernize `admin/src/theme/ThemeContext.tsx` to toggle the `.dark` class on `document.documentElement` and persist choice in `localStorage`.
-- [ ] **e.** Verify contrast ratios according to WCAG 2.2 AA (minimum 4.5:1 for body text, 3:1 for large headers and status badges).
+- [x] **a.** Inject the full 102 semantic variables into `admin/src/globals.css` with `:root` (Light) and `.dark` (Dark) definitions.
+- [x] **b.** Configure Tailwind CSS theme extensions in `admin/tailwind.config.js` or CSS variable mappings (`bg-surface`, `bg-sidebar`, `text-primary`, `text-secondary`, `brand-primary`, `border-outline`).
+- [x] **c.** Integrate font **Inter** (weights 400 Regular, 500 Medium, 600 SemiBold, 700 Bold) as the primary font family.
+- [x] **d.** Modernize `admin/src/theme/ThemeContext.tsx` to toggle the `.dark` class on `document.documentElement` and persist choice in `localStorage`.
+- [x] **e.** Verify contrast ratios according to WCAG 2.2 AA (minimum 4.5:1 for body text, 3:1 for large headers and status badges).
 
 #### Step 2 — SHELL-001 — Floating Sidebar with Inverted Border Radius (Inverse Fillet) & Responsive Drawer
-- [ ] **a.** Create `admin/src/components/Sidebar.tsx` with floating geometry: width `228px`, height calc `100vh - 64px`, margin `32px`, `border-radius: 32px`, background `#EDECF6` (light) / `#12182E` (dark).
-- [ ] **b.** Build the brand header (`EVERGREEN COMMERCE ADMIN` / `ESHOP VERSE`) with 18px SemiBold text and small descriptor.
-- [ ] **c.** Implement the core navigation links:
+- [x] **a.** Create `admin/src/components/Sidebar.tsx` with floating geometry: width `228px`, height calc `100vh - 64px`, margin `32px`, `border-radius: 32px`, background `#EDECF6` (light) / `#12182E` (dark).
+- [x] **b.** Build the brand header (`EVERGREEN COMMERCE ADMIN` / `ESHOP VERSE`) with 18px SemiBold text and small descriptor.
+- [x] **c.** Implement the core navigation links:
   1. `Overview` (Icon: Layout Dashboard, `/reports` or `/`)
   2. `Products` (Icon: Tag, `/products`)
   3. `Categories` (Icon: Folder / Grid, `/categories`)
   4. `Orders` (Icon: Shopping Cart, `/orders`)
   5. `Inventory` (Icon: Archive / Package, `/inventory`)
   6. `Settings` (Icon: Settings, `/settings`)
-- [ ] **d.** Implement the **Inverted Border Radius (Inverse Fillet Curve)** for the active route:
+- [x] **d.** Implement the **Inverted Border Radius (Inverse Fillet Curve)** for the active route:
   - The active tab background matches the main canvas background (`#F7F7FC` / `#0B1021`).
   - Top and bottom outer corners smoothly scoop into the main body using `::before` (`border-bottom-right-radius: 28px`) and `::after` (`border-top-right-radius: 28px`) with box-shadow fills.
-- [ ] **e.** Responsive Behavior: On screens `< 1280px`, sidebar collapses into a slide-over mobile drawer or compact icon bar with hamburger toggle.
-- [ ] **f.** Add bottom store status pill (`● Store online` in `#B9F1CD` container).
+- [x] **e.** Responsive Behavior: On screens `< 1280px`, sidebar collapses into a slide-over mobile drawer or compact icon bar with hamburger toggle.
+- [x] **f.** Add bottom store status pill (`● Store online` in `#B9F1CD` container).
 
 #### Step 3 — SHELL-002 — Top Header Bar & Search Shell
-- [ ] **a.** Build `admin/src/components/TopBar.tsx`: search bar with rounded-16px container, `⌕` search icon, and placeholder `Search anything...`.
-- [ ] **b.** Add theme toggle button: rounded-20px pill (`40px` height) with animated `☾` (moon) and `☼` (sun) icons.
-- [ ] **c.** Add Admin user dropdown: displays avatar / `Admin ▾` with logout action connected to Sanctum session invalidation.
+- [x] **a.** Build `admin/src/components/TopBar.tsx`: search bar with rounded-16px container, `⌕` search icon, and placeholder `Search anything...`.
+- [x] **b.** Add theme toggle button: rounded-20px pill (`40px` height) with animated `☾` (moon) and `☼` (sun) icons.
+- [x] **c.** Add Admin user dropdown: displays avatar / `Admin ▾` with logout action connected to Sanctum session invalidation.
 
 ---
 
@@ -274,7 +274,7 @@ The redesigned panel is tailored for a boutique store operator: zero redundant b
 
 | Phase | Milestone | Deliverable | Status |
 | :--- | :--- | :--- | :--- |
-| **Phase 0** | Design Tokens & Shell | 102 tokens, Inter font, Floating Sidebar with Inverted Fillet & Responsive Drawer | `Planned` |
+| **Phase 0** | Design Tokens & Shell | 102 tokens, Inter font, Floating Sidebar with Inverted Fillet & Responsive Drawer | `Completed` |
 | **Phase 1** | Auth & Legal | Redesigned Login, Forgot Password, Legal Pages | `Planned` |
 | **Phase 2** | Catalog Engine | Populated Products Table, Create Product Orchestration, Details, Success Modal | `Planned` |
 | **Phase 3** | Stock & Categories | Quick Restock Inventory Matrix, Category CRUD & Android Icon Alignment | `Planned` |
