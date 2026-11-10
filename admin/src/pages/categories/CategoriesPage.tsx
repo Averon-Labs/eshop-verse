@@ -13,6 +13,7 @@ import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { Dialog } from '../../components/Dialog';
 import { EmptyPanel, ErrorPanel, FeedbackBanner, TableSkeleton } from '../../components/StatePanels';
 import { StatusBadge } from '../../components/StatusBadge';
+import { CustomSelect } from '../../components/ui';
 import {
   actionButtonClass,
   cardClass,
@@ -418,9 +419,22 @@ export default function CategoriesPage() {
           <label htmlFor="categories-status" className={labelClass}>
             Status
           </label>
+          <div className="mt-1">
+            <CustomSelect
+              id="categories-status-custom"
+              value={statusFilter}
+              placeholder="All statuses"
+              onChange={(val) => setStatusFilter(val)}
+              options={[
+                { value: '', label: 'All statuses' },
+                { value: 'active', label: 'Active' },
+                { value: 'archived', label: 'Archived' },
+              ]}
+            />
+          </div>
           <select
             id="categories-status"
-            className={`${inputClass} mt-1`}
+            className="sr-only pointer-events-none absolute h-0 w-0 opacity-0"
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value)}
           >

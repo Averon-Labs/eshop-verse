@@ -7,6 +7,7 @@ import { Dialog } from '../../components/Dialog';
 import { Pagination } from '../../components/Pagination';
 import { EmptyPanel, ErrorPanel, FeedbackBanner, TableSkeleton } from '../../components/StatePanels';
 import { StatusBadge } from '../../components/StatusBadge';
+import { CustomSelect } from '../../components/ui';
 import { formatDateTime } from '../../lib/format';
 import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import {
@@ -257,9 +258,25 @@ export default function InventoryPage() {
           <label htmlFor="inventory-availability" className={labelClass}>
             Availability
           </label>
+          <div className="mt-1">
+            <CustomSelect
+              id="inventory-availability-custom"
+              value={availability}
+              placeholder="All rows"
+              onChange={(val) => {
+                setAvailability(val);
+                setPage(1);
+              }}
+              options={[
+                { value: '', label: 'All rows' },
+                { value: 'in-stock', label: 'In stock' },
+                { value: 'out-of-stock', label: 'Out of stock' },
+              ]}
+            />
+          </div>
           <select
             id="inventory-availability"
-            className={`${inputClass} mt-1`}
+            className="sr-only pointer-events-none absolute h-0 w-0 opacity-0"
             value={availability}
             onChange={(event) => {
               setAvailability(event.target.value);

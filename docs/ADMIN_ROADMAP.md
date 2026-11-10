@@ -378,19 +378,19 @@ upload archive is `deploy/eshopverse-admin-dist.zip`; live upload is the owner's
 
 ### Step 4 — UI-804 — Catalog, inventory, and reports filter modernization
 
-**Status:** `[ ]`
+**Status:** `[x]`
 
 **Depends on:** UI-801, UI-802
 
 **Scope:** roll out `CustomSelect` and `DateRangePicker` across `ProductsPage.tsx`, `CategoriesPage.tsx`, `InventoryPage.tsx`, and `ReportsPage.tsx`.
 
 **Acceptance criteria:**
-- [ ] **a.** Modernize category and status filters on `ProductsPage.tsx` using `CustomSelect`.
-- [ ] **b.** Modernize status filter on `CategoriesPage.tsx` and inventory availability filter on `InventoryPage.tsx`.
-- [ ] **c.** Modernize custom date range selection in `ReportsPage.tsx` using `DateRangePicker`, maintaining date preset synchronization.
-- [ ] **d.** Verify that all existing page unit tests continue passing without regression.
+- [x] **a.** Modernize category and status filters on `ProductsPage.tsx` using `CustomSelect`.
+- [x] **b.** Modernize status filter on `CategoriesPage.tsx` and inventory availability filter on `InventoryPage.tsx`.
+- [x] **c.** Modernize custom date range selection in `ReportsPage.tsx` using `DateRangePicker`, maintaining date preset synchronization.
+- [x] **d.** Verify that all existing page unit tests continue passing without regression.
 
-**Verification:** `npm test` across all affected page test suites.
+**Verification:** rolled out `CustomSelect` across Products (category & status), Categories (status), and Inventory (availability) filters; replaced dual date inputs in `ReportsPage.tsx` with `DateRangePicker`. All 19 test files (123 tests) passing clean, type checking clean, and Vite production bundle generated (`index-YO0EUExX.css`, `index-BVsij2RK.js`).
 
 ### Step 5 — UI-805 — Responsive mobile drawer and desktop-mode-on-mobile polish
 
