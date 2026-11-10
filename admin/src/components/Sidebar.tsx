@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { NavLink, useLocation } from 'react-router-dom';
 
 /* --- Evergreen Navigation Icons (Figma Specifications) --- */
@@ -190,6 +191,61 @@ export function Sidebar({ isMobile = false, onNavigate, onItemClick }: SidebarPr
   const popoverRef = useRef<HTMLDivElement | null>(null);
   const [moreOpen, setMoreOpen] = useState(false);
   const [asideHeight, setAsideHeight] = useState<number>(800);
+  const isItemActive = (to: string): boolean => {
+    if (to === '/products') {
+      return location.pathname.startsWith('/products');
+    }
+    if (to === '/orders') {
+      return location.pathname.startsWith('/orders');
+    }
+    if (to === '/reports') {
+      return location.pathname === '/reports' || location.pathname === '/';
+    }
+    return location.pathname.startsWith(to);
+  };
+
+  // Determine if items need to collapse into "More"
+  // Each item is 56px (h-14) + 8px (gap-2) = 64px.
+  // Header: ~85px. Store status: ~80px. Margins: ~50px. Total fixed ~215px.
+  // Full 6 items need ~215 + 6 * 64 = 599px (~600px).
+  let visibleItems = NAV_ITEMS;
+  let overflowItems: NavItem[] = [];
+
+  if (!isMobile && asideHeight < 600) {
+    // We need 1 slot for "More" button (64px)
+    const availableForNav = Math.max(128, asideHeight - 215);
+    const maxVisible = Math.max(1, Math.min(NAV_ITEMS.length - 1, Math.floor((availableForNav - 64) / 64)));
+    visibleItems = NAV_ITEMS.slice(0, maxVisible);
+    overflowItems = NAV_ITEMS.slice(maxVisible);
+  }
+
+  const isMoreActive = overflowItems.some((item) => isItemActive(item.to));
+  const [popoverCoords, setPopoverCoords] = useState<{ top: number; left: number } | null>(null);
+
+
+  useEffect(() => {
+    if (!moreOpen || !moreButtonRef.current) return;
+
+    function updateCoords() {
+      if (moreButtonRef.current) {
+        const rect = moreButtonRef.current.getBoundingClientRect();
+        const popoverHeight = Math.min(320, overflowItems.length * 48 + 60);
+        const top = Math.max(16, Math.min(rect.top - 20, window.innerHeight - popoverHeight - 16));
+        setPopoverCoords({
+          top,
+          left: rect.right + 12,
+        });
+      }
+    }
+
+    updateCoords();
+    window.addEventListener('resize', updateCoords);
+    window.addEventListener('scroll', updateCoords, true);
+    return () => {
+      window.removeEventListener('resize', updateCoords);
+      window.removeEventListener('scroll', updateCoords, true);
+    };
+  }, [moreOpen, overflowItems.length]);
 
   useEffect(() => {
     if (isMobile) return;
@@ -257,35 +313,6 @@ export function Sidebar({ isMobile = false, onNavigate, onItemClick }: SidebarPr
     };
   }, [moreOpen]);
 
-  const isItemActive = (to: string): boolean => {
-    if (to === '/products') {
-      return location.pathname.startsWith('/products');
-    }
-    if (to === '/orders') {
-      return location.pathname.startsWith('/orders');
-    }
-    if (to === '/reports') {
-      return location.pathname === '/reports' || location.pathname === '/';
-    }
-    return location.pathname.startsWith(to);
-  };
-
-  // Determine if items need to collapse into "More"
-  // Each item is 56px (h-14) + 8px (gap-2) = 64px.
-  // Header: ~85px. Store status: ~80px. Margins: ~50px. Total fixed ~215px.
-  // Full 6 items need ~215 + 6 * 64 = 599px (~600px).
-  let visibleItems = NAV_ITEMS;
-  let overflowItems: NavItem[] = [];
-
-  if (!isMobile && asideHeight < 600) {
-    // We need 1 slot for "More" button (64px)
-    const availableForNav = Math.max(128, asideHeight - 215);
-    const maxVisible = Math.max(1, Math.min(NAV_ITEMS.length - 1, Math.floor((availableForNav - 64) / 64)));
-    visibleItems = NAV_ITEMS.slice(0, maxVisible);
-    overflowItems = NAV_ITEMS.slice(maxVisible);
-  }
-
-  const isMoreActive = overflowItems.some((item) => isItemActive(item.to));
 
   return (
     <aside
@@ -354,10 +381,12 @@ export function Sidebar({ isMobile = false, onNavigate, onItemClick }: SidebarPr
               aria-expanded={moreOpen}
               onClick={() => setMoreOpen((open: boolean) => !open)}
               className={[
-                'relative flex h-14 w-full items-center gap-3 rounded-l-[28px] px-4 text-[15px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] border-0 shadow-none text-left',
+                'relative flex h-14 w-full items-center gap-3 rounded-l-[28px] px-4 text-[15px] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] border-0 shadow-none text-left',
                 isMoreActive
                   ? 'bg-[var(--bg-background)] font-semibold text-[var(--navigation-selected-content)] -mr-[6px] w-[calc(100%+6px)] z-10'
-                  : 'font-medium text-[var(--navigation-default-content)] hover:bg-[var(--interaction-hover-overlay)] hover:text-[var(--text-on-background)]',
+                  : moreOpen
+                    ? 'bg-[var(--brand-primary-container)]/40 font-semibold text-[var(--brand-primary)]'
+                    : 'font-medium text-[var(--navigation-default-content)] hover:bg-[var(--interaction-hover-overlay)] hover:text-[var(--text-on-background)]',
               ].join(' ')}
             >
               {isMoreActive && (
@@ -366,26 +395,47 @@ export function Sidebar({ isMobile = false, onNavigate, onItemClick }: SidebarPr
                   <BottomFillet />
                 </>
               )}
-              <span className={isMoreActive ? 'text-[var(--brand-primary)]' : 'text-current'}>
+              <span className={isMoreActive || moreOpen ? 'text-[var(--brand-primary)]' : 'text-current'}>
                 <MoreIcon />
               </span>
-              <span className="truncate">More</span>
-              <span className="ml-auto mr-3 text-xs opacity-60">
-                {moreOpen ? '‹' : '›'}
+              <span className="truncate font-semibold">More</span>
+              <span className="ml-auto mr-3 flex items-center">
+                <svg
+                  className={`h-4 w-4 shrink-0 transition-transform duration-200 ${
+                    moreOpen ? 'rotate-90 text-[var(--brand-primary)]' : 'text-[var(--text-disabled)]'
+                  }`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
               </span>
             </button>
 
-            {/* Floating Popover showing hidden navigation items */}
-            {moreOpen && (
+            {/* Floating Popover showing hidden navigation items - rendered via portal to prevent clipping */}
+            {moreOpen && popoverCoords && typeof document !== 'undefined' && createPortal(
               <div
                 ref={popoverRef}
                 role="menu"
                 aria-label="More navigation items"
-                className="absolute left-[calc(100%+14px)] bottom-0 z-50 min-w-[210px] rounded-2xl border border-[var(--border-outline-variant)] bg-[var(--bg-surface)] p-2 shadow-2xl animate-scale-in"
+                style={{
+                  position: 'fixed',
+                  top: `${popoverCoords.top}px`,
+                  left: `${popoverCoords.left}px`,
+                }}
+                className="z-[9999] min-w-[220px] rounded-2xl border border-[var(--border-outline-variant)] bg-[var(--bg-surface)] p-2 shadow-2xl animate-scale-in"
               >
-                <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--text-disabled)]">
-                  More sections
-                </p>
+                <div className="flex items-center justify-between px-3 py-1.5 border-b border-[var(--border-outline-variant)] mb-1">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-disabled)]">
+                    More sections
+                  </p>
+                  <span className="text-[10px] font-semibold text-[var(--brand-primary)] bg-[var(--brand-primary-container)] px-2 py-0.5 rounded-full">
+                    {overflowItems.length}
+                  </span>
+                </div>
                 <div className="flex flex-col gap-1">
                   {overflowItems.map((item) => {
                     const active = isItemActive(item.to);
@@ -415,7 +465,8 @@ export function Sidebar({ isMobile = false, onNavigate, onItemClick }: SidebarPr
                     );
                   })}
                 </div>
-              </div>
+              </div>,
+              document.body,
             )}
           </div>
         )}
