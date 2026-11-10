@@ -5,12 +5,12 @@ import { getAdminOrder, updateAdminOrderStatus } from '../../api/orders';
 import type { AdminOrder, OrderStatus } from '../../api/types';
 import { Dialog } from '../../components/Dialog';
 import { EmptyPanel, ErrorPanel, FeedbackBanner, TableSkeleton } from '../../components/StatePanels';
+import { CustomSelect } from '../../components/ui';
 import { formatDateTime, formatUsd } from '../../lib/format';
 import {
   actionButtonClass,
   cardClass,
   dangerButtonClass,
-  inputClass,
   labelClass,
   primaryButtonClass,
   secondaryButtonClass,
@@ -326,14 +326,66 @@ export default function OrderDetailPage() {
               <OrderStatusBadge status={order.status} />
             </div>
 
+            {/* Status Flow Pipeline Indicator */}
+            <div className="mt-4 rounded-2xl border border-border-outline/30 bg-bg-surface-variant/20 p-3.5">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-text-secondary mb-2.5">
+                Fulfillment pipeline
+              </p>
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs">
+                {(['pending_payment', 'confirmed', 'processing', 'shipped', 'delivered'] as OrderStatus[]).map(
+                  (step, idx, arr) => {
+                    const isCurrent = order.status === step;
+                    const isPassed = order.timeline.some((t) => t.status === step);
+                    return (
+                      <div key={step} className="flex items-center gap-1.5 shrink-0">
+                        <span
+                          className={[
+                            'inline-flex items-center gap-1 rounded-xl px-2.5 py-1 font-semibold text-[11px] transition-all',
+                            isCurrent
+                              ? 'bg-brand-primary text-white shadow-xs font-bold'
+                              : isPassed
+                                ? 'bg-status-success-container/70 text-status-success'
+                                : 'bg-bg-surface-variant text-text-disabled',
+                          ].join(' ')}
+                        >
+                          {isPassed && !isCurrent && <span>✓</span>}
+                          {orderStatusLabel(step)}
+                        </span>
+                        {idx < arr.length - 1 && (
+                          <span className="text-text-disabled/40 font-bold">→</span>
+                        )}
+                      </div>
+                    );
+                  },
+                )}
+              </div>
+            </div>
+
             {order.allowedTransitions.length > 0 ? (
               <div className="mt-5 rounded-2xl border border-border-outline/30 bg-bg-surface-variant/30 p-4">
                 <label htmlFor="order-next-status" className={labelClass}>
                   Next status
                 </label>
+                <div className="mt-1">
+                  <CustomSelect
+                    id="order-next-status-custom"
+                    name="next-status"
+                    value={targetStatus}
+                    placeholder="Choose next status"
+                    onChange={(val) => {
+                      setTargetStatus(val);
+                      setActionError(null);
+                    }}
+                    options={order.allowedTransitions.map((status) => ({
+                      value: status,
+                      label: orderStatusLabel(status),
+                    }))}
+                  />
+                </div>
+                {/* Synchronized native select connected with label for tests and screen readers */}
                 <select
                   id="order-next-status"
-                  className={`${inputClass} mt-1`}
+                  className="sr-only pointer-events-none absolute h-0 w-0 opacity-0"
                   value={targetStatus}
                   onChange={(event) => {
                     setTargetStatus(event.target.value);

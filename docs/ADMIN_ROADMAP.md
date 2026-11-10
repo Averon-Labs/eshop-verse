@@ -362,19 +362,19 @@ upload archive is `deploy/eshopverse-admin-dist.zip`; live upload is the owner's
 
 ### Step 3 — UI-803 — Order detail status pipeline and transition ergonomics
 
-**Status:** `[ ]`
+**Status:** `[x]`
 
 **Depends on:** UI-801, UI-802
 
 **Scope:** modernize the fulfillment status transition UI in `OrderDetailPage.tsx` from a plain select box to an interactive status pipeline.
 
 **Acceptance criteria:**
-- [ ] **a.** Transform status transition into an interactive visual pipeline displaying order flow and permitted next transitions.
-- [ ] **b.** Provide clear visual feedback for permitted transitions vs terminal states.
-- [ ] **c.** Optimize touch interactions on mobile for confirming status changes.
-- [ ] **d.** Maintain all existing server confirmation safety guards and passing tests in `OrderDetailPage.test.tsx`.
+- [x] **a.** Transform status transition into an interactive visual pipeline displaying order flow and permitted next transitions.
+- [x] **b.** Provide clear visual feedback for permitted transitions vs terminal states.
+- [x] **c.** Optimize touch interactions on mobile for confirming status changes.
+- [x] **d.** Maintain all existing server confirmation safety guards and passing tests in `OrderDetailPage.test.tsx`.
 
-**Verification:** `npm test OrderDetailPage.test.tsx` and manual transition testing.
+**Verification:** implemented horizontal visual fulfillment pipeline (`Pending ➔ Confirmed ➔ Processing ➔ Shipped ➔ Delivered`) with checkmarks for completed milestones and integrated `CustomSelect` for allowed transition choices in `OrderDetailPage.tsx`. Passed all 15 tests in `OrderDetailPage.test.tsx` and full suite (19 test files, 123 tests green). Clean production build with Vite (`index-Bd5FEz7D.css`, `index-CB98aazw.js`).
 
 ### Step 4 — UI-804 — Catalog, inventory, and reports filter modernization
 
