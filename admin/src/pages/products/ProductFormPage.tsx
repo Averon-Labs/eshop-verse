@@ -340,7 +340,10 @@ export default function ProductFormPage() {
         }
         navigate('/products', {
           replace: true,
-          state: { feedback: `${created.name} was created. Set its stock in Inventory.` },
+          state: {
+            feedback: `${created.name} was created. Set its stock in Inventory.`,
+            createdProduct: { id: created.id, name: created.name, sku: created.sku },
+          },
         });
       }
     } catch (error) {

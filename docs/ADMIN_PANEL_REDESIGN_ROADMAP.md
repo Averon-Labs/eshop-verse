@@ -170,13 +170,13 @@ The redesigned panel is tailored for a boutique store operator: zero redundant b
 - [x] **b.** Edit shortcut: clicking `Edit product` routes to `/products/:id/edit` with prefilled values.
 
 #### Step 4 — PROD-104 — Product Action Feedback & Modals
-- [ ] **a.** Replicate the Figma **Success State**:
+- [x] **a.** Replicate the Figma **Success State**:
   - Card with center purple checkmark icon.
   - Heading: *"Product created successfully"*.
   - Subtitle: *"Your new product is now saved in the catalog and ready for review before it appears in your storefront."*.
   - Action buttons: `View product` (primary) and `Add another` (secondary outline).
   - Footer: `Product ID: EVG-xxxx · Saved just now`.
-- [ ] **b.** Destructive action modal: `ConfirmDialog` with confirmation prompt before archiving a product. If a permanent delete (`DELETE`) is attempted on a product with orders, catch `409 PRODUCT_HAS_ORDERS` and prompt the admin: *"This product belongs to existing customer orders and cannot be permanently deleted. Would you like to archive it instead?"* with one-click archive action.
+- [x] **b.** Destructive action modal: `ConfirmDialog` with confirmation prompt before archiving a product. If a permanent delete (`DELETE`) is attempted on a product with orders, catch `409 PRODUCT_HAS_ORDERS` and prompt the admin: *"This product belongs to existing customer orders and cannot be permanently deleted. Would you like to archive it instead?"* with one-click archive action.
 
 ---
 

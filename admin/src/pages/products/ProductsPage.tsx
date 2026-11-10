@@ -135,16 +135,28 @@ export default function ProductsPage() {
   const [archiveTarget, setArchiveTarget] = useState<AdminProduct | null>(null);
   const [archiving, setArchiving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<AdminProduct | null>(null);
+  const [deleteConflictProduct, setDeleteConflictProduct] = useState<AdminProduct | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [createdProduct, setCreatedProduct] = useState<{
+    id: number;
+    name: string;
+    sku?: string | null;
+  } | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
   // Feedback handed over by the product form after a create/update.
   useEffect(() => {
-    const state = location.state as { feedback?: string } | null;
+    const state = location.state as {
+      feedback?: string;
+      createdProduct?: { id: number; name: string; sku?: string | null };
+    } | null;
 
     if (state?.feedback) {
       setFeedback(state.feedback);
+      if (state.createdProduct) {
+        setCreatedProduct(state.createdProduct);
+      }
       navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
     }
   }, [location, navigate]);
@@ -252,13 +264,22 @@ export default function ProductsPage() {
       const removed = deleteTarget.name;
       await deleteAdminProduct(deleteTarget.id);
       setDeleteTarget(null);
+      setDeleteConflictProduct(null);
       setFeedback(`${removed} was deleted, including its images.`);
     } catch (error) {
-      // 409 PRODUCT_HAS_ORDERS arrives with the server's explanation.
+      const conflictTarget = deleteTarget;
       setDeleteTarget(null);
-      setActionError(
-        error instanceof ApiError ? error.message : 'The product could not be deleted. Try again.',
-      );
+      if (error instanceof ApiError && error.code === 'PRODUCT_HAS_ORDERS') {
+        setDeleteConflictProduct(conflictTarget);
+        setActionError(
+          `${error.message} Would you like to archive it instead?`,
+        );
+      } else {
+        setDeleteConflictProduct(null);
+        setActionError(
+          error instanceof ApiError ? error.message : 'The product could not be deleted. Try again.',
+        );
+      }
     } finally {
       setDeleting(false);
       setReloadToken((token) => token + 1);
@@ -309,26 +330,101 @@ export default function ProductsPage() {
       </div>
 
       {feedback && <FeedbackBanner message={feedback} />}
+
+      {createdProduct && (
+        <div
+          role="region"
+          aria-label="Product created successfully"
+          className="relative overflow-hidden rounded-3xl border border-border-outline/50 bg-bg-surface p-6 sm:p-7 shadow-xs"
+        >
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-primary-container text-brand-primary">
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-text-on-surface">Product created successfully</h2>
+                <p className="mt-0.5 text-xs text-text-secondary max-w-lg">
+                  Your new product{' '}
+                  <span className="font-semibold text-text-on-surface">{createdProduct.name}</span> is
+                  now saved in the catalog and ready for review before it appears in your storefront.
+                </p>
+                <p className="mt-1 text-[11px] font-mono text-text-disabled">
+                  Product ID: EVG-{String(createdProduct.id).padStart(4, '0')} · Saved just now
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
+              <Link
+                to={`/products/${createdProduct.id}`}
+                className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-brand-primary px-4 text-xs font-bold text-brand-on-primary hover:bg-brand-primary-hover transition-colors"
+              >
+                View product
+              </Link>
+              <Link
+                to="/products/new"
+                className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl border border-border-outline/60 bg-bg-surface px-4 text-xs font-semibold text-text-on-surface hover:bg-bg-surface-variant transition-colors"
+              >
+                Add another
+              </Link>
+              <button
+                type="button"
+                aria-label="Dismiss message"
+                onClick={() => setCreatedProduct(null)}
+                className="p-1.5 rounded-lg text-text-disabled hover:text-text-secondary hover:bg-bg-surface-variant transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {actionError && (
         <div
           role="alert"
-          className="flex items-center gap-2.5 rounded-2xl border border-status-error/30 bg-status-error-container/30 px-4 py-3 text-sm font-semibold text-status-on-error-container shadow-xs"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-status-error/30 bg-status-error-container/30 px-4 py-3 text-sm font-semibold text-status-on-error-container shadow-xs"
         >
-          <svg
-            className="h-5 w-5 shrink-0 text-status-error"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <span>{actionError}</span>
+          <div className="flex items-center gap-2.5">
+            <svg
+              className="h-5 w-5 shrink-0 text-status-error"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <span>{actionError}</span>
+          </div>
+          {deleteConflictProduct && (
+            <button
+              type="button"
+              className="inline-flex min-h-8 items-center rounded-xl bg-status-error px-3.5 text-xs font-bold text-white hover:opacity-90 active:scale-95 transition-all"
+              onClick={() => {
+                const target = deleteConflictProduct;
+                setDeleteConflictProduct(null);
+                setActionError(null);
+                setArchiveTarget(target);
+              }}
+            >
+              Archive product instead
+            </button>
+          )}
         </div>
       )}
 
