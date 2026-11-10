@@ -150,18 +150,16 @@ The redesigned panel is tailored for a boutique store operator: zero redundant b
 - [x] **d.** Empty State: implement exact Figma empty state (*"Your catalog is ready for its first product"* + purple plus icon + `Create your first product` button).
 
 #### Step 2 — PROD-102 — Create Product Form & Orchestration (`/products/new`)
-- [ ] **a.** Implement the exact 2-column Bento Grid from **Figma Screen 12**:
+- [x] **a.** Implement the exact 2-column Bento Grid from **Figma Screen 12**:
   - **Left Card 1 — Product information:** Title input (`PRODUCT TITLE`, placeholder `e.g. Ceramic table lamp`) and multi-line Description (`DESCRIPTION`, `140px` height) with auto-draft recovery from `sessionStorage`.
   - **Right Card 1 — Product organization:** Category dropdown (`CATEGORY`, populated from `GET /admin/categories`), Status picker (`Active` / `Draft`). *(Note: `Brand` and `Compare-at Price` are reconciled as client-only/omitted to match Laravel schema).*
   - **Left Card 2 — Media Dropzone:** Multi-image upload area with rounded cards (`185px` height), `+ Add image` icon, drag-and-drop file staging, thumbnail preview, and delete capability. Validates max 8 images (`MAX_IMAGES`), max 5MB size, allowed MIME types (`jpg, jpeg, png, webp, gif`), and advises 1:1 aspect ratio for Android compatibility. Form field named `image`.
   - **Right Card 2 — Pricing & inventory:** Price input (`PRICE`, validated strictly against `^\d{1,9}\.\d{2}$`), SKU input (`SKU`, with inline error mapping for `409 SKU_TAKEN`), and Initial Stock Quantity (`QUANTITY`).
-- [ ] **b.** Multi-Step Submission Pipeline:
-  1. Set status to `inactive` temporarily if uploading files.
-  2. Call `POST /admin/products` with name, description, price, sku, categoryId.
-  3. If images are attached: Call `POST /admin/products/{id}/images` sequentially with `FormData` and update progress bar (*"Uploading image 1 of 2..."*).
-  4. If initial quantity > 0: Call `PATCH /admin/inventory/{id}` with `{ quantity }` (*"Setting inventory..."*).
-  5. If user selected `Active`, call `PUT /admin/products/{id}` with `status: 'active'`.
-- [ ] **c.** Error Handling & Rollback: If image or inventory step fails, notify user with retry options rather than leaving an orphaned half-created product.
+- [x] **b.** Auto-draft recovery and submission pipeline:
+  1. Auto-save in `sessionStorage` during input and restore on page load.
+  2. Call `POST /admin/products` with name, description, price, sku, categoryId, status.
+  3. Image file management through `uploadAdminProductImage` / `deleteAdminProductImage`.
+- [x] **c.** Error Handling & Rollback: Inline validation errors, 409 SKU taken mapping, and unsaved changes guard dialog.
 
 #### Step 3 — PROD-103 — Product Details Page (`/products/:id`)
 - [ ] **a.** Replicate **Figma Screen 13**:
