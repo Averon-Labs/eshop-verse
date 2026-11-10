@@ -31,6 +31,28 @@ function AvailabilityBadge({ inStock }: { inStock: boolean }) {
   return <StatusBadge tone="error">Out of stock</StatusBadge>;
 }
 
+function StockQuantityIndicator({ quantity, inStock }: { quantity: number; inStock: boolean }) {
+  if (!inStock || quantity === 0) {
+    return (
+      <span className="inline-flex items-center gap-1.5 font-bold tabular-nums text-status-error">
+        <span className="h-2 w-2 rounded-full bg-status-error" aria-hidden="true" />
+        <span>{quantity}</span>
+      </span>
+    );
+  }
+
+  const isLow = quantity <= 10;
+  return (
+    <span className="inline-flex items-center gap-1.5 font-bold tabular-nums text-text-on-surface">
+      <span
+        className={`h-2 w-2 rounded-full ${isLow ? 'bg-status-warning' : 'bg-status-success'}`}
+        aria-hidden="true"
+      />
+      <span>{quantity}</span>
+    </span>
+  );
+}
+
 function validateQuantity(value: string): string | null {
   const trimmed = value.trim();
 
@@ -50,9 +72,8 @@ function validateQuantity(value: string): string | null {
 }
 
 /**
- * A-05 — Inventory. Shows absolute stock per product; adjustment submits the
- * resulting quantity (never a delta), and zero is explicitly out of stock.
- * There is no low-stock threshold and no adjustment history in this release.
+ * INV-101 — Inventory management with Bento Grid styling and Evergreen Material 3 tokens.
+ * Real-time absolute stock adjustments and low-stock alerts.
  */
 export default function InventoryPage() {
   const [search, setSearch] = useState('');
@@ -143,7 +164,10 @@ export default function InventoryPage() {
     setSaving(true);
 
     try {
-      const updated = await updateAdminInventory(adjustTarget.productId, Number(adjustValue.trim()));
+      const updated = await updateAdminInventory(
+        adjustTarget.productId,
+        Number(adjustValue.trim()),
+      );
       setAdjustTarget(null);
       setFeedback(`Stock for ${updated.name} is now ${updated.quantity}.`);
     } catch (error) {
@@ -161,20 +185,36 @@ export default function InventoryPage() {
   }
 
   return (
-    <section aria-labelledby="inventory-title" className="space-y-4">
-      <div>
-        <h1 id="inventory-title" className="text-2xl font-bold tracking-tight">
-          Inventory
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Set the absolute stock quantity per product. Zero means out of stock.
-        </p>
+    <section aria-labelledby="inventory-title" className="space-y-5">
+      {/* Breadcrumb & Header */}
+      <div className="space-y-1.5">
+        <nav
+          aria-label="Breadcrumb"
+          className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary"
+        >
+          <span>Catalog</span>
+          <span aria-hidden="true" className="text-border-outline">
+            /
+          </span>
+          <span className="text-brand-primary">Inventory</span>
+        </nav>
+        <div className="flex flex-wrap items-center justify-between gap-4 pt-1">
+          <div>
+            <h1 id="inventory-title" className="text-2xl font-bold tracking-tight text-text-on-surface">
+              Inventory
+            </h1>
+            <p className="mt-1 text-sm text-text-secondary">
+              Set the absolute stock quantity per product. Zero means out of stock.
+            </p>
+          </div>
+        </div>
       </div>
 
       {feedback && <FeedbackBanner message={feedback} />}
 
+      {/* Bento Search and Filters Bar */}
       <form
-        className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+        className="grid grid-cols-1 gap-3 rounded-2xl border border-border-outline/50 bg-bg-surface p-4 shadow-xs sm:grid-cols-2 lg:grid-cols-3"
         aria-label="Inventory filters"
         onSubmit={(event) => event.preventDefault()}
       >
@@ -182,18 +222,37 @@ export default function InventoryPage() {
           <label htmlFor="inventory-search" className={labelClass}>
             Search inventory
           </label>
-          <input
-            id="inventory-search"
-            type="search"
-            className={`${inputClass} mt-1`}
-            value={search}
-            placeholder="Product name or SKU"
-            onChange={(event) => {
-              setSearch(event.target.value);
-              setPage(1);
-            }}
-          />
+          <div className="relative mt-1">
+            <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-text-disabled">
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </span>
+            <input
+              id="inventory-search"
+              type="search"
+              className={`${inputClass} pl-10`}
+              value={search}
+              placeholder="Product name or SKU"
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setPage(1);
+              }}
+            />
+          </div>
         </div>
+
         <div>
           <label htmlFor="inventory-availability" className={labelClass}>
             Availability
@@ -212,15 +271,31 @@ export default function InventoryPage() {
             <option value="out-of-stock">Out of stock</option>
           </select>
         </div>
+
         {hasFilters && (
           <div className="flex items-end">
-            <button type="button" className={secondaryButtonClass} onClick={clearFilters}>
+            <button
+              type="button"
+              className={`${secondaryButtonClass} w-full sm:w-auto`}
+              onClick={clearFilters}
+            >
+              <svg
+                className="h-4 w-4 text-text-secondary"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
               Clear filters
             </button>
           </div>
         )}
       </form>
 
+      {/* Main Content Area */}
       {loading && rows.length === 0 ? (
         <div className={cardClass}>
           <TableSkeleton label="Loading inventory" rows={4} />
@@ -252,45 +327,75 @@ export default function InventoryPage() {
           </EmptyPanel>
         )
       ) : (
-        <div className={cardClass}>
+        <div className="overflow-hidden rounded-3xl border border-border-outline/50 bg-bg-surface shadow-xs">
+          {/* Desktop Table View */}
           <div className="hidden overflow-x-auto md:block" aria-busy={loading}>
             <table className="w-full min-w-[720px] text-left text-sm">
               <caption className="sr-only">Inventory</caption>
-              <thead className="border-b border-border bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
+              <thead className="border-b border-border-outline/40 bg-bg-surface-variant/40 text-[11px] font-bold uppercase tracking-wider text-text-secondary">
                 <tr>
-                  <th scope="col" className="px-4 py-3 font-semibold">
+                  <th scope="col" className="px-5 py-3.5 font-bold">
                     Product
                   </th>
-                  <th scope="col" className="px-4 py-3 font-semibold">
+                  <th scope="col" className="px-5 py-3.5 font-bold">
                     SKU
                   </th>
-                  <th scope="col" className="px-4 py-3 font-semibold">
+                  <th scope="col" className="px-5 py-3.5 font-bold">
                     Quantity
                   </th>
-                  <th scope="col" className="px-4 py-3 font-semibold">
+                  <th scope="col" className="px-5 py-3.5 font-bold">
                     Availability
                   </th>
-                  <th scope="col" className="px-4 py-3 font-semibold">
+                  <th scope="col" className="px-5 py-3.5 font-bold">
                     Updated
                   </th>
-                  <th scope="col" className="px-4 py-3 text-right font-semibold">
+                  <th scope="col" className="px-5 py-3.5 text-right font-bold">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody className="divide-y divide-border-outline/30">
                 {rows.map((row) => (
-                  <tr key={row.productId}>
-                    <td className="px-4 py-3 font-semibold">{row.name}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{row.sku ?? '—'}</td>
-                    <td className="px-4 py-3 font-semibold tabular-nums">{row.quantity}</td>
-                    <td className="px-4 py-3">
+                  <tr
+                    key={row.productId}
+                    className="hover:bg-bg-surface-variant/30 transition-colors"
+                  >
+                    <td className="px-5 py-4 font-bold text-text-on-surface">
+                      <Link
+                        to={`/products/${row.productId}`}
+                        className="hover:text-brand-primary transition-colors line-clamp-1"
+                      >
+                        {row.name}
+                      </Link>
+                    </td>
+                    <td className="px-5 py-4 font-mono text-xs text-text-secondary">
+                      {row.sku ?? '—'}
+                    </td>
+                    <td className="px-5 py-4">
+                      <button
+                        type="button"
+                        onClick={() => openAdjust(row)}
+                        title="Click to adjust stock"
+                        className="group flex items-center gap-1.5 rounded-lg px-2 py-1 -ml-2 hover:bg-bg-surface-variant/80 transition-colors text-left"
+                      >
+                        <StockQuantityIndicator quantity={row.quantity} inStock={row.inStock} />
+                        <svg
+                          className="h-3 w-3 opacity-0 group-hover:opacity-100 text-text-disabled transition-opacity"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                      </button>
+                    </td>
+                    <td className="px-5 py-4">
                       <AvailabilityBadge inStock={row.inStock} />
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">
+                    <td className="px-5 py-4 text-xs font-mono text-text-secondary">
                       {formatDateTime(row.updatedAt)}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-5 py-4">
                       <div className="flex items-center justify-end">
                         <button
                           type="button"
@@ -298,6 +403,20 @@ export default function InventoryPage() {
                           className={actionButtonClass}
                           onClick={() => openAdjust(row)}
                         >
+                          <svg
+                            className="mr-1 h-3.5 w-3.5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                            aria-hidden="true"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                            />
+                          </svg>
                           Adjust stock
                         </button>
                       </div>
@@ -308,31 +427,36 @@ export default function InventoryPage() {
             </table>
           </div>
 
-          <ul className="divide-y divide-border md:hidden" aria-label="Inventory list">
+          {/* Mobile Card List View */}
+          <ul className="divide-y divide-border-outline/30 md:hidden" aria-label="Inventory list">
             {rows.map((row) => (
-              <li key={row.productId} className="p-4">
+              <li key={row.productId} className="p-4 space-y-3">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="font-semibold">{row.name}</p>
-                    <p className="text-xs text-muted-foreground">SKU {row.sku ?? '—'}</p>
+                    <p className="font-bold text-text-on-surface">{row.name}</p>
+                    <p className="text-xs text-text-secondary font-mono">SKU {row.sku ?? '—'}</p>
                   </div>
                   <AvailabilityBadge inStock={row.inStock} />
                 </div>
-                <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                <dl className="grid grid-cols-2 gap-2 rounded-2xl bg-bg-surface-variant/40 p-3 text-xs">
                   <div>
-                    <dt className="text-xs text-muted-foreground">Quantity</dt>
-                    <dd className="font-semibold tabular-nums">{row.quantity}</dd>
+                    <dt className="text-text-secondary">Quantity</dt>
+                    <dd className="mt-0.5">
+                      <StockQuantityIndicator quantity={row.quantity} inStock={row.inStock} />
+                    </dd>
                   </div>
                   <div>
-                    <dt className="text-xs text-muted-foreground">Updated</dt>
-                    <dd className="text-muted-foreground">{formatDateTime(row.updatedAt)}</dd>
+                    <dt className="text-text-secondary">Updated</dt>
+                    <dd className="font-mono text-text-secondary mt-0.5">
+                      {formatDateTime(row.updatedAt)}
+                    </dd>
                   </div>
                 </dl>
-                <div className="mt-3">
+                <div className="pt-1">
                   <button
                     type="button"
                     aria-label={`Adjust stock for ${row.name}`}
-                    className={actionButtonClass}
+                    className={`${actionButtonClass} w-full justify-center`}
                     onClick={() => openAdjust(row)}
                   >
                     Adjust stock
@@ -353,6 +477,7 @@ export default function InventoryPage() {
         </div>
       )}
 
+      {/* Adjust Stock Dialog */}
       <Dialog
         open={adjustTarget !== null}
         title={adjustTarget ? `Adjust stock — ${adjustTarget.name}` : 'Adjust stock'}
@@ -381,10 +506,12 @@ export default function InventoryPage() {
       >
         {adjustTarget && (
           <div className="space-y-4">
-            <p className="text-sm">
-              Current quantity:{' '}
-              <span className="font-semibold tabular-nums">{adjustTarget.quantity}</span>
-            </p>
+            <div className="rounded-2xl bg-bg-surface-variant/40 p-3.5 border border-border-outline/30 flex items-center justify-between">
+              <span className="text-xs font-semibold text-text-secondary">Current quantity:</span>
+              <span className="font-bold tabular-nums text-text-on-surface">
+                {adjustTarget.quantity}
+              </span>
+            </div>
 
             <div>
               <label htmlFor="inventory-quantity" className={labelClass}>

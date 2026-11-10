@@ -191,9 +191,9 @@ The redesigned panel is tailored for a boutique store operator: zero redundant b
 - [x] **d.** Android Compatibility: Ensure category names align with clean single-word titles ("T-Shirts", "Shirts", "Pants", "Dresses", "Jackets", "Activewear", "Shoes", "Accessories", "Leather", "Bags") with quick chip presets in the creation modal.
 
 #### Step 2 — INV-101 — Quick Inventory & Low-Stock Alerts (`/inventory`)
-- [ ] **a.** Quick Restock Table: lists all catalog items with SKU, product name, current stock, and stock status.
-- [ ] **b.** Inline Quick Edit: allow clicking the quantity cell, typing the new quantity, and saving automatically via `PATCH /admin/inventory/{id}` with optimistic UI update.
-- [ ] **c.** Low Stock Filter: quick toggle to show only items with `quantity <= 5` or `inStock === false`.
+- [x] **a.** Quick Restock Table: lists all catalog items with SKU, product name, current stock, and stock status.
+- [x] **b.** Inline Quick Edit: allow clicking the quantity cell, typing the new quantity, and saving automatically via `PATCH /admin/inventory/{id}` with optimistic UI update.
+- [x] **c.** Low Stock Filter: quick toggle to show only items with `quantity <= 5` or `inStock === false`.
 
 ---
 
