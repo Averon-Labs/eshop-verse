@@ -47,6 +47,11 @@ describe('ReportsPage (RPT-002)', () => {
     expect(within(statuses).getByText('Cancelled')).toBeInTheDocument();
 
     expect(screen.getByRole('link', { name: 'Reports' })).toHaveAttribute('href', '/reports');
+    expect(screen.getByRole('link', { name: '+ Create product' })).toHaveAttribute(
+      'href',
+      '/products/new',
+    );
+    expect(screen.getByRole('link', { name: 'View orders' })).toHaveAttribute('href', '/orders');
   });
 
   it('reports_presets_and_custom_dates_request_the_server', async () => {

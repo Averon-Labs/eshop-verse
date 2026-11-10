@@ -230,13 +230,13 @@ The redesigned panel is tailored for a boutique store operator: zero redundant b
 **Goal:** Build a 3-second overview dashboard powered by the existing `GET /admin/reports/sales` endpoint.
 
 #### Step 1 — DASH-101 — Overview Dashboard (`/` or `/reports`)
-- [ ] **a.** KPI Bento Cards:
+- [x] **a.** KPI Bento Cards:
   1. `Gross Sales / Revenue`: total sales formatted as currency.
   2. `Total Orders`: count of placed orders.
   3. `Active Catalog`: total active products count.
   4. `Low Stock Items`: count of inventory items needing immediate attention.
-- [ ] **b.** Quick Actions Bar: `+ Create product` button and `View pending orders` shortcut.
-- [ ] **c.** Recent Orders Matrix: latest 5 customer orders with status badges and quick view links.
+- [x] **b.** Quick Actions Bar: `+ Create product` button and `View pending orders` shortcut.
+- [x] **c.** Recent Orders Matrix: latest 5 customer orders with status badges and quick view links.
 
 ---
 
