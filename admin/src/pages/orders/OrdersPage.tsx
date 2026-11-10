@@ -163,100 +163,98 @@ export default function OrdersPage() {
         })}
       </div>
 
-      {/* Filter Form Card */}
-      <div className={cardClass}>
-        <form
-          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5"
-          aria-label="Order filters"
-          onSubmit={(event) => event.preventDefault()}
-        >
-          <div className="lg:col-span-2">
-            <label htmlFor="orders-search" className={labelClass}>
-              Search orders
-            </label>
-            <div className="relative mt-1">
-              <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-text-disabled">
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </span>
-              <input
-                id="orders-search"
-                type="search"
-                className={`${inputClass} pl-9`}
-                value={search}
-                placeholder="Reference or customer email"
-                onChange={(event) => {
-                  setSearch(event.target.value);
-                  setPage(1);
-                }}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="orders-status" className={labelClass}>
-              Status
-            </label>
-            <select
-              id="orders-status"
-              className={`${inputClass} mt-1`}
-              value={statusFilter}
-              onChange={(event) => {
-                setStatusFilter(event.target.value);
-                setPage(1);
-              }}
-            >
-              <option value="">All statuses</option>
-              {ORDER_STATUS_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="orders-from" className={labelClass}>
-              From date
-            </label>
+      {/* Bento Search and Filters Bar */}
+      <form
+        className="grid grid-cols-1 gap-3.5 rounded-2xl border border-border-outline/50 bg-bg-surface p-4 sm:p-5 shadow-xs sm:grid-cols-2 lg:grid-cols-5"
+        aria-label="Order filters"
+        onSubmit={(event) => event.preventDefault()}
+      >
+        <div className="lg:col-span-2">
+          <label htmlFor="orders-search" className={labelClass}>
+            Search orders
+          </label>
+          <div className="relative mt-1">
+            <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-text-disabled">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </span>
             <input
-              id="orders-from"
-              type="date"
-              className={`${inputClass} mt-1`}
-              value={fromFilter}
+              id="orders-search"
+              type="search"
+              className={`${inputClass} pl-10`}
+              value={search}
+              placeholder="Reference or customer email"
               onChange={(event) => {
-                setFromFilter(event.target.value);
+                setSearch(event.target.value);
                 setPage(1);
               }}
             />
           </div>
+        </div>
 
-          <div>
-            <label htmlFor="orders-to" className={labelClass}>
-              To date
-            </label>
-            <input
-              id="orders-to"
-              type="date"
-              className={`${inputClass} mt-1`}
-              value={toFilter}
-              onChange={(event) => {
-                setToFilter(event.target.value);
-                setPage(1);
-              }}
-            />
+        <div>
+          <label htmlFor="orders-status" className={labelClass}>
+            Status
+          </label>
+          <select
+            id="orders-status"
+            className={`${inputClass} mt-1`}
+            value={statusFilter}
+            onChange={(event) => {
+              setStatusFilter(event.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="">All statuses</option>
+            {ORDER_STATUS_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="orders-from" className={labelClass}>
+            From date
+          </label>
+          <input
+            id="orders-from"
+            type="date"
+            className={`${inputClass} mt-1`}
+            value={fromFilter}
+            onChange={(event) => {
+              setFromFilter(event.target.value);
+              setPage(1);
+            }}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="orders-to" className={labelClass}>
+            To date
+          </label>
+          <input
+            id="orders-to"
+            type="date"
+            className={`${inputClass} mt-1`}
+            value={toFilter}
+            onChange={(event) => {
+              setToFilter(event.target.value);
+              setPage(1);
+            }}
+          />
+        </div>
+
+        {hasFilters && (
+          <div className="flex items-end lg:col-span-5">
+            <button type="button" className={secondaryButtonClass} onClick={clearFilters}>
+              Clear filters
+            </button>
           </div>
-
-          {hasFilters && (
-            <div className="flex items-end lg:col-span-5">
-              <button type="button" className={secondaryButtonClass} onClick={clearFilters}>
-                Clear filters
-              </button>
-            </div>
-          )}
-        </form>
-      </div>
+        )}
+      </form>
 
       {/* Main Content Area */}
       {loading && orders.length === 0 ? (
@@ -317,57 +315,57 @@ export default function OrdersPage() {
           </EmptyPanel>
         )
       ) : (
-        <div className={cardClass}>
+        <div className="overflow-hidden rounded-3xl border border-border-outline/50 bg-bg-surface shadow-xs">
           <div className="hidden overflow-x-auto md:block" aria-busy={loading}>
             <table className="w-full min-w-[860px] text-left text-sm">
               <caption className="sr-only">Orders</caption>
-              <thead className="border-b border-border-outline/40 bg-bg-surface-variant/40 text-xs uppercase tracking-wide text-text-secondary">
+              <thead className="border-b border-border-outline/40 bg-bg-surface-variant/40 text-[11px] font-bold uppercase tracking-wider text-text-secondary">
                 <tr>
-                  <th scope="col" className="px-4 py-3.5 font-bold">
+                  <th scope="col" className="px-5 py-3.5 font-bold">
                     Order
                   </th>
-                  <th scope="col" className="px-4 py-3.5 font-bold">
+                  <th scope="col" className="px-5 py-3.5 font-bold">
                     Customer
                   </th>
-                  <th scope="col" className="px-4 py-3.5 font-bold">
+                  <th scope="col" className="px-5 py-3.5 font-bold">
                     Date
                   </th>
-                  <th scope="col" className="px-4 py-3.5 font-bold">
+                  <th scope="col" className="px-5 py-3.5 font-bold">
                     Total (USD)
                   </th>
-                  <th scope="col" className="px-4 py-3.5 font-bold">
+                  <th scope="col" className="px-5 py-3.5 font-bold">
                     Order status
                   </th>
-                  <th scope="col" className="px-4 py-3.5 font-bold">
+                  <th scope="col" className="px-5 py-3.5 font-bold">
                     Payment
                   </th>
-                  <th scope="col" className="px-4 py-3.5 text-right font-bold">
+                  <th scope="col" className="px-5 py-3.5 text-right font-bold">
                     Actions
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-outline/30">
                 {orders.map((order) => (
-                  <tr key={order.id} className="hover:bg-bg-surface-variant/40 transition-colors">
-                    <td className="px-4 py-3.5 font-bold tabular-nums text-text-on-surface">
+                  <tr key={order.id} className="hover:bg-bg-surface-variant/30 transition-colors">
+                    <td className="px-5 py-4 font-bold tabular-nums text-text-on-surface">
                       {order.reference}
                     </td>
-                    <td className="px-4 py-3.5">
+                    <td className="px-5 py-4">
                       <CustomerCell order={order} />
                     </td>
-                    <td className="px-4 py-3.5 text-text-secondary">
+                    <td className="px-5 py-4 text-text-secondary">
                       {formatDateTime(order.createdAt)}
                     </td>
-                    <td className="px-4 py-3.5 font-bold tabular-nums text-text-on-surface">
+                    <td className="px-5 py-4 font-bold tabular-nums text-text-on-surface">
                       {formatUsd(order.total)}
                     </td>
-                    <td className="px-4 py-3.5">
+                    <td className="px-5 py-4">
                       <OrderStatusBadge status={order.status} />
                     </td>
-                    <td className="px-4 py-3.5">
+                    <td className="px-5 py-4">
                       <PaymentStatusBadge status={order.paymentStatus} />
                     </td>
-                    <td className="px-4 py-3.5">
+                    <td className="px-5 py-4">
                       <div className="flex items-center justify-end">
                         <Link
                           to={`/orders/${order.id}`}
