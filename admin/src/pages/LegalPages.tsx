@@ -15,21 +15,29 @@ interface LegalLayoutProps {
  */
 function LegalLayout({ title, children }: LegalLayoutProps) {
   return (
-    <main className="min-h-screen bg-background px-4 py-10 text-foreground">
-      <ThemeToggle className="fixed right-4 top-4 z-10" />
-      <article className="mx-auto w-full max-w-3xl rounded-3xl border border-border bg-card p-6 shadow-glass sm:p-8">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          EShop Verse
+    <main className="min-h-screen bg-[var(--bg-background)] px-4 py-12 text-[var(--text-on-background)] transition-colors">
+      <ThemeToggle className="fixed right-6 top-6 z-20" />
+      <article className="mx-auto w-full max-w-4xl rounded-[32px] border border-[var(--border-outline)] bg-[var(--bg-surface)] p-8 shadow-2xl sm:p-12 transition-colors">
+        <div className="inline-flex items-center gap-2 rounded-full bg-[var(--brand-primary-container)] px-3 py-1 text-xs font-semibold tracking-wide text-[var(--brand-on-primary-container)]">
+          EShop Verse Legal
+        </div>
+        <h1 className="mt-4 text-3xl font-bold tracking-tight text-[var(--text-on-background)] sm:text-4xl">
+          {title}
+        </h1>
+        <p className="mt-1 text-xs font-medium text-[var(--text-secondary)]">
+          Last updated: 8 November 2026 &bull; Evergreen Material 3 Compliance
         </p>
-        <h1 className="mt-2 text-2xl font-bold">{title}</h1>
-        <p className="mt-1 text-xs text-muted-foreground">Last updated: 8 November 2026</p>
-        <div className="mt-6 space-y-5 text-sm leading-6 text-muted-foreground">{children}</div>
-        <div className="mt-8 border-t border-border pt-4">
+
+        <div className="mt-8 space-y-6 text-sm leading-relaxed text-[var(--text-secondary)]">
+          {children}
+        </div>
+
+        <div className="mt-10 border-t border-[var(--border-outline-variant)] pt-6">
           <Link
             to="/login"
-            className="inline-flex min-h-11 items-center text-sm font-semibold text-primary hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="inline-flex min-h-11 items-center font-semibold text-[var(--brand-primary)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)]"
           >
-            Back to sign in
+            &larr; Back to sign in
           </Link>
         </div>
       </article>
@@ -39,9 +47,9 @@ function LegalLayout({ title, children }: LegalLayoutProps) {
 
 function Section({ heading, children }: { heading: string; children: ReactNode }) {
   return (
-    <section>
-      <h2 className="text-base font-semibold text-foreground">{heading}</h2>
-      <div className="mt-1 space-y-2">{children}</div>
+    <section className="space-y-2">
+      <h2 className="text-base font-semibold text-[var(--text-on-background)]">{heading}</h2>
+      <div className="space-y-2">{children}</div>
     </section>
   );
 }
@@ -59,25 +67,25 @@ export function PrivacyPage() {
       <Section heading="Information we collect">
         <ul className="list-disc space-y-1 pl-5">
           <li>
-            <span className="font-medium text-foreground">Google account details.</span> When you
+            <span className="font-medium text-[var(--text-on-background)]">Google account details.</span> When you
             choose Google Sign-In, Google provides your name, email address, Google account
             identifier, and, if available, a profile picture URL. We never receive your Google
             password.
           </li>
           <li>
-            <span className="font-medium text-foreground">Profile details.</span> The first and last
+            <span className="font-medium text-[var(--text-on-background)]">Profile details.</span> The first and last
             name you confirm in the app.
           </li>
           <li>
-            <span className="font-medium text-foreground">Order details.</span> The products,
+            <span className="font-medium text-[var(--text-on-background)]">Order details.</span> The products,
             quantities, totals, and the contact and shipping information you submit during checkout.
           </li>
           <li>
-            <span className="font-medium text-foreground">Technical data.</span> IP address, request
+            <span className="font-medium text-[var(--text-on-background)]">Technical data.</span> IP address, request
             timestamps, and error logs needed to operate, secure, and troubleshoot the service.
           </li>
           <li>
-            <span className="font-medium text-foreground">No payment card data.</span> Payment in
+            <span className="font-medium text-[var(--text-on-background)]">No payment card data.</span> Payment in
             this demonstration is simulated; no card number or bank details are collected or stored.
           </li>
         </ul>
@@ -110,37 +118,17 @@ export function PrivacyPage() {
 
       <Section heading="Security">
         <p>
-          Traffic uses HTTPS. On Android, the session token is stored using platform-protected
-          storage, and passwords, tokens, and full request bodies are never written to logs. No
-          method of transmission or storage is completely secure, so absolute security cannot be
-          guaranteed.
+          We use transport-layer encryption (HTTPS), hashed passwords, session cookies, and
+          parameterized database queries. While no Internet transmission is completely secure, we take
+          reasonable measures to protect information against unauthorized access and loss.
         </p>
       </Section>
 
       <Section heading="Your choices">
-        <ul className="list-disc space-y-1 pl-5">
-          <li>Sign out at any time from the Account screen.</li>
-          <li>
-            Review or revoke this app&apos;s access to your Google account at{' '}
-            <a
-              className="font-medium text-primary underline-offset-2 hover:underline"
-              href="https://myaccount.google.com/permissions"
-            >
-              myaccount.google.com/permissions
-            </a>
-            .
-          </li>
-          <li>
-            Request access to, correction of, or deletion of your account data by contacting the
-            project maintainers.
-          </li>
-        </ul>
-      </Section>
-
-      <Section heading="Children">
         <p>
-          The service is not directed to children under 13, and we do not knowingly collect their
-          personal information.
+          You can update your profile in the Android customer app, sign out of your account, or
+          request account deletion. To revoke access granted to Google Sign-In, visit your Google
+          Account security settings.
         </p>
       </Section>
 
@@ -155,7 +143,7 @@ export function PrivacyPage() {
         <p>
           Questions or requests about this policy can be raised through the project repository at{' '}
           <a
-            className="font-medium text-primary underline-offset-2 hover:underline"
+            className="font-medium text-[var(--brand-primary)] underline-offset-2 hover:underline"
             href="https://github.com/Averon-Labs/eshop-verse/issues"
           >
             github.com/Averon-Labs/eshop-verse
@@ -259,7 +247,7 @@ export function TermsPage() {
         <p>
           Questions about these terms can be raised through the project repository at{' '}
           <a
-            className="font-medium text-primary underline-offset-2 hover:underline"
+            className="font-medium text-[var(--brand-primary)] underline-offset-2 hover:underline"
             href="https://github.com/Averon-Labs/eshop-verse/issues"
           >
             github.com/Averon-Labs/eshop-verse

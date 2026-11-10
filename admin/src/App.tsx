@@ -4,6 +4,7 @@ import { RequireAdmin } from './auth/RequireAdmin';
 import { AppShell } from './components/AppShell';
 import { ThemeProvider } from './theme/ThemeContext';
 import { PrivacyPage, TermsPage } from './pages/LegalPages';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import LoginPage from './pages/LoginPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import CategoriesPage from './pages/categories/CategoriesPage';
@@ -21,6 +22,7 @@ export default function App() {
         <AuthProvider>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/terms" element={<TermsPage />} />
             <Route element={<RequireAdmin />}>

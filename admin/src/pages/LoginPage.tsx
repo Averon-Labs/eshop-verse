@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import type { FormEvent } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { ApiError } from '../api/http';
 import { useAuth } from '../auth/AuthContext';
 import { FullPageLoading } from '../components/FullPageLoading';
@@ -34,17 +34,17 @@ function describeFailure(error: unknown): string {
 }
 
 /**
- * A-01 — Admin sign in (docs/SCREEN_SPECIFICATIONS.md).
+ * AUTH-101 — Evergreen Commerce Split-Screen Login Page.
  *
- * Email + password only; no self-registration. Validation, throttling, and
- * credential failures surface inline and are announced; the exported form
- * works with the keyboard alone.
+ * Left column: Brand storytelling card in royal purple (#6938D3).
+ * Right column: High-conversion admin sign-in form with full keyboard accessibility.
  */
 export default function LoginPage() {
   const { status, notice, signIn } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -125,94 +125,204 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
-      <ThemeToggle className="fixed right-4 top-4 z-10" />
-      <div className="w-full max-w-md">
-        <div className="mb-6 text-center">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary-strong">EShop Verse</p>
-          <h1 className="mt-2 text-2xl font-bold tracking-tight">Admin sign in</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Use your administrator account. Customers sign in from the mobile app.
-          </p>
+    <main className="relative flex min-h-screen items-center justify-center bg-[var(--bg-background)] p-4 sm:p-6 lg:p-10 transition-colors">
+      <ThemeToggle className="fixed right-6 top-6 z-20" />
+
+      {/* Split-Screen Bento Container (max-width: 1080px) */}
+      <div className="grid w-full max-w-5xl overflow-hidden rounded-[32px] border border-[var(--border-outline)] bg-[var(--bg-surface)] shadow-2xl lg:grid-cols-12 transition-colors">
+        {/* Left Column — Royal Purple Brand Panel (5 cols on lg) */}
+        <div className="relative flex flex-col justify-between overflow-hidden bg-[var(--brand-primary)] p-8 text-white sm:p-12 lg:col-span-5">
+          {/* Subtle Aurora Ambient Radial Glow */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-white/10 blur-3xl"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-black/20 blur-3xl"
+          />
+
+          {/* Top Brand Header */}
+          <div className="relative z-10">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold tracking-wide text-white backdrop-blur-sm">
+              <span className="h-2 w-2 rounded-full bg-emerald-400" />
+              Production Workspace
+            </div>
+            <h2 className="mt-6 text-2xl font-bold tracking-tight text-white sm:text-3xl">
+              EVERGREEN
+            </h2>
+            <p className="text-xs font-medium uppercase tracking-[0.2em] text-white/70">
+              COMMERCE ADMIN
+            </p>
+          </div>
+
+          {/* Center Storytelling Headline */}
+          <div className="relative z-10 my-10 lg:my-0">
+            <blockquote className="text-xl font-medium leading-relaxed tracking-tight text-white/95 sm:text-2xl">
+              &ldquo;A calmer way to run your store. Your operations, customers and growth &mdash; all in one considered workspace.&rdquo;
+            </blockquote>
+          </div>
+
+          {/* Bottom Security Badge */}
+          <div className="relative z-10 flex items-center gap-3 text-xs text-white/80">
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              className="h-5 w-5 shrink-0 text-white/90"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            <span>Sanctum-authenticated administrative boundary</span>
+          </div>
         </div>
 
-        <form
-          noValidate
-          aria-label="Admin sign in"
-          onSubmit={(event) => void handleSubmit(event)}
-          className="rounded-3xl border border-border bg-card p-6 shadow-glass sm:p-8"
-        >
-          {notice && (
-            <p role="status" className="mb-4 rounded-xl bg-muted px-3 py-2 text-sm">
-              {notice}
-            </p>
-          )}
+        {/* Right Column — Focused Form Container (7 cols on lg) */}
+        <div className="flex flex-col justify-center p-8 sm:p-12 lg:col-span-7">
+          <div className="mx-auto w-full max-w-md">
+            {/* Form Heading */}
+            <div className="mb-8">
+              <h1 className="text-2xl font-bold tracking-tight text-[var(--text-on-background)] sm:text-3xl">
+                Admin sign in
+              </h1>
+              <p className="mt-2 text-sm text-[var(--text-secondary)]">
+                Welcome back. Sign in to continue to your admin workspace.
+              </p>
+            </div>
 
-          {formError && (
-            <p
-              role="alert"
-              className="mb-4 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+            {/* Form Box */}
+            <form
+              noValidate
+              aria-label="Admin sign in"
+              onSubmit={(event) => void handleSubmit(event)}
+              className="space-y-5"
             >
-              {formError}
-            </p>
-          )}
+              {notice && (
+                <p
+                  role="status"
+                  className="rounded-2xl border border-[var(--border-outline)] bg-[var(--bg-surface-variant)] px-4 py-3 text-sm text-[var(--text-on-background)]"
+                >
+                  {notice}
+                </p>
+              )}
 
-          <label htmlFor="admin-email" className="block text-sm font-semibold">
-            Email
-          </label>
-          <input
-            ref={emailRef}
-            id="admin-email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            inputMode="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            aria-invalid={fieldErrors.email !== undefined}
-            aria-describedby={fieldErrors.email ? 'admin-email-error' : undefined}
-            className="mt-1 min-h-11 w-full rounded-xl border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          />
-          {fieldErrors.email && (
-            <p id="admin-email-error" className="mt-1 text-xs text-destructive">
-              {fieldErrors.email}
-            </p>
-          )}
+              {formError && (
+                <p
+                  role="alert"
+                  className="rounded-2xl border border-[var(--status-error)]/30 bg-[var(--status-error-container)] px-4 py-3 text-sm text-[var(--status-on-error-container)]"
+                >
+                  {formError}
+                </p>
+              )}
 
-          <label htmlFor="admin-password" className="mt-4 block text-sm font-semibold">
-            Password
-          </label>
-          <input
-            ref={passwordRef}
-            id="admin-password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            aria-invalid={fieldErrors.password !== undefined}
-            aria-describedby={fieldErrors.password ? 'admin-password-error' : undefined}
-            className="mt-1 min-h-11 w-full rounded-xl border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          />
-          {fieldErrors.password && (
-            <p id="admin-password-error" className="mt-1 text-xs text-destructive">
-              {fieldErrors.password}
-            </p>
-          )}
+              {/* Email Input */}
+              <div>
+                <label
+                  htmlFor="admin-email"
+                  className="block text-sm font-semibold text-[var(--text-on-background)]"
+                >
+                  Email
+                </label>
+                <input
+                  ref={emailRef}
+                  id="admin-email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  inputMode="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  aria-invalid={fieldErrors.email !== undefined}
+                  aria-describedby={fieldErrors.email ? 'admin-email-error' : undefined}
+                  placeholder="admin@eshopverse.store"
+                  className="mt-1.5 min-h-12 w-full rounded-2xl border border-[var(--border-outline)] bg-[var(--bg-surface-variant)] px-4 text-sm text-[var(--text-on-background)] placeholder:text-[var(--text-disabled)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] transition-colors"
+                />
+                {fieldErrors.email && (
+                  <p id="admin-email-error" className="mt-1.5 text-xs font-medium text-[var(--status-error)]">
+                    {fieldErrors.email}
+                  </p>
+                )}
+              </div>
 
-          <button
-            type="submit"
-            disabled={submitting}
-            aria-busy={submitting}
-            className="mt-6 flex min-h-11 w-full items-center justify-center rounded-full bg-primary px-6 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {submitting ? 'Signing in…' : 'Sign in'}
-          </button>
-        </form>
+              {/* Password Input */}
+              <div>
+                <label
+                  htmlFor="admin-password"
+                  className="block text-sm font-semibold text-[var(--text-on-background)]"
+                >
+                  Password
+                </label>
+                <input
+                  ref={passwordRef}
+                  id="admin-password"
+                  name="password"
+                  type="password"
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  aria-invalid={fieldErrors.password !== undefined}
+                  aria-describedby={fieldErrors.password ? 'admin-password-error' : undefined}
+                  placeholder="••••••••••••"
+                  className="mt-1.5 min-h-12 w-full rounded-2xl border border-[var(--border-outline)] bg-[var(--bg-surface-variant)] px-4 text-sm text-[var(--text-on-background)] placeholder:text-[var(--text-disabled)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] transition-colors"
+                />
+                {fieldErrors.password && (
+                  <p id="admin-password-error" className="mt-1.5 text-xs font-medium text-[var(--status-error)]">
+                    {fieldErrors.password}
+                  </p>
+                )}
+              </div>
 
-        <p className="mt-4 text-center text-xs text-muted-foreground">
-          No admin self-registration — accounts are provisioned by the backend.
-        </p>
+              {/* Controls Row: Remember Me & Forgot Password */}
+              <div className="flex items-center justify-between pt-1">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(event) => setRememberMe(event.target.checked)}
+                    className="h-4 w-4 rounded-md border-[var(--border-outline)] text-[var(--brand-primary)] focus:ring-[var(--brand-primary)]"
+                  />
+                  <span className="text-xs text-[var(--text-secondary)]">Remember me</span>
+                </label>
+
+                <Link
+                  to="/forgot-password"
+                  className="text-xs font-semibold text-[var(--brand-primary)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)]"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+
+              {/* Full-Width Sign In Button */}
+              <button
+                type="submit"
+                disabled={submitting}
+                aria-busy={submitting}
+                className="mt-4 flex min-h-12 w-full items-center justify-center rounded-2xl bg-[var(--brand-primary)] px-6 text-sm font-bold text-white shadow-md transition-all hover:bg-[var(--brand-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {submitting ? 'Signing in…' : 'Sign in'}
+              </button>
+            </form>
+
+            {/* Footer Notice & Public Links */}
+            <div className="mt-8 border-t border-[var(--border-outline-variant)] pt-6 text-center text-xs text-[var(--text-secondary)] space-y-2">
+              <p>No admin self-registration &mdash; accounts are provisioned by the backend.</p>
+              <div className="flex justify-center gap-4 text-xs font-medium text-[var(--brand-primary)]">
+                <Link to="/privacy" className="hover:underline">
+                  Privacy Policy
+                </Link>
+                <span>&bull;</span>
+                <Link to="/terms" className="hover:underline">
+                  Terms of Service
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </main>
   );

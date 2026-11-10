@@ -113,21 +113,21 @@ The redesigned panel is tailored for a boutique store operator: zero redundant b
 **Goal:** Replicate the high-conversion split-screen Login page, password reset flow, and public legal documentation pages.
 
 #### Step 1 — AUTH-101 — Split-Screen Login Page (`/login`)
-- [ ] **a.** Layout: 2-column responsive layout.
+- [x] **a.** Layout: 2-column responsive layout.
   - Left column: Signature royal purple card (`#6938D3` background, `border-radius: 24px`, white text) with brand title and headline: *"A calmer way to run your store. Your operations, customers and growth — all in one considered workspace."*
   - Right column: Clean, focused form container with heading *"Welcome back / Sign in to continue to your admin workspace."*
-- [ ] **b.** Form fields: Email input and Password input styled with `#F3F2FA` (light) / `#1D2644` (dark) background, `1px solid #CAC7D8` border, `16px` border-radius.
-- [ ] **c.** Controls: "Remember me" checkbox, "Forgot password?" link, and full-width `Sign in` button (`#6938D3`, rounded-16px, hover transitions).
-- [ ] **d.** Wire form submission to `admin/src/api/auth.ts` with CSRF cookie handling (`GET /admin/auth/csrf`) and clear inline error feedback.
+- [x] **b.** Form fields: Email input and Password input styled with `#F3F2FA` (light) / `#1D2644` (dark) background, `1px solid #CAC7D8` border, `16px` border-radius.
+- [x] **c.** Controls: "Remember me" checkbox, "Forgot password?" link, and full-width `Sign in` button (`#6938D3`, rounded-16px, hover transitions).
+- [x] **d.** Wire form submission to `admin/src/api/auth.ts` with CSRF cookie handling (`GET /admin/auth/csrf`) and clear inline error feedback.
 
 #### Step 2 — AUTH-102 — Reset Password Flow (`/forgot-password`)
-- [ ] **a.** Centered Bento card (`border-radius: 24px`, `1px solid #CAC7D8`) with top purple badge icon.
-- [ ] **b.** Email input with instruction *"Enter the email address associated with your admin account. We'll send you a secure reset link."*
-- [ ] **c.** Primary action `Send reset link` and secondary action `← Back to sign in`.
+- [x] **a.** Centered Bento card (`border-radius: 24px`, `1px solid #CAC7D8`) with top purple badge icon.
+- [x] **b.** Email input with instruction *"Enter the email address associated with your admin account. We'll send you a secure reset link."*
+- [x] **c.** Primary action `Send reset link` and secondary action `← Back to sign in`.
 
 #### Step 3 — LEGAL-101 — Public Legal Pages (`/privacy` and `/terms`)
-- [ ] **a.** Restyle `admin/src/pages/LegalPages.tsx` to inherit the new Evergreen typography, container constraints, and clean card surfaces.
-- [ ] **b.** Ensure pages are accessible publicly without requiring admin authentication (needed for Google OAuth validation).
+- [x] **a.** Restyle `admin/src/pages/LegalPages.tsx` to inherit the new Evergreen typography, container constraints, and clean card surfaces.
+- [x] **b.** Ensure pages are accessible publicly without requiring admin authentication (needed for Google OAuth validation).
 
 ---
 
@@ -275,7 +275,7 @@ The redesigned panel is tailored for a boutique store operator: zero redundant b
 | Phase | Milestone | Deliverable | Status |
 | :--- | :--- | :--- | :--- |
 | **Phase 0** | Design Tokens & Shell | 102 tokens, Inter font, Floating Sidebar with Inverted Fillet & Responsive Drawer | `Completed` |
-| **Phase 1** | Auth & Legal | Redesigned Login, Forgot Password, Legal Pages | `Planned` |
+| **Phase 1** | Auth & Legal | Redesigned Login, Forgot Password, Legal Pages | `Completed` |
 | **Phase 2** | Catalog Engine | Populated Products Table, Create Product Orchestration, Details, Success Modal | `Planned` |
 | **Phase 3** | Stock & Categories | Quick Restock Inventory Matrix, Category CRUD & Android Icon Alignment | `Planned` |
 | **Phase 4** | Orders Workflow | Order Table, State Machine Transition Buttons, Details, Error State | `Planned` |
