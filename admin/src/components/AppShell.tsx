@@ -1,101 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import type { MouseEvent as ReactMouseEvent } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { ConfirmDialog } from './ConfirmDialog';
 import { NavigationGuardProvider, useNavigationGuard } from './NavigationGuard';
+import { Sidebar } from './Sidebar';
 import { ThemeToggle } from './ThemeToggle';
-
-function ProductsIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      className="h-5 w-5 shrink-0"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M21 8.5 12 3 3 8.5v7L12 21l9-5.5v-7Z" />
-      <path d="M3 8.5 12 14l9-5.5M12 14v7" />
-    </svg>
-  );
-}
-
-function CategoriesIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      className="h-5 w-5 shrink-0"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z" />
-      <circle cx="7.5" cy="7.5" r="1.5" />
-    </svg>
-  );
-}
-
-function InventoryIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      className="h-5 w-5 shrink-0"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="m12 2 9 5-9 5-9-5 9-5Z" />
-      <path d="m3 12 9 5 9-5" />
-      <path d="m3 17 9 5 9-5" />
-    </svg>
-  );
-}
-
-function OrdersIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      className="h-5 w-5 shrink-0"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M6 2h9l4 4v16H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z" />
-      <path d="M14 2v5h5M9 12h6M9 16h6" />
-    </svg>
-  );
-}
-
-function ReportsIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      className="h-5 w-5 shrink-0"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M4 20V10M10 20V4M16 20v-7" />
-      <path d="M2 20h20" />
-    </svg>
-  );
-}
 
 function MenuIcon() {
   return (
@@ -105,7 +15,7 @@ function MenuIcon() {
       className="h-6 w-6"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.8"
+      strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
     >
@@ -114,60 +24,30 @@ function MenuIcon() {
   );
 }
 
-const NAV_ITEMS = [
-  { to: '/products', label: 'Products', icon: <ProductsIcon /> },
-  { to: '/categories', label: 'Categories', icon: <CategoriesIcon /> },
-  { to: '/inventory', label: 'Inventory', icon: <InventoryIcon /> },
-  { to: '/orders', label: 'Orders', icon: <OrdersIcon /> },
-  { to: '/reports', label: 'Reports', icon: <ReportsIcon /> },
-];
-
-type NavClickHandler = (event: ReactMouseEvent<HTMLAnchorElement>, to: string) => void;
-
-function navLinkClasses({ isActive }: { isActive: boolean }): string {
-  return [
-    'flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors',
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-    isActive
-      ? 'bg-primary-strong/10 text-primary-strong'
-      : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-  ].join(' ');
-}
-
-function SectionNav({
-  onNavigate,
-  onItemClick,
-}: {
-  onNavigate?: () => void;
-  onItemClick?: NavClickHandler;
-}) {
+function SearchIcon() {
   return (
-    <nav aria-label="Admin sections" className="space-y-1 p-3">
-      {NAV_ITEMS.map((item) => (
-        <NavLink
-          key={item.to}
-          to={item.to}
-          className={navLinkClasses}
-          onClick={(event) => {
-            onNavigate?.();
-            onItemClick?.(event, item.to);
-          }}
-        >
-          {item.icon}
-          {item.label}
-        </NavLink>
-      ))}
-    </nav>
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      className="h-4 w-4 text-[var(--text-secondary)]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="11" cy="11" r="8" />
+      <path d="m21 21-4.3-4.3" />
+    </svg>
   );
 }
 
 /**
- * Admin shell: static 200–248px sidebar on tablet and desktop, drawer below
- * 768px, top bar with the account menu, and a content area capped at 1440px
- * (docs/DESIGN_SYSTEM.md — Admin Web).
- *
- * The shell also asks before leaving a page with unsaved changes: editing
- * pages report their dirty state through the navigation guard.
+ * Evergreen Commerce Admin AppShell:
+ * - Floating signature sidebar (228px width, 32px radius, inverted fillet active curve)
+ * - Search bar and utility top header
+ * - Responsive off-canvas drawer on mobile (< 768px)
+ * - Navigation dirty-guard integration
  */
 export function AppShell() {
   return (
@@ -184,105 +64,78 @@ function AppShellLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [pendingPath, setPendingPath] = useState<string | null>(null);
-  const menuButtonRef = useRef<HTMLButtonElement>(null);
-  const drawerButtonRef = useRef<HTMLButtonElement>(null);
-  const drawerLinkRef = useRef<HTMLAnchorElement>(null);
 
+  const menuButtonRef = useRef<HTMLButtonElement | null>(null);
+  const drawerButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  // Close user menu on outside click or Escape
   useEffect(() => {
-    if (drawerOpen) {
-      drawerLinkRef.current?.focus();
-    }
-  }, [drawerOpen]);
+    if (!menuOpen) return;
 
-  useEffect(() => {
-    if (!drawerOpen) {
-      return;
-    }
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setDrawerOpen(false);
-        drawerButtonRef.current?.focus();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [drawerOpen]);
-
-  useEffect(() => {
-    if (!menuOpen) {
-      return;
-    }
-
-    const handlePointerDown = (event: PointerEvent) => {
-      const target = event.target as Node;
-      if (!menuButtonRef.current?.parentElement?.contains(target)) {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuButtonRef.current && !menuButtonRef.current.contains(event.target as Node)) {
         setMenuOpen(false);
       }
-    };
+    }
 
-    const handleKeyDown = (event: KeyboardEvent) => {
+    function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         setMenuOpen(false);
         menuButtonRef.current?.focus();
       }
-    };
+    }
 
-    document.addEventListener('pointerdown', handlePointerDown);
-    window.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.removeEventListener('pointerdown', handlePointerDown);
-      window.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [menuOpen]);
 
-  const displayName = user ? `${user.firstName} ${user.lastName}` : 'Administrator';
+  // Lock body scroll when mobile drawer is open
+  useEffect(() => {
+    if (!drawerOpen) return;
 
-  async function handleSignOut() {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [drawerOpen]);
+
+  const handleNavClick = (event: ReactMouseEvent<HTMLAnchorElement>, to: string) => {
+    if (isBlocked) {
+      event.preventDefault();
+      setPendingPath(to);
+    }
+  };
+
+  const handleSignOut = async () => {
     setMenuOpen(false);
     await signOut();
-    navigate('/login', { replace: true });
-  }
+    navigate('/login');
+  };
 
-  function handleNavClick(event: ReactMouseEvent<HTMLAnchorElement>, to: string) {
-    if (!isBlocked || event.defaultPrevented) {
-      return;
-    }
-
-    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
-      return;
-    }
-
-    event.preventDefault();
-    setPendingPath(to);
-  }
+  const displayName = user ? `${user.firstName} ${user.lastName}` : 'Admin';
 
   return (
-    <div className="min-h-screen bg-background">
-      <a
-        href="#admin-main"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-card focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:shadow-glass"
-      >
-        Skip to content
-      </a>
+    <div className="relative min-h-screen bg-[var(--bg-background)] text-[var(--text-on-background)] transition-colors">
+      {/* Desktop Floating Sidebar */}
+      <div className="hidden md:block">
+        <Sidebar onItemClick={handleNavClick} />
+      </div>
 
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[200px] flex-col border-r border-border bg-card md:flex xl:w-[248px]">
-        <div className="flex h-16 items-center border-b border-border px-5">
-          <span className="text-base font-bold tracking-tight">EShop Verse Admin</span>
-        </div>
-        <div className="flex-1 overflow-y-auto">
-          <SectionNav onItemClick={handleNavClick} />
-        </div>
-      </aside>
-
-      <div className="md:pl-[200px] xl:pl-[248px]">
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-border bg-card/80 px-4 backdrop-blur sm:px-6">
-          <div className="flex min-w-0 items-center gap-3">
+      {/* Main Workspace (offset by floating sidebar width 228px + margins 32px + gap = ~280px) */}
+      <div className="flex flex-col md:pl-[280px]">
+        {/* Top Header Bar */}
+        <header className="sticky top-0 z-20 flex h-20 items-center justify-between px-6 lg:px-10 backdrop-blur-md bg-[var(--bg-background)]/85 transition-colors">
+          <div className="flex items-center gap-4">
+            {/* Mobile Hamburger Toggle */}
             <button
               ref={drawerButtonRef}
               type="button"
-              className="-ml-2 flex h-11 w-11 items-center justify-center rounded-xl text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:hidden"
+              className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--border-outline)] bg-[var(--bg-surface)] text-[var(--text-on-background)] hover:bg-[var(--bg-surface-variant)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] md:hidden"
               aria-expanded={drawerOpen}
               aria-controls="admin-mobile-nav"
               onClick={() => setDrawerOpen(true)}
@@ -290,27 +143,53 @@ function AppShellLayout() {
               <span className="sr-only">Open navigation</span>
               <MenuIcon />
             </button>
-            <span className="truncate text-sm font-semibold md:hidden">EShop Verse Admin</span>
+
+            {/* Evergreen Search Shell */}
+            <div className="relative hidden sm:block w-72 lg:w-96">
+              <span className="pointer-events-none absolute inset-y-0 left-3.5 flex items-center">
+                <SearchIcon />
+              </span>
+              <input
+                type="text"
+                placeholder="Search anything..."
+                aria-label="Search dashboard"
+                className="h-11 w-full rounded-2xl border border-[var(--border-outline)] bg-[var(--bg-surface)] pl-10 pr-4 text-sm text-[var(--text-on-background)] placeholder:text-[var(--text-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] transition-colors"
+              />
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Right Header Utilities: Theme Toggle & Admin User Menu */}
+          <div className="flex items-center gap-3">
             <ThemeToggle />
+
             <div className="relative">
               <button
                 ref={menuButtonRef}
                 type="button"
-                className="flex min-h-11 items-center gap-3 rounded-full border border-border bg-card px-3 py-1.5 text-sm font-semibold hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex h-11 items-center gap-3 rounded-2xl border border-[var(--border-outline)] bg-[var(--bg-surface)] px-3 text-sm font-semibold text-[var(--text-on-background)] hover:bg-[var(--bg-surface-variant)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] transition-colors"
                 aria-haspopup="menu"
                 aria-expanded={menuOpen}
                 onClick={() => setMenuOpen((open) => !open)}
               >
                 <span
                   aria-hidden="true"
-                  className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/20 text-xs font-bold text-foreground"
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--brand-primary-container)] text-xs font-bold text-[var(--brand-on-primary-container)]"
                 >
                   {user ? `${user.firstName.charAt(0)}${user.lastName.charAt(0)}` : 'A'}
                 </span>
-                <span className="hidden max-w-[16rem] truncate sm:inline">{displayName}</span>
+                <span className="hidden max-w-[14rem] truncate sm:inline">{displayName}</span>
+                <svg
+                  aria-hidden="true"
+                  className="h-4 w-4 text-[var(--text-secondary)]"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                    clipRule="evenodd"
+                  />
+                </svg>
                 <span className="sr-only">Account menu</span>
               </button>
 
@@ -318,17 +197,17 @@ function AppShellLayout() {
                 <div
                   role="menu"
                   aria-label="Account"
-                  className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-64 animate-fade-in rounded-2xl border border-border bg-card p-2 shadow-glass"
+                  className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-64 animate-fade-in rounded-2xl border border-[var(--border-outline)] bg-[var(--bg-surface)] p-2 shadow-glass"
                 >
-                  <div className="px-3 py-2">
-                    <p className="text-sm font-semibold">{displayName}</p>
-                    {user && <p className="truncate text-xs text-muted-foreground">{user.email}</p>}
+                  <div className="px-3 py-2 border-b border-[var(--border-outline-variant)]">
+                    <p className="text-sm font-semibold text-[var(--text-on-background)]">{displayName}</p>
+                    {user && <p className="truncate text-xs text-[var(--text-secondary)]">{user.email}</p>}
                   </div>
                   <button
                     type="button"
                     role="menuitem"
                     onClick={() => void handleSignOut()}
-                    className="flex min-h-11 w-full items-center rounded-xl px-3 text-left text-sm font-semibold text-destructive hover:bg-destructive/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="mt-1 flex min-h-11 w-full items-center rounded-xl px-3 text-left text-sm font-semibold text-[var(--status-error)] hover:bg-[var(--status-error-container)]/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] transition-colors"
                   >
                     Sign out
                   </button>
@@ -338,15 +217,17 @@ function AppShellLayout() {
           </div>
         </header>
 
-        <main id="admin-main" className="mx-auto w-full max-w-[1440px] p-4 sm:p-6 lg:p-8">
+        {/* Content Body */}
+        <main id="admin-main" className="w-full max-w-[1440px] px-6 py-4 lg:px-10 lg:py-6">
           <Outlet />
         </main>
       </div>
 
+      {/* Mobile Slide-Over Drawer */}
       {drawerOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in"
             onClick={() => setDrawerOpen(false)}
             aria-hidden="true"
           />
@@ -355,35 +236,33 @@ function AppShellLayout() {
             role="dialog"
             aria-modal="true"
             aria-label="Admin navigation"
-            className="absolute inset-y-0 left-0 w-72 max-w-[85vw] animate-fade-in overflow-y-auto border-r border-border bg-card shadow-glass"
+            className="absolute inset-y-0 left-0 w-72 max-w-[85vw] animate-fade-in overflow-y-auto border-r border-[var(--border-outline)] bg-[var(--bg-sidebar)] shadow-2xl"
           >
-            <div className="flex h-16 items-center justify-between border-b border-border px-4">
-              <span className="text-base font-bold tracking-tight">EShop Verse Admin</span>
+            <div className="flex h-16 items-center justify-between px-6 border-b border-[var(--border-outline-variant)]">
+              <span className="font-sans text-base font-bold tracking-tight text-[var(--text-on-background)]">
+                EVERGREEN
+              </span>
               <button
                 type="button"
-                className="flex h-11 w-11 items-center justify-center rounded-xl text-sm font-semibold hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex h-10 w-10 items-center justify-center rounded-xl text-sm font-semibold text-[var(--text-secondary)] hover:bg-[var(--interaction-hover-overlay)] hover:text-[var(--text-on-background)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)]"
                 onClick={() => {
                   setDrawerOpen(false);
                   drawerButtonRef.current?.focus();
                 }}
               >
-                Close
+                ✕
               </button>
             </div>
-            <div
-              ref={(node) => {
-                drawerLinkRef.current = node?.querySelector('a') ?? null;
-              }}
-            >
-              <SectionNav
-                onNavigate={() => setDrawerOpen(false)}
-                onItemClick={handleNavClick}
-              />
-            </div>
+            <Sidebar
+              isMobile
+              onNavigate={() => setDrawerOpen(false)}
+              onItemClick={handleNavClick}
+            />
           </div>
         </div>
       )}
 
+      {/* Dirty Form Confirmation Dialog */}
       <ConfirmDialog
         open={pendingPath !== null}
         title="Discard unsaved changes?"
