@@ -407,3 +407,52 @@ upload archive is `deploy/eshopverse-admin-dist.zip`; live upload is the owner's
 - [x] **d.** Verify complete test suite (all 116+ tests), production build, and live deployment to Wasmer Edge host.
 
 **Verification:** eliminated redundant brand header inside mobile drawer (`!isMobile` guard in `Sidebar.tsx`). Verified minimum 44px touch targets across all new UI components, passing 100% of the test suite (19 test files, 123 tests green), clean type checking, and successful Vite production build (`index-YO0EUExX.css`, `index-DAcZ9vhe.js`).
+
+---
+
+## Phase 9 — Product Power Tools, Bulk Operations, and Global Search
+
+**Project phase gate:** Product duplication workflow, multi-select bulk operations with floating action bar, and active global search command palette.
+
+### Step 1 — PROD-901 — Product Cloning and Duplication Workflow
+
+**Status:** `[ ]`
+
+**Depends on:** UI-804
+
+**Scope:** provide an instant "Duplicate" action for catalog products, prefilling the product creation form with existing product attributes while enforcing unique SKU and distinct title constraints.
+
+**Acceptance criteria:**
+- [ ] **a.** Add "Duplicate" action to desktop table row actions and mobile card menu on `ProductsPage.tsx`.
+- [ ] **b.** When clicked, navigate to `/products/new` prefilled with existing product title (`[Copy] <Title>`), price, category, stock, and description.
+- [ ] **c.** Automatically clear or suffix SKU (`<SKU>-copy`) to prevent unique SKU conflicts during submission.
+- [ ] **d.** Write unit tests verifying state prefilling, form validation, and successful creation of cloned products.
+
+### Step 2 — PROD-902 — Multi-Select Checkboxes and Floating Bulk Action Bar
+
+**Status:** `[ ]`
+
+**Depends on:** PROD-901
+
+**Scope:** implement table row selection, header select-all with indeterminate state, and a modern Dribbble-style floating action bar for bulk operations (bulk activate, bulk archive, bulk delete).
+
+**Acceptance criteria:**
+- [ ] **a.** Add header "select all" checkbox with indeterminate visual state when partial items are selected on the current page.
+- [ ] **b.** Add row-level selection checkboxes to desktop table and touch-friendly selection on mobile cards.
+- [ ] **c.** Render a floating bottom capsule action bar (`FloatingBulkBar`) displaying selected count, quick bulk actions (`Active`, `Archive`, `Delete`), and a clear-selection button.
+- [ ] **d.** Provide a safety confirmation dialog for bulk operations with itemized count, executing resilient batch requests and refreshing catalog state.
+
+### Step 3 — SEARCH-903 — Global Spotlight and Command Palette Search
+
+**Status:** `[ ]`
+
+**Depends on:** UI-805
+
+**Scope:** activate the top bar search in `TopBar.tsx` into a functional Global Command Palette (`Ctrl+K` / `Cmd+K`) that searches across products, orders, categories, and administrative navigation.
+
+**Acceptance criteria:**
+- [ ] **a.** Connect `TopBar.tsx` search input to open an interactive Spotlight/Command Palette modal with keyboard shortcut support (`Ctrl+K` / `/`).
+- [ ] **b.** Provide instant debounced search querying matching products, orders by reference, and admin quick links.
+- [ ] **c.** Support full keyboard navigation (arrow keys to highlight, Enter to navigate, Escape to close).
+- [ ] **d.** Graceful empty states and mobile-friendly search dialog overlay.
+

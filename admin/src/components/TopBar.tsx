@@ -20,24 +20,6 @@ function MenuIcon() {
   );
 }
 
-function SearchIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      className="h-4 w-4 text-[var(--text-secondary)]"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.3-4.3" />
-    </svg>
-  );
-}
-
 interface TopBarProps {
   onOpenDrawer?: () => void;
   drawerOpen?: boolean;
@@ -101,19 +83,6 @@ export function TopBar({ onOpenDrawer, drawerOpen = false }: TopBarProps) {
             <MenuIcon />
           </button>
         )}
-
-        {/* Evergreen Search Shell */}
-        <div className="relative hidden sm:block w-72 lg:w-96">
-          <span className="pointer-events-none absolute inset-y-0 left-3.5 flex items-center">
-            <SearchIcon />
-          </span>
-          <input
-            type="text"
-            placeholder="Search anything..."
-            aria-label="Search dashboard"
-            className="h-11 w-full rounded-2xl border border-[var(--border-outline)] bg-[var(--bg-surface)] pl-10 pr-4 text-sm text-[var(--text-on-background)] placeholder:text-[var(--text-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] transition-colors"
-          />
-        </div>
       </div>
 
       {/* Right Header Utilities */}
