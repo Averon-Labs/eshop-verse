@@ -202,24 +202,24 @@ The redesigned panel is tailored for a boutique store operator: zero redundant b
 **Goal:** Provide an intuitive order processing workflow for reviewing and fulfilling customer orders placed via the Android app.
 
 #### Step 1 — ORD-101 — Orders Table & Filter Tabs (`/orders`)
-- [ ] **a.** Status Tabs: `All orders`, `Pending payment`, `Confirmed`, `Processing`, `Shipped`, `Delivered`, `Cancelled`.
-- [ ] **b.** Orders Table:
+- [x] **a.** Status Tabs: `All orders`, `Pending payment`, `Confirmed`, `Processing`, `Shipped`, `Delivered`, `Cancelled`.
+- [x] **b.** Orders Table:
   - Columns: Order ID (e.g. `#EV-1048`), Customer name & email, Date, Total amount, Payment status badge, Order status badge, and Details button.
-- [ ] **c.** Status Badges:
+- [x] **c.** Status Badges:
   - `Pending payment`: Light purple `#EBDDFF` with dark violet text.
   - `Confirmed` / `Processing`: Blue `#D1E9FF` with deep cyan text.
   - `Shipped`: Soft orange `#FFEDD5` with dark amber text.
   - `Delivered`: Green `#B9F1CD` with dark forest green text.
   - `Cancelled`: Rose `#FFE4E6` with dark red text.
-- [ ] **d.** Error State: Replicate exact Figma screen *"We couldn't load your orders / Something went wrong while retrieving order data. Check your connection and try again."* with purple `Try again` button and error reference code (`ORD-LOAD-042`).
+- [x] **d.** Error State: Replicate exact Figma screen *"We couldn't load your orders / Something went wrong while retrieving order data. Check your connection and try again."* with purple `Try again` button and error reference code (`ORD-LOAD-042`).
 
 #### Step 2 — ORD-102 — Order Details & State Machine Transitions (`/orders/:id`)
-- [ ] **a.** Detailed Bento Order View:
+- [x] **a.** Detailed Bento Order View:
   - Customer contact info & formatted shipping address snapshot.
   - Items list: product thumbnail, name, unit price, quantity, and line total.
   - Simulated payment details & transaction ID.
   - Order audit timeline showing timestamped events.
-- [ ] **b.** Dynamic State Transitions:
+- [x] **b.** Dynamic State Transitions:
   - Only show action buttons matching `order.allowedTransitions` (`processing`, `shipped`, `delivered`, `cancelled`).
   - Calls `PATCH /admin/orders/{id}/status` with `{ status }` and refreshes timeline without full page reload.
 
