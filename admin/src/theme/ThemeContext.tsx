@@ -38,7 +38,7 @@ function applyTheme(theme: Theme): void {
 
   document
     .querySelector('meta[name="theme-color"]')
-    ?.setAttribute('content', theme === 'dark' ? '#000000' : '#F5F6F7');
+    ?.setAttribute('content', theme === 'dark' ? '#0B1021' : '#F7F7FC');
 }
 
 interface ThemeContextValue {
