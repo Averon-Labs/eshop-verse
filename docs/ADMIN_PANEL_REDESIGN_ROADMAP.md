@@ -256,15 +256,15 @@ The redesigned panel is tailored for a boutique store operator: zero redundant b
 **Goal:** Ensure 100% test passing rate, zero accessibility violations, and clean production bundles.
 
 #### Step 1 — QA-001 — Unit & Component Test Suite
-- [ ] **a.** Update existing test mocks in `admin/src/test/` to reflect new component props and layout structures.
-- [ ] **b.** Verify all tests pass via `npm --prefix admin test` (maintain 100% passing rate across all test suites).
-- [ ] **c.** Verify TypeScript type-checking passes with zero errors: `npm --prefix admin run typecheck` (or `tsc --noEmit`).
-- [ ] **d.** Verify linting passes: `npm --prefix admin run lint`.
+- [x] **a.** Update existing test mocks in `admin/src/test/` to reflect new component props and layout structures.
+- [x] **b.** Verify all tests pass via `npm --prefix admin test` (maintain 100% passing rate across all test suites).
+- [x] **c.** Verify TypeScript type-checking passes with zero errors: `npm --prefix admin run typecheck` (or `tsc --noEmit`).
+- [x] **d.** Verify linting passes: `npm --prefix admin run lint`.
 
 #### Step 2 — QA-002 — Production Build & Host Packaging
-- [ ] **a.** Run `npm --prefix admin run build` to produce the optimized production bundle in `admin/dist/`.
-- [ ] **b.** Test local preview via `npm --prefix admin run preview`.
-- [ ] **c.** Execute `deploy/build-release.ps1` or `deploy/build-release.sh` to package the admin bundle and ensure seamless integration with the Laravel backend.
+- [x] **a.** Run `npm --prefix admin run build` to produce the optimized production bundle in `admin/dist/`.
+- [x] **b.** Test local preview via `npm --prefix admin run preview`.
+- [x] **c.** Execute `deploy/build-release.ps1` or `deploy/build-release.sh` to package the admin bundle and ensure seamless integration with the Laravel backend.
 
 ---
 
@@ -274,9 +274,9 @@ The redesigned panel is tailored for a boutique store operator: zero redundant b
 | :--- | :--- | :--- | :--- |
 | **Phase 0** | Design Tokens & Shell | 102 tokens, Inter font, Floating Sidebar with Inverted Fillet & Responsive Drawer | `Completed` |
 | **Phase 1** | Auth & Legal | Redesigned Login, Forgot Password, Legal Pages | `Completed` |
-| **Phase 2** | Catalog Engine | Populated Products Table, Create Product Orchestration, Details, Success Modal | `Planned` |
-| **Phase 3** | Stock & Categories | Quick Restock Inventory Matrix, Category CRUD & Android Icon Alignment | `Planned` |
-| **Phase 4** | Orders Workflow | Order Table, State Machine Transition Buttons, Details, Error State | `Planned` |
-| **Phase 5** | Overview & Reports | KPI Dashboard powered by `GET /admin/reports/sales`, Recent Orders | `Planned` |
-| **Phase 6** | Store Settings | Store Info, Regional Preferences, Password Change | `Planned` |
-| **Phase 7** | QA & Packaging | Vitest Green, Typecheck Clean, Bundle Build Verified | `Planned` |
+| **Phase 2** | Catalog Engine | Populated Products Table, Create Product Orchestration, Details, Success Modal | `Completed` |
+| **Phase 3** | Stock & Categories | Quick Restock Inventory Matrix, Category CRUD & Android Icon Alignment | `Completed` |
+| **Phase 4** | Orders Workflow | Order Table, State Machine Transition Buttons, Details, Error State | `Completed` |
+| **Phase 5** | Overview & Reports | KPI Dashboard powered by `GET /admin/reports/sales`, Recent Orders | `Completed` |
+| **Phase 6** | Store Settings | Store Info, Regional Preferences, Password Change | `Completed` |
+| **Phase 7** | QA & Packaging | Vitest Green, Typecheck Clean, Bundle Build Verified | `Completed` |
