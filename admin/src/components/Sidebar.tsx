@@ -324,15 +324,17 @@ export function Sidebar({ isMobile = false, onNavigate, onItemClick }: SidebarPr
           : 'fixed left-8 top-8 z-30 flex h-[calc(100vh-64px)] w-[228px] shrink-0 flex-col rounded-[32px] bg-[var(--bg-sidebar)] pb-8 pt-7 border-0 shadow-none transition-colors'
       }
     >
-      {/* Brand Header */}
-      <div className="px-6 mb-7">
-        <h1 className="font-sans text-lg font-semibold tracking-tight text-[var(--text-on-background)]">
-          EVERGREEN
-        </h1>
-        <p className="font-sans text-[11px] font-medium tracking-[0.2px] text-[var(--text-secondary)]">
-          COMMERCE ADMIN
-        </p>
-      </div>
+      {/* Brand Header - rendered on desktop; on mobile the drawer header provides the title */}
+      {!isMobile && (
+        <div className="px-6 mb-7">
+          <h1 className="font-sans text-lg font-semibold tracking-tight text-[var(--text-on-background)]">
+            EVERGREEN
+          </h1>
+          <p className="font-sans text-[11px] font-medium tracking-[0.2px] text-[var(--text-secondary)]">
+            COMMERCE ADMIN
+          </p>
+        </div>
+      )}
 
       {/* Navigation Links */}
       <nav aria-label="Admin sections" className="relative flex flex-col gap-2 pl-6 overflow-y-auto scrollbar-none">
