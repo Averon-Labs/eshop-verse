@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { getAdminProduct } from '../../api/catalog';
 import { ApiError } from '../../api/http';
 import type { AdminProduct, ProductStatus } from '../../api/types';
@@ -46,6 +46,7 @@ function ProductStatusBadge({ status }: { status: ProductStatus }) {
  */
 export default function ProductDetailPage() {
   const { productId: productIdParam } = useParams();
+  const navigate = useNavigate();
   const productId = productIdParam ? Number(productIdParam) : null;
   const invalidId = productId !== null && (!Number.isInteger(productId) || productId <= 0);
 
@@ -55,6 +56,22 @@ export default function ProductDetailPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [reloadToken, setReloadToken] = useState(0);
+
+  function handleDuplicate() {
+    if (!product) return;
+    navigate('/products/new', {
+      state: {
+        duplicateProduct: {
+          name: product.name,
+          sku: product.sku,
+          price: product.price,
+          categoryId: product.categoryId,
+          status: product.status,
+          description: product.description ?? '',
+        },
+      },
+    });
+  }
 
   useEffect(() => {
     if (productId === null || invalidId) {
@@ -177,6 +194,28 @@ export default function ProductDetailPage() {
           </div>
 
           <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={handleDuplicate}
+              className={secondaryButtonClass}
+              aria-label={`Duplicate ${product.name}`}
+            >
+              <svg
+                className="mr-1.5 h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                />
+              </svg>
+              <span>Duplicate</span>
+            </button>
             <Link
               to={`/products/${product.id}/edit`}
               className={primaryButtonClass}

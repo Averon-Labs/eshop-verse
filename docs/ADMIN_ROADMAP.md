@@ -416,17 +416,19 @@ upload archive is `deploy/eshopverse-admin-dist.zip`; live upload is the owner's
 
 ### Step 1 — PROD-901 — Product Cloning and Duplication Workflow
 
-**Status:** `[ ]`
+**Status:** `[x]`
 
 **Depends on:** UI-804
 
 **Scope:** provide an instant "Duplicate" action for catalog products, prefilling the product creation form with existing product attributes while enforcing unique SKU and distinct title constraints.
 
 **Acceptance criteria:**
-- [ ] **a.** Add "Duplicate" action to desktop table row actions and mobile card menu on `ProductsPage.tsx`.
-- [ ] **b.** When clicked, navigate to `/products/new` prefilled with existing product title (`[Copy] <Title>`), price, category, stock, and description.
-- [ ] **c.** Automatically clear or suffix SKU (`<SKU>-copy`) to prevent unique SKU conflicts during submission.
-- [ ] **d.** Write unit tests verifying state prefilling, form validation, and successful creation of cloned products.
+- [x] **a.** Add "Duplicate" action to desktop table row actions and mobile card menu on `ProductsPage.tsx`.
+- [x] **b.** When clicked, navigate to `/products/new` prefilled with existing product title (`[Copy] <Title>`), price, category, stock, and description.
+- [x] **c.** Automatically clear or suffix SKU (`<SKU>-copy`) to prevent unique SKU conflicts during submission.
+- [x] **d.** Write unit tests verifying state prefilling, form validation, and successful creation of cloned products.
+
+**Verification:** implemented Duplicate action on `ProductsPage.tsx` (desktop table and mobile cards) and `ProductDetailPage.tsx`. Pre-fills `ProductFormPage.tsx` with copy title (`[Copy] <Name>`), suffixed SKU (`<SKU>-copy`), price, category, and description. Verified with 3 dedicated unit tests across `ProductFormPage.test.tsx`, `ProductsPage.test.tsx`, and `ProductDetailPage.test.tsx`. Passed 100% of test suite (19 test files, 126 tests green) and clean Vite production build.
 
 ### Step 2 — PROD-902 — Multi-Select Checkboxes and Floating Bulk Action Bar
 

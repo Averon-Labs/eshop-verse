@@ -230,6 +230,21 @@ export default function ProductsPage() {
     setPage(1);
   }
 
+  function handleDuplicate(product: AdminProduct) {
+    navigate('/products/new', {
+      state: {
+        duplicateProduct: {
+          name: product.name,
+          sku: product.sku,
+          price: product.price,
+          categoryId: product.categoryId,
+          status: product.status,
+          description: product.description ?? '',
+        },
+      },
+    });
+  }
+
   async function confirmArchive() {
     if (!archiveTarget) {
       return;
@@ -705,6 +720,28 @@ export default function ProductsPage() {
                           </svg>
                           Edit
                         </Link>
+                        <button
+                          type="button"
+                          aria-label={`Duplicate ${product.name}`}
+                          className={actionButtonClass}
+                          onClick={() => handleDuplicate(product)}
+                        >
+                          <svg
+                            className="mr-1 h-3.5 w-3.5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                            aria-hidden="true"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                            />
+                          </svg>
+                          Duplicate
+                        </button>
                         {product.status === 'archived' ? (
                           <span className="px-3 py-1.5 text-xs font-semibold text-text-disabled">
                             Archived
@@ -780,7 +817,7 @@ export default function ProductsPage() {
                     </dd>
                   </div>
                 </dl>
-                <div className="flex items-center gap-2 pt-1">
+                <div className="flex flex-wrap items-center gap-2 pt-1">
                   <Link
                     to={`/products/${product.id}/edit`}
                     aria-label={`Edit ${product.name}`}
@@ -788,6 +825,14 @@ export default function ProductsPage() {
                   >
                     Edit
                   </Link>
+                  <button
+                    type="button"
+                    aria-label={`Duplicate ${product.name}`}
+                    className={`${actionButtonClass} flex-1 justify-center`}
+                    onClick={() => handleDuplicate(product)}
+                  >
+                    Duplicate
+                  </button>
                   {product.status !== 'archived' && (
                     <button
                       type="button"

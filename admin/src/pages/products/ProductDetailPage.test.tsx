@@ -132,4 +132,33 @@ describe('ProductDetailPage (PROD-103)', () => {
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Recovered Lamp' })).toBeInTheDocument();
   });
+
+  it('duplicate_button_navigates_to_new_product_with_prefilled_state', async () => {
+    mockApi([
+      sessionRoute(),
+      {
+        method: 'GET',
+        path: '/admin/products/5',
+        handler: () => jsonResponse(200, { data: product({ id: 5, name: 'Wool Coat', sku: 'WOOL-05' }) }),
+      },
+      {
+        method: 'GET',
+        path: '/admin/categories',
+        handler: () => jsonResponse(200, { data: [] }),
+      },
+    ]);
+    window.history.pushState({}, '', '/products/5');
+
+    render(<App />);
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Wool Coat' })).toBeInTheDocument();
+
+    const duplicateBtn = screen.getByRole('button', { name: 'Duplicate Wool Coat' });
+    expect(duplicateBtn).toBeInTheDocument();
+    fireEvent.click(duplicateBtn);
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Duplicate product' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Name')).toHaveValue('[Copy] Wool Coat');
+    expect(screen.getByLabelText(/^SKU/)).toHaveValue('WOOL-05-copy');
+  });
 });

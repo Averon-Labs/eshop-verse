@@ -370,4 +370,30 @@ describe('ProductsPage (A-02)', () => {
       '/products/new',
     );
   });
+
+  it('duplicate_product_navigates_to_new_product_with_prefilled_state', async () => {
+    mockApi([
+      sessionRoute(),
+      categoryListRoute([]),
+      productsRoute(() =>
+        jsonResponse(200, {
+          data: [product({ id: 10, name: 'Vintage Leather Jacket', sku: 'LEATHER-10' })],
+          pagination: pagination(1, 20, 1, 1),
+        }),
+      ),
+    ]);
+
+    render(<App />);
+
+    const table = await findProductsTable();
+    expect(table).toBeInTheDocument();
+
+    const duplicateBtn = within(table).getByRole('button', { name: 'Duplicate Vintage Leather Jacket' });
+    expect(duplicateBtn).toBeInTheDocument();
+    fireEvent.click(duplicateBtn);
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Duplicate product' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Name')).toHaveValue('[Copy] Vintage Leather Jacket');
+    expect(screen.getByLabelText(/^SKU/)).toHaveValue('LEATHER-10-copy');
+  });
 });
