@@ -330,19 +330,19 @@ upload archive is `deploy/eshopverse-admin-dist.zip`; live upload is the owner's
 
 ### Step 1 — UI-801 — CustomSelect and DateRangePicker core components
 
-**Status:** `[ ]`
+**Status:** `[x]`
 
 **Depends on:** QA-001
 
 **Scope:** build reusable, accessible, Dribbble-grade custom dropdown and date range picker components in `admin/src/components/ui/` adhering to the Evergreen design system tokens.
 
 **Acceptance criteria:**
-- [ ] **a.** Build `CustomSelect`: floating portal menu, animated chevron, status dot indicator for order/product states, full keyboard navigation (Up/Down/Enter/Escape), and 44px touch targets.
-- [ ] **b.** Build `DateRangePicker`: unified capsule trigger displaying selected date range, quick presets column (Today, Yesterday, Last 7/30 days, This month), and interactive calendar grid styled with `--brand-primary` and continuous range highlights.
-- [ ] **c.** Support responsive rendering: floating popover on desktop viewports, and native-feeling **Bottom Sheet modal** on mobile screens (`< 640px`) to prevent viewport clipping.
-- [ ] **d.** Zero new external dependencies (pure React 19 + Tailwind v4); 100% Light and Dark mode parity using existing CSS tokens (`globals.css`).
+- [x] **a.** Build `CustomSelect`: floating portal menu, animated chevron, status dot indicator for order/product states, full keyboard navigation (Up/Down/Enter/Escape), and 44px touch targets.
+- [x] **b.** Build `DateRangePicker`: unified capsule trigger displaying selected date range, quick presets column (Today, Yesterday, Last 7/30 days, This month), and interactive calendar grid styled with `--brand-primary` and continuous range highlights.
+- [x] **c.** Support responsive rendering: floating popover on desktop viewports, and native-feeling **Bottom Sheet modal** on mobile screens (`< 640px`) to prevent viewport clipping.
+- [x] **d.** Zero new external dependencies (pure React 19 + Tailwind v4); 100% Light and Dark mode parity using existing CSS tokens (`globals.css`).
 
-**Verification:** unit tests for `CustomSelect` and `DateRangePicker`, keyboard accessibility checks, and mobile viewport bounding tests.
+**Verification:** implemented in `admin/src/components/ui/CustomSelect.tsx`, `DateRangePicker.tsx`, and `index.ts`. Covered by 7 dedicated unit tests (`CustomSelect.test.tsx` and `DateRangePicker.test.tsx`). Verified full test suite pass rate (19 test files, 123 tests green), clean type checking (`tsc --noEmit`), and successful production build with Vite.
 
 ### Step 2 — UI-802 — Orders page filter modernization and mobile ergonomics
 
