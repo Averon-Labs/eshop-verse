@@ -432,17 +432,19 @@ upload archive is `deploy/eshopverse-admin-dist.zip`; live upload is the owner's
 
 ### Step 2 — PROD-902 — Multi-Select Checkboxes and Floating Bulk Action Bar
 
-**Status:** `[ ]`
+**Status:** `[x]`
 
 **Depends on:** PROD-901
 
 **Scope:** implement table row selection, header select-all with indeterminate state, and a modern Dribbble-style floating action bar for bulk operations (bulk activate, bulk archive, bulk delete).
 
 **Acceptance criteria:**
-- [ ] **a.** Add header "select all" checkbox with indeterminate visual state when partial items are selected on the current page.
-- [ ] **b.** Add row-level selection checkboxes to desktop table and touch-friendly selection on mobile cards.
-- [ ] **c.** Render a floating bottom capsule action bar (`FloatingBulkBar`) displaying selected count, quick bulk actions (`Active`, `Archive`, `Delete`), and a clear-selection button.
-- [ ] **d.** Provide a safety confirmation dialog for bulk operations with itemized count, executing resilient batch requests and refreshing catalog state.
+- [x] **a.** Add header "select all" checkbox with indeterminate visual state when partial items are selected on the current page.
+- [x] **b.** Add row-level selection checkboxes to desktop table and touch-friendly selection on mobile cards.
+- [x] **c.** Render a floating bottom capsule action bar (`FloatingBulkBar`) displaying selected count, quick bulk actions (`Active`, `Archive`, `Delete`), and a clear-selection button.
+- [x] **d.** Provide a safety confirmation dialog for bulk operations with itemized count, executing resilient batch requests and refreshing catalog state.
+
+**Verification:** implemented `FloatingBulkBar` capsule component with counter badge, actions, and portal rendering. Added select-all checkbox with `indeterminate` ref state and row checkboxes on `ProductsPage.tsx` (desktop and mobile cards). Integrated safety `ConfirmDialog` for bulk activate, archive, and delete. Added comprehensive unit tests in `FloatingBulkBar.test.tsx` and `ProductsPage.test.tsx`. 100% of the test suite (20 test files, 131 tests) passing, clean TypeScript type check, and production build succeeded.
 
 ### Step 3 — SEARCH-903 — Global Spotlight and Command Palette Search
 
