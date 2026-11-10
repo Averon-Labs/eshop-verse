@@ -15,6 +15,7 @@ import ProductDetailPage from './pages/products/ProductDetailPage';
 import ProductFormPage from './pages/products/ProductFormPage';
 import ProductsPage from './pages/products/ProductsPage';
 import ReportsPage from './pages/reports/ReportsPage';
+import SettingsPage from './pages/settings/SettingsPage';
 
 export default function App() {
   return (
@@ -38,6 +39,7 @@ export default function App() {
                 <Route path="orders" element={<OrdersPage />} />
                 <Route path="orders/:orderId" element={<OrderDetailPage />} />
                 <Route path="reports" element={<ReportsPage />} />
+                <Route path="settings" element={<SettingsPage />} />
               </Route>
             </Route>
             <Route path="*" element={<NotFoundPage />} />

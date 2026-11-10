@@ -245,9 +245,9 @@ The redesigned panel is tailored for a boutique store operator: zero redundant b
 **Goal:** Provide essential store configuration and account security.
 
 #### Step 1 — SET-101 — Store Settings (`/settings`)
-- [ ] **a.** Store Profile: Store name (`Evergreen Store` / `EShop Verse`), support email, contact phone, store currency display.
-- [ ] **b.** Regional Preferences: Date format (`MM/DD/YYYY`), Timezone.
-- [ ] **c.** Admin Account Security: change password form (Current password, New password, Confirm password).
+- [x] **a.** Store Profile: Store name (`Evergreen Store` / `EShop Verse`), support email, contact phone, store currency display.
+- [x] **b.** Regional Preferences: Date format (`MM/DD/YYYY`), Timezone.
+- [x] **c.** Admin Account Security: change password form (Current password, New password, Confirm password).
 
 ---
 
