@@ -17,6 +17,7 @@ import {
   actionButtonClass,
   cardClass,
   fieldErrorClass,
+  helperTextClass,
   inputClass,
   labelClass,
   primaryButtonClass,
@@ -30,6 +31,19 @@ function CategoryStatusBadge({ status }: { status: CategoryStatus }) {
 
   return <StatusBadge tone="neutral">Archived</StatusBadge>;
 }
+
+/** Android standard category presets that map to CategoryIconResolver.java */
+const ANDROID_PRESETS = [
+  'T-Shirts',
+  'Shirts',
+  'Pants',
+  'Dresses',
+  'Jackets',
+  'Activewear',
+  'Shoes',
+  'Accessories',
+  'Bags',
+];
 
 /** Merge the documented `details[]` messages with the top-level message. */
 function describeActionError(error: unknown, fallback: string): string {
@@ -46,9 +60,8 @@ function describeActionError(error: unknown, fallback: string): string {
 }
 
 /**
- * A-04 — Categories. The API returns the full list (no pagination), so search
- * and status filtering run client-side; lifecycle actions use the reviewed
- * archive/restore endpoints and never delete.
+ * CAT-101 — Categories management with Bento Grid styling and Evergreen Material 3 tokens.
+ * Organizes the catalog and ensures full compatibility with the Android customer app.
  */
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<AdminCategory[]>([]);
@@ -171,7 +184,10 @@ export default function CategoriesPage() {
     }
 
     setSaving(true);
-    const input: CategoryInput = { name: formName.trim(), sortOrder: Number(formSortOrder.trim()) };
+    const input: CategoryInput = {
+      name: formName.trim(),
+      sortOrder: Number(formSortOrder.trim()),
+    };
 
     try {
       if (editing) {
@@ -246,13 +262,27 @@ export default function CategoriesPage() {
 
   function renderActions(category: AdminCategory) {
     return (
-      <>
+      <div className="flex items-center justify-end gap-1.5">
         <button
           type="button"
           aria-label={`Edit ${category.name}`}
           className={actionButtonClass}
           onClick={() => openEdit(category)}
         >
+          <svg
+            className="mr-1 h-3.5 w-3.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+            />
+          </svg>
           Edit
         </button>
         {category.status === 'active' ? (
@@ -271,7 +301,7 @@ export default function CategoriesPage() {
           <button
             type="button"
             aria-label={`Restore ${category.name}`}
-            className={actionButtonClass}
+            className="inline-flex min-h-9 items-center rounded-xl bg-status-success-container/70 px-3 text-xs font-bold text-status-on-success-container hover:bg-status-success-container transition-colors disabled:cursor-not-allowed disabled:opacity-50"
             onClick={() => void restore(category)}
             disabled={restoringId === category.id}
             aria-busy={restoringId === category.id}
@@ -279,38 +309,76 @@ export default function CategoriesPage() {
             {restoringId === category.id ? 'Restoring…' : 'Restore'}
           </button>
         )}
-      </>
+      </div>
     );
   }
 
   return (
-    <section aria-labelledby="categories-title" className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 id="categories-title" className="text-2xl font-bold tracking-tight">
-            Categories
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Organize the catalog. Categories are archived, never deleted.
-          </p>
+    <section aria-labelledby="categories-title" className="space-y-5">
+      {/* Breadcrumb & Page Header */}
+      <div className="space-y-1.5">
+        <nav
+          aria-label="Breadcrumb"
+          className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary"
+        >
+          <span>Catalog</span>
+          <span aria-hidden="true" className="text-border-outline">
+            /
+          </span>
+          <span className="text-brand-primary">Categories</span>
+        </nav>
+        <div className="flex flex-wrap items-center justify-between gap-4 pt-1">
+          <div>
+            <h1 id="categories-title" className="text-2xl font-bold tracking-tight text-text-on-surface">
+              Categories
+            </h1>
+            <p className="mt-1 text-sm text-text-secondary">
+              Organize your catalog for storefronts and Android customer application navigation.
+            </p>
+          </div>
+          <button type="button" className={primaryButtonClass} onClick={openCreate}>
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>Add category</span>
+          </button>
         </div>
-        <button type="button" className={primaryButtonClass} onClick={openCreate}>
-          Add category
-        </button>
       </div>
 
       {feedback && <FeedbackBanner message={feedback} />}
       {actionError && (
-        <p
+        <div
           role="alert"
-          className="rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          className="flex items-center gap-2.5 rounded-2xl border border-status-error/30 bg-status-error-container/30 px-4 py-3 text-sm font-semibold text-status-on-error-container shadow-xs"
         >
-          {actionError}
-        </p>
+          <svg
+            className="h-5 w-5 shrink-0 text-status-error"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <span>{actionError}</span>
+        </div>
       )}
 
+      {/* Bento Search and Filters Bar */}
       <form
-        className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+        className="grid grid-cols-1 gap-3 rounded-2xl border border-border-outline/50 bg-bg-surface p-4 shadow-xs sm:grid-cols-2 lg:grid-cols-3"
         aria-label="Category filters"
         onSubmit={(event) => event.preventDefault()}
       >
@@ -318,15 +386,34 @@ export default function CategoriesPage() {
           <label htmlFor="categories-search" className={labelClass}>
             Search categories
           </label>
-          <input
-            id="categories-search"
-            type="search"
-            className={`${inputClass} mt-1`}
-            value={search}
-            placeholder="Category name"
-            onChange={(event) => setSearch(event.target.value)}
-          />
+          <div className="relative mt-1">
+            <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-text-disabled">
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </span>
+            <input
+              id="categories-search"
+              type="search"
+              className={`${inputClass} pl-10`}
+              value={search}
+              placeholder="Category name"
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </div>
         </div>
+
         <div>
           <label htmlFor="categories-status" className={labelClass}>
             Status
@@ -342,15 +429,31 @@ export default function CategoriesPage() {
             <option value="archived">Archived</option>
           </select>
         </div>
+
         {hasFilters && (
           <div className="flex items-end">
-            <button type="button" className={secondaryButtonClass} onClick={clearFilters}>
+            <button
+              type="button"
+              className={`${secondaryButtonClass} w-full sm:w-auto`}
+              onClick={clearFilters}
+            >
+              <svg
+                className="h-4 w-4 text-text-secondary"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
               Clear filters
             </button>
           </div>
         )}
       </form>
 
+      {/* Main Content Area */}
       {loading && categories.length === 0 ? (
         <div className={cardClass}>
           <TableSkeleton label="Loading categories" rows={4} />
@@ -364,10 +467,20 @@ export default function CategoriesPage() {
       ) : categories.length === 0 ? (
         <EmptyPanel
           title="No categories yet"
-          description="Add the first category to organize the catalog."
+          description="Add the first category to organize the catalog for customers and mobile applications."
         >
           <button type="button" className={primaryButtonClass} onClick={openCreate}>
-            Add category
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>Add category</span>
           </button>
         </EmptyPanel>
       ) : visibleCategories.length === 0 ? (
@@ -380,47 +493,58 @@ export default function CategoriesPage() {
           </button>
         </EmptyPanel>
       ) : (
-        <div className={cardClass}>
+        <div className="overflow-hidden rounded-3xl border border-border-outline/50 bg-bg-surface shadow-xs">
+          {/* Desktop Table View */}
           <div className="hidden overflow-x-auto md:block" aria-busy={loading}>
             <table className="w-full min-w-[640px] text-left text-sm">
               <caption className="sr-only">Categories</caption>
-              <thead className="border-b border-border bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
+              <thead className="border-b border-border-outline/40 bg-bg-surface-variant/40 text-[11px] font-bold uppercase tracking-wider text-text-secondary">
                 <tr>
-                  <th scope="col" className="px-4 py-3 font-semibold">
+                  <th scope="col" className="px-5 py-3.5 font-bold">
                     Name
                   </th>
-                  <th scope="col" className="px-4 py-3 font-semibold">
+                  <th scope="col" className="px-5 py-3.5 font-bold">
                     Display order
                   </th>
-                  <th scope="col" className="px-4 py-3 font-semibold">
+                  <th scope="col" className="px-5 py-3.5 font-bold">
                     Products
                   </th>
-                  <th scope="col" className="px-4 py-3 font-semibold">
+                  <th scope="col" className="px-5 py-3.5 font-bold">
                     Status
                   </th>
-                  <th scope="col" className="px-4 py-3 text-right font-semibold">
+                  <th scope="col" className="px-5 py-3.5 text-right font-bold">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody className="divide-y divide-border-outline/30">
                 {visibleCategories.map((category) => (
-                  <tr key={category.id}>
-                    <td className="px-4 py-3 font-semibold">{category.name}</td>
-                    <td className="px-4 py-3 tabular-nums text-muted-foreground">
-                      {category.sortOrder}
+                  <tr
+                    key={category.id}
+                    className="hover:bg-bg-surface-variant/30 transition-colors"
+                  >
+                    <td className="px-5 py-4 font-bold text-text-on-surface">
+                      <div className="flex items-center gap-2.5">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-brand-primary-container/40 text-brand-primary text-xs font-bold">
+                          {category.name.charAt(0).toUpperCase()}
+                        </span>
+                        <span>{category.name}</span>
+                      </div>
                     </td>
-                    <td className="px-4 py-3 tabular-nums">
+                    <td className="px-5 py-4 font-mono text-xs tabular-nums text-text-secondary">
+                      <span className="rounded-lg bg-bg-surface-variant px-2.5 py-1 border border-border-outline/30">
+                        #{category.sortOrder}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 tabular-nums font-semibold text-text-on-surface">
                       {category.productCount}{' '}
                       {category.productCount === 1 ? 'product' : 'products'}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-5 py-4">
                       <CategoryStatusBadge status={category.status} />
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-1">
-                        {renderActions(category)}
-                      </div>
+                    <td className="px-5 py-4">
+                      {renderActions(category)}
                     </td>
                   </tr>
                 ))}
@@ -428,26 +552,33 @@ export default function CategoriesPage() {
             </table>
           </div>
 
-          <ul className="divide-y divide-border md:hidden" aria-label="Categories list">
+          {/* Mobile Card List View */}
+          <ul className="divide-y divide-border-outline/30 md:hidden" aria-label="Categories list">
             {visibleCategories.map((category) => (
-              <li key={category.id} className="p-4">
+              <li key={category.id} className="p-4 space-y-3">
                 <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="font-semibold">{category.name}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Display order {category.sortOrder} · {category.productCount}{' '}
-                      {category.productCount === 1 ? 'product' : 'products'}
-                    </p>
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-primary-container/40 text-brand-primary text-sm font-bold">
+                      {category.name.charAt(0).toUpperCase()}
+                    </span>
+                    <div>
+                      <p className="font-bold text-text-on-surface">{category.name}</p>
+                      <p className="mt-0.5 text-xs text-text-secondary">
+                        Display order #{category.sortOrder} · {category.productCount}{' '}
+                        {category.productCount === 1 ? 'product' : 'products'}
+                      </p>
+                    </div>
                   </div>
                   <CategoryStatusBadge status={category.status} />
                 </div>
-                <div className="mt-3 flex gap-1">{renderActions(category)}</div>
+                <div className="pt-1">{renderActions(category)}</div>
               </li>
             ))}
           </ul>
         </div>
       )}
 
+      {/* Category Create/Edit Modal with Android Preset Chips */}
       <Dialog
         open={formOpen}
         title={editing ? `Edit ${editing.name}` : 'Add category'}
@@ -460,12 +591,15 @@ export default function CategoriesPage() {
           className="space-y-4"
         >
           {formAlert && (
-            <p
+            <div
               role="alert"
-              className="rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+              className="flex items-center gap-2.5 rounded-2xl border border-status-error/30 bg-status-error-container/30 px-3.5 py-2.5 text-xs font-semibold text-status-on-error-container"
             >
-              {formAlert}
-            </p>
+              <svg className="h-4 w-4 shrink-0 text-status-error" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{formAlert}</span>
+            </div>
           )}
 
           <div>
@@ -474,6 +608,7 @@ export default function CategoriesPage() {
             </label>
             <input
               id="category-name"
+              placeholder="e.g. Shirts, Pants, Accessories"
               className={`${inputClass} mt-1`}
               value={formName}
               maxLength={120}
@@ -485,6 +620,27 @@ export default function CategoriesPage() {
               <p id="category-name-error" className={fieldErrorClass}>
                 {formErrors.name}
               </p>
+            )}
+
+            {/* Quick Android Preset Chips */}
+            {!editing && (
+              <div className="mt-3">
+                <p className="text-[11px] font-semibold text-text-secondary">
+                  Android App Presets:
+                </p>
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  {ANDROID_PRESETS.map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setFormName(preset)}
+                      className="rounded-lg border border-border-outline/40 bg-bg-surface-variant/70 px-2 py-0.5 text-[11px] font-medium text-text-secondary hover:border-brand-primary hover:text-brand-primary transition-colors"
+                    >
+                      +{preset}
+                    </button>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
 
@@ -504,6 +660,9 @@ export default function CategoriesPage() {
               aria-invalid={formErrors.sortOrder !== undefined}
               aria-describedby={formErrors.sortOrder ? 'category-order-error' : undefined}
             />
+            <p className={helperTextClass}>
+              Determines sorting position on customer app bars and menus.
+            </p>
             {formErrors.sortOrder && (
               <p id="category-order-error" className={fieldErrorClass}>
                 {formErrors.sortOrder}
@@ -511,7 +670,7 @@ export default function CategoriesPage() {
             )}
           </div>
 
-          <div className="flex flex-wrap justify-end gap-3">
+          <div className="flex flex-wrap justify-end gap-3 pt-2">
             <button
               type="button"
               className={secondaryButtonClass}
@@ -532,6 +691,7 @@ export default function CategoriesPage() {
         </form>
       </Dialog>
 
+      {/* Category Archive Confirmation Dialog */}
       <ConfirmDialog
         open={archiveTarget !== null}
         title={archiveTarget ? `Archive ${archiveTarget.name}?` : 'Archive category?'}

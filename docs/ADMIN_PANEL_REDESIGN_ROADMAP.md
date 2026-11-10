@@ -185,10 +185,10 @@ The redesigned panel is tailored for a boutique store operator: zero redundant b
 **Goal:** Enable full category lifecycle (vital for Android catalog navigation) and provide a high-efficiency table for batch inventory restocking.
 
 #### Step 1 — CAT-101 — Category Management (`/categories`)
-- [ ] **a.** Category List: Bento Table of categories with category name, sort order, product count, and status badge (`Active` / `Archived`).
-- [ ] **b.** Category Modal: create or edit category dialog (`name`, `sortOrder`).
-- [ ] **c.** Lifecycle actions: archive (`POST /admin/categories/{id}/archive`) and restore (`POST /admin/categories/{id}/restore`).
-- [ ] **d.** Android Compatibility: Ensure category names align with clean single-word titles ("T-Shirts", "Shirts", "Pants", "Dresses", "Jackets", "Activewear", "Shoes", "Accessories", "Leather", "Bags") so Android's `CategoryIconResolver.java` matches icons accurately.
+- [x] **a.** Category List: Bento Table of categories with category name, sort order, product count, and status badge (`Active` / `Archived`).
+- [x] **b.** Category Modal: create or edit category dialog (`name`, `sortOrder`).
+- [x] **c.** Lifecycle actions: archive (`POST /admin/categories/{id}/archive`) and restore (`POST /admin/categories/{id}/restore`).
+- [x] **d.** Android Compatibility: Ensure category names align with clean single-word titles ("T-Shirts", "Shirts", "Pants", "Dresses", "Jackets", "Activewear", "Shoes", "Accessories", "Leather", "Bags") with quick chip presets in the creation modal.
 
 #### Step 2 — INV-101 — Quick Inventory & Low-Stock Alerts (`/inventory`)
 - [ ] **a.** Quick Restock Table: lists all catalog items with SKU, product name, current stock, and stock status.
