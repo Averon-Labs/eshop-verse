@@ -5,6 +5,7 @@ import { jsonResponse, mockApi } from '../../test/apiMock';
 import { product, sessionRoute } from '../../test/adminMock';
 
 beforeEach(() => {
+  window.history.pushState({}, '', '/products/5');
   window.localStorage.clear();
   window.sessionStorage.clear();
 });
