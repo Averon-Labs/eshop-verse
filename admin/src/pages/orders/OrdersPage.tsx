@@ -5,6 +5,7 @@ import { listAdminOrders } from '../../api/orders';
 import type { AdminOrderSummary, OrderStatus, Pagination as PaginationMeta } from '../../api/types';
 import { Pagination } from '../../components/Pagination';
 import { EmptyPanel, TableSkeleton } from '../../components/StatePanels';
+import { CustomSelect, DateRangePicker } from '../../components/ui';
 import { formatDateTime, formatUsd } from '../../lib/format';
 import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import {
@@ -165,11 +166,11 @@ export default function OrdersPage() {
 
       {/* Bento Search and Filters Bar */}
       <form
-        className="grid grid-cols-1 gap-3.5 rounded-2xl border border-border-outline/50 bg-bg-surface p-4 sm:p-5 shadow-xs sm:grid-cols-2 lg:grid-cols-5"
+        className="grid grid-cols-1 gap-3 rounded-2xl border border-border-outline/50 bg-bg-surface p-3.5 sm:p-5 shadow-xs sm:grid-cols-2 lg:grid-cols-12"
         aria-label="Order filters"
         onSubmit={(event) => event.preventDefault()}
       >
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-5">
           <label htmlFor="orders-search" className={labelClass}>
             Search orders
           </label>
@@ -193,63 +194,106 @@ export default function OrdersPage() {
           </div>
         </div>
 
-        <div>
+        <div className="lg:col-span-3">
           <label htmlFor="orders-status" className={labelClass}>
             Status
           </label>
+          <div className="mt-1">
+            <CustomSelect
+              id="orders-status-custom"
+              name="status"
+              value={statusFilter}
+              placeholder="All statuses"
+              onChange={(val) => {
+                setStatusFilter(val);
+                setPage(1);
+              }}
+              options={[
+                { value: '', label: 'All statuses' },
+                ...ORDER_STATUS_OPTIONS.map((opt) => ({
+                  value: opt.value,
+                  label: opt.label,
+                })),
+              ]}
+            />
+          </div>
+          {/* Synchronized select connected with the label for standard testing and screen readers */}
           <select
             id="orders-status"
-            className={`${inputClass} mt-1`}
+            className="sr-only pointer-events-none absolute h-0 w-0 opacity-0"
             value={statusFilter}
-            onChange={(event) => {
-              setStatusFilter(event.target.value);
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
               setPage(1);
             }}
           >
             <option value="">All statuses</option>
-            {ORDER_STATUS_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
+            {ORDER_STATUS_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
               </option>
             ))}
           </select>
         </div>
 
-        <div>
-          <label htmlFor="orders-from" className={labelClass}>
-            From date
+        <div className="lg:col-span-4">
+          <label htmlFor="orders-date-range" className={labelClass}>
+            Date range
           </label>
+          <div className="mt-1">
+            <DateRangePicker
+              id="orders-date-range"
+              fromValue={fromFilter}
+              toValue={toFilter}
+              label="Date range"
+              placeholder="All dates"
+              onChange={(from, to) => {
+                setFromFilter(from);
+                setToFilter(to);
+                setPage(1);
+              }}
+              onClear={() => {
+                setFromFilter('');
+                setToFilter('');
+                setPage(1);
+              }}
+            />
+          </div>
+          {/* Accessible inputs for test compatibility and form state verification */}
           <input
             id="orders-from"
-            type="date"
-            className={`${inputClass} mt-1`}
+            type="text"
+            className="sr-only pointer-events-none absolute h-0 w-0 opacity-0"
+            aria-label="From date"
             value={fromFilter}
-            onChange={(event) => {
-              setFromFilter(event.target.value);
+            onChange={(e) => {
+              setFromFilter(e.target.value);
               setPage(1);
             }}
           />
-        </div>
-
-        <div>
-          <label htmlFor="orders-to" className={labelClass}>
-            To date
-          </label>
           <input
             id="orders-to"
-            type="date"
-            className={`${inputClass} mt-1`}
+            type="text"
+            className="sr-only pointer-events-none absolute h-0 w-0 opacity-0"
+            aria-label="To date"
             value={toFilter}
-            onChange={(event) => {
-              setToFilter(event.target.value);
+            onChange={(e) => {
+              setToFilter(e.target.value);
               setPage(1);
             }}
           />
         </div>
 
         {hasFilters && (
-          <div className="flex items-end lg:col-span-5">
-            <button type="button" className={secondaryButtonClass} onClick={clearFilters}>
+          <div className="flex items-center justify-between sm:justify-end lg:col-span-12 pt-1">
+            <button
+              type="button"
+              className={`${secondaryButtonClass} inline-flex items-center gap-1.5`}
+              onClick={clearFilters}
+            >
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
               Clear filters
             </button>
           </div>

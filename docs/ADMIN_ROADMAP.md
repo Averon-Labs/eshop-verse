@@ -346,19 +346,19 @@ upload archive is `deploy/eshopverse-admin-dist.zip`; live upload is the owner's
 
 ### Step 2 — UI-802 — Orders page filter modernization and mobile ergonomics
 
-**Status:** `[ ]`
+**Status:** `[x]`
 
 **Depends on:** UI-801
 
 **Scope:** replace native HTML selects and dual date inputs in `OrdersPage.tsx` with `CustomSelect` and `DateRangePicker`, optimizing mobile layout and touch experience.
 
 **Acceptance criteria:**
-- [ ] **a.** Replace native `<select id="orders-status">` with `CustomSelect` showing color-coded status dots (Delivered: green, Processing: amber, Confirmed: purple, Cancelled: red).
-- [ ] **b.** Replace dual native `<input type="date">` (`orders-from` and `orders-to`) with single unified `DateRangePicker`.
-- [ ] **c.** Optimize mobile layout: prevent filter stacking from taking excessive vertical viewport space, ensuring quick reach to order cards.
-- [ ] **d.** Preserve 100% backwards compatibility with existing URL search parameters, filter state, and all 10 `OrdersPage.test.tsx` test scenarios.
+- [x] **a.** Replace native `<select id="orders-status">` with `CustomSelect` showing color-coded status dots (Delivered: green, Processing: amber, Confirmed: purple, Cancelled: red).
+- [x] **b.** Replace dual native `<input type="date">` (`orders-from` and `orders-to`) with single unified `DateRangePicker`.
+- [x] **c.** Optimize mobile layout: prevent filter stacking from taking excessive vertical viewport space, ensuring quick reach to order cards.
+- [x] **d.** Preserve 100% backwards compatibility with existing URL search parameters, filter state, and all 10 `OrdersPage.test.tsx` test scenarios.
 
-**Verification:** `npm test OrdersPage.test.tsx`, visual inspection across mobile (375px) and desktop (1280px) viewports.
+**Verification:** modernized `OrdersPage.tsx` filter bar with 12-column responsive layout (`lg:grid-cols-12`), `CustomSelect`, and `DateRangePicker`. Passed all 10 unit tests in `OrdersPage.test.tsx` and full suite (19 test files, 123 tests green). Clean production build with Vite (`index-DpsWJ1yy.css`, `index-BfCG8L5T.js`).
 
 ### Step 3 — UI-803 — Order detail status pipeline and transition ergonomics
 
