@@ -162,12 +162,12 @@ The redesigned panel is tailored for a boutique store operator: zero redundant b
 - [x] **c.** Error Handling & Rollback: Inline validation errors, 409 SKU taken mapping, and unsaved changes guard dialog.
 
 #### Step 3 — PROD-103 — Product Details Page (`/products/:id`)
-- [ ] **a.** Replicate **Figma Screen 13**:
+- [x] **a.** Replicate **Figma Screen 13**:
   - Top action bar: Product title H1, status badge (`ACTIVE`), and `Edit product` button.
   - Left Bento Card: Large primary image preview + gallery strip.
   - Right Bento Card: Product overview (SKU, Category, Large Price `$129.00`, `In stock` badge).
   - Right Bottom Bento Card: Inventory summary (Total available units, low stock threshold).
-- [ ] **b.** Edit shortcut: clicking `Edit product` routes to `/products/:id/edit` with prefilled values.
+- [x] **b.** Edit shortcut: clicking `Edit product` routes to `/products/:id/edit` with prefilled values.
 
 #### Step 4 — PROD-104 — Product Action Feedback & Modals
 - [ ] **a.** Replicate the Figma **Success State**:

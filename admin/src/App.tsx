@@ -11,6 +11,7 @@ import CategoriesPage from './pages/categories/CategoriesPage';
 import InventoryPage from './pages/inventory/InventoryPage';
 import OrderDetailPage from './pages/orders/OrderDetailPage';
 import OrdersPage from './pages/orders/OrdersPage';
+import ProductDetailPage from './pages/products/ProductDetailPage';
 import ProductFormPage from './pages/products/ProductFormPage';
 import ProductsPage from './pages/products/ProductsPage';
 import ReportsPage from './pages/reports/ReportsPage';
@@ -30,6 +31,7 @@ export default function App() {
                 <Route index element={<Navigate to="/products" replace />} />
                 <Route path="products" element={<ProductsPage />} />
                 <Route path="products/new" element={<ProductFormPage />} />
+                <Route path="products/:productId" element={<ProductDetailPage />} />
                 <Route path="products/:productId/edit" element={<ProductFormPage />} />
                 <Route path="categories" element={<CategoriesPage />} />
                 <Route path="inventory" element={<InventoryPage />} />
