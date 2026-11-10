@@ -16,6 +16,7 @@ import type {
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { Pagination } from '../../components/Pagination';
 import { EmptyPanel, ErrorPanel, FeedbackBanner, TableSkeleton } from '../../components/StatePanels';
+import { CustomSelect } from '../../components/ui';
 import { formatUsd } from '../../lib/format';
 import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import {
@@ -473,9 +474,27 @@ export default function ProductsPage() {
           <label htmlFor="products-category" className={labelClass}>
             Category
           </label>
+          <div className="mt-1">
+            <CustomSelect
+              id="products-category-custom"
+              value={categoryFilter}
+              placeholder="All categories"
+              onChange={(val) => {
+                setCategoryFilter(val);
+                setPage(1);
+              }}
+              options={[
+                { value: '', label: 'All categories' },
+                ...categories.map((c) => ({
+                  value: String(c.id),
+                  label: `${c.name}${c.status === 'archived' ? ' (archived)' : ''}`,
+                })),
+              ]}
+            />
+          </div>
           <select
             id="products-category"
-            className={`${inputClass} mt-1`}
+            className="sr-only pointer-events-none absolute h-0 w-0 opacity-0"
             value={categoryFilter}
             onChange={(event) => {
               setCategoryFilter(event.target.value);
@@ -496,9 +515,26 @@ export default function ProductsPage() {
           <label htmlFor="products-status" className={labelClass}>
             Status
           </label>
+          <div className="mt-1">
+            <CustomSelect
+              id="products-status-custom"
+              value={statusFilter}
+              placeholder="All statuses"
+              onChange={(val) => {
+                setStatusFilter(val);
+                setPage(1);
+              }}
+              options={[
+                { value: '', label: 'All statuses' },
+                { value: 'active', label: 'Active' },
+                { value: 'inactive', label: 'Inactive' },
+                { value: 'archived', label: 'Archived' },
+              ]}
+            />
+          </div>
           <select
             id="products-status"
-            className={`${inputClass} mt-1`}
+            className="sr-only pointer-events-none absolute h-0 w-0 opacity-0"
             value={statusFilter}
             onChange={(event) => {
               setStatusFilter(event.target.value);

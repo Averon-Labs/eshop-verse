@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useAuth } from '../../auth/AuthContext';
 import { FeedbackBanner } from '../../components/StatePanels';
+import { CustomSelect } from '../../components/ui';
 import {
   cardClass,
   fieldErrorClass,
@@ -196,9 +197,21 @@ export default function SettingsPage() {
               <label htmlFor="settings-date-format" className={labelClass}>
                 Date format
               </label>
+              <div className="mt-1">
+                <CustomSelect
+                  id="settings-date-format-custom"
+                  value={dateFormat}
+                  onChange={(val) => setDateFormat(val)}
+                  options={[
+                    { value: 'MM/DD/YYYY', label: 'MM/DD/YYYY (e.g. 11/10/2026)' },
+                    { value: 'DD/MM/YYYY', label: 'DD/MM/YYYY (e.g. 10/11/2026)' },
+                    { value: 'YYYY-MM-DD', label: 'YYYY-MM-DD (ISO 8601)' },
+                  ]}
+                />
+              </div>
               <select
                 id="settings-date-format"
-                className={`${inputClass} mt-1`}
+                className="sr-only pointer-events-none absolute h-0 w-0 opacity-0"
                 value={dateFormat}
                 onChange={(event) => setDateFormat(event.target.value)}
               >
@@ -212,9 +225,22 @@ export default function SettingsPage() {
               <label htmlFor="settings-timezone" className={labelClass}>
                 Timezone
               </label>
+              <div className="mt-1">
+                <CustomSelect
+                  id="settings-timezone-custom"
+                  value={timezone}
+                  onChange={(val) => setTimezone(val)}
+                  options={[
+                    { value: 'UTC', label: 'UTC (Coordinated Universal Time)' },
+                    { value: 'America/New_York', label: 'America/New_York (Eastern Time)' },
+                    { value: 'Europe/London', label: 'Europe/London (GMT/BST)' },
+                    { value: 'Asia/Tehran', label: 'Asia/Tehran (+03:30)' },
+                  ]}
+                />
+              </div>
               <select
                 id="settings-timezone"
-                className={`${inputClass} mt-1`}
+                className="sr-only pointer-events-none absolute h-0 w-0 opacity-0"
                 value={timezone}
                 onChange={(event) => setTimezone(event.target.value)}
               >

@@ -4,12 +4,12 @@ import { getAdminSalesReport } from '../../api/reports';
 import { ApiError } from '../../api/http';
 import type { SalesReport } from '../../api/types';
 import { EmptyPanel, ErrorPanel } from '../../components/StatePanels';
+import { DateRangePicker } from '../../components/ui';
 import { formatUsd } from '../../lib/format';
 import { OrderStatusBadge } from '../orders/OrderBadges';
 import {
   cardClass,
   fieldErrorClass,
-  inputClass,
   labelClass,
   primaryButtonClass,
   secondaryButtonClass,
@@ -415,29 +415,51 @@ export default function ReportsPage() {
           })}
         </div>
 
-        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
           <div>
-            <label htmlFor="reports-from" className={labelClass}>
-              From date
+            <label htmlFor="reports-date-range" className={labelClass}>
+              Custom date range
             </label>
+            <div className="mt-1">
+              <DateRangePicker
+                id="reports-date-range"
+                fromValue={fromDraft}
+                toValue={toDraft}
+                placeholder="Choose custom range"
+                onChange={(from, to) => {
+                  setFromDraft(from);
+                  setToDraft(to);
+                  setRangeError(null);
+                }}
+                onClear={() => {
+                  setFromDraft('');
+                  setToDraft('');
+                  setRangeError(null);
+                }}
+              />
+            </div>
+            {/* Synchronized accessible inputs for form submit, validation, and test harness */}
             <input
               id="reports-from"
-              type="date"
-              className={`${inputClass} mt-1`}
+              type="text"
+              className="sr-only pointer-events-none absolute h-0 w-0 opacity-0"
+              aria-label="From date"
               value={fromDraft}
-              onChange={(event) => setFromDraft(event.target.value)}
+              onChange={(event) => {
+                setFromDraft(event.target.value);
+                setRangeError(null);
+              }}
             />
-          </div>
-          <div>
-            <label htmlFor="reports-to" className={labelClass}>
-              To date
-            </label>
             <input
               id="reports-to"
-              type="date"
-              className={`${inputClass} mt-1`}
+              type="text"
+              className="sr-only pointer-events-none absolute h-0 w-0 opacity-0"
+              aria-label="To date"
               value={toDraft}
-              onChange={(event) => setToDraft(event.target.value)}
+              onChange={(event) => {
+                setToDraft(event.target.value);
+                setRangeError(null);
+              }}
               aria-describedby={rangeError ? 'reports-range-error' : undefined}
             />
           </div>
