@@ -71,6 +71,15 @@ public class CatalogListViewModel extends ViewModel {
         return inFlight;
     }
 
+    public boolean hasData() {
+        return !loadedProducts.isEmpty();
+    }
+
+    @NonNull
+    public List<ProductSummary> getLoadedProducts() {
+        return Collections.unmodifiableList(new ArrayList<>(loadedProducts));
+    }
+
     @NonNull
     public ProductParams getCurrentParams() {
         return currentParams;
@@ -156,14 +165,19 @@ public class CatalogListViewModel extends ViewModel {
         }
         currentParams = currentParams.withPage(1);
         paramsLiveData.setValue(currentParams);
-        fetchProducts(true);
+        fetchProducts(true, false);
     }
 
     /**
-     * Reloads the product catalog from scratch (alias for loadFirstPage).
+     * Reloads the product catalog from scratch (bypassing in-memory cache).
      */
     public void reload() {
-        loadFirstPage();
+        if (inFlight) {
+            return;
+        }
+        currentParams = currentParams.withPage(1);
+        paramsLiveData.setValue(currentParams);
+        fetchProducts(true, true);
     }
 
     /**
@@ -175,7 +189,7 @@ public class CatalogListViewModel extends ViewModel {
         }
         currentParams = currentParams.nextPage();
         paramsLiveData.setValue(currentParams);
-        fetchProducts(false);
+        fetchProducts(false, false);
     }
 
     /**
@@ -185,19 +199,20 @@ public class CatalogListViewModel extends ViewModel {
         if (inFlight) {
             return;
         }
-        fetchProducts(currentParams.getPage() == 1);
+        fetchProducts(currentParams.getPage() == 1, false);
     }
 
-    private void fetchProducts(boolean isFirstPage) {
+    private void fetchProducts(boolean isFirstPage, boolean forceRefresh) {
         final int requestId = ++activeRequestId;
         inFlight = true;
         errorCodeLiveData.setValue(null);
 
-        if (isFirstPage) {
+        // Only emit loading state if cache is not warm or forced reload with empty items
+        if (isFirstPage && (forceRefresh || !repository.hasValidCache() || loadedProducts.isEmpty())) {
             productsState.setValue(UiState.loading());
         }
 
-        repository.listProducts(currentParams, new CatalogRepository.CatalogCallback<PagedResponse<ProductSummary>>() {
+        CatalogRepository.CatalogCallback<PagedResponse<ProductSummary>> callback = new CatalogRepository.CatalogCallback<PagedResponse<ProductSummary>>() {
             @Override
             public void onSuccess(PagedResponse<ProductSummary> result) {
                 if (requestId != activeRequestId) {
@@ -255,7 +270,13 @@ public class CatalogListViewModel extends ViewModel {
                     productsState.setValue(UiState.content(Collections.unmodifiableList(new ArrayList<>(loadedProducts))));
                 }
             }
-        });
+        };
+
+        if (forceRefresh) {
+            repository.listProducts(currentParams, true, callback);
+        } else {
+            repository.listProducts(currentParams, callback);
+        }
     }
 
     private List<ProductSummary> applyLocalFilters(List<ProductSummary> items) {

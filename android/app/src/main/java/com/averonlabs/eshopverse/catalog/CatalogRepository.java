@@ -2,8 +2,10 @@ package com.averonlabs.eshopverse.catalog;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import com.averonlabs.eshopverse.core.model.Category;
+import com.averonlabs.eshopverse.core.model.Pagination;
 import com.averonlabs.eshopverse.core.model.ProductDetail;
 import com.averonlabs.eshopverse.core.model.ProductSummary;
 import com.averonlabs.eshopverse.core.net.ApiErrorMapper;
@@ -13,6 +15,7 @@ import com.averonlabs.eshopverse.core.net.ApiRoutes;
 import com.averonlabs.eshopverse.core.net.PagedResponse;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -22,9 +25,12 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 /**
- * Repository coordinating product and category catalog operations per docs/android/PHASE-1-SPEC.md §E.
+ * Repository coordinating product and category catalog operations per docs/android/PHASE-1-SPEC.md §E
+ * and Phase 13 in-memory caching per .agents/skills/recyclerview-loading/SKILL.md.
  */
 public class CatalogRepository {
+
+    public static final long CACHE_TTL_MILLIS = 5 * 60 * 1000L; // 5 minutes
 
     public interface CatalogCallback<T> {
         void onSuccess(T result);
@@ -32,9 +38,41 @@ public class CatalogRepository {
     }
 
     private final ApiRoutes apiRoutes;
+    private final List<ProductSummary> inMemoryProductCache = new ArrayList<>();
+    private long lastCacheTimestamp = 0;
 
     public CatalogRepository(@NonNull ApiRoutes apiRoutes) {
         this.apiRoutes = Objects.requireNonNull(apiRoutes, "apiRoutes cannot be null");
+    }
+
+    /**
+     * Checks if in-memory cache is present and within TTL.
+     */
+    public synchronized boolean hasValidCache() {
+        return !inMemoryProductCache.isEmpty() && (System.currentTimeMillis() - lastCacheTimestamp < CACHE_TTL_MILLIS);
+    }
+
+    /**
+     * Returns an unmodifiable snapshot of cached products.
+     */
+    @NonNull
+    public synchronized List<ProductSummary> getCachedProducts() {
+        return Collections.unmodifiableList(new ArrayList<>(inMemoryProductCache));
+    }
+
+    /**
+     * Clears in-memory catalog cache.
+     */
+    public synchronized void clearCache() {
+        inMemoryProductCache.clear();
+        lastCacheTimestamp = 0;
+    }
+
+    @VisibleForTesting
+    public synchronized void setCacheForTesting(@NonNull List<ProductSummary> items, long timestamp) {
+        inMemoryProductCache.clear();
+        inMemoryProductCache.addAll(items);
+        lastCacheTimestamp = timestamp;
     }
 
     /**
@@ -67,11 +105,31 @@ public class CatalogRepository {
 
     /**
      * Lists, searches, and paginates products matching the provided query parameters (GET /products).
+     * Defaults forceRefresh to false (utilizes in-memory cache when valid).
      */
     public void listProducts(
             @NonNull ProductParams params,
             @NonNull CatalogCallback<PagedResponse<ProductSummary>> callback
     ) {
+        listProducts(params, false, callback);
+    }
+
+    /**
+     * Lists products with explicit control over cache bypass.
+     */
+    public void listProducts(
+            @NonNull ProductParams params,
+            boolean forceRefresh,
+            @NonNull CatalogCallback<PagedResponse<ProductSummary>> callback
+    ) {
+        // Synchronous 0ms return if cache is valid and not forced to refresh
+        if (!forceRefresh && params.getPage() == 1 && !hasActiveFilters(params) && hasValidCache()) {
+            List<ProductSummary> cached = getCachedProducts();
+            Pagination pagination = new Pagination(1, params.getPerPage(), cached.size(), 1);
+            callback.onSuccess(new PagedResponse<>(cached, pagination));
+            return;
+        }
+
         apiRoutes.listProducts(
                 params.getPage(),
                 params.getPerPage(),
@@ -85,7 +143,15 @@ public class CatalogRepository {
                     @NonNull Response<PagedResponse<ProductSummary>> response
             ) {
                 if (response.isSuccessful() && response.body() != null) {
-                    callback.onSuccess(response.body());
+                    PagedResponse<ProductSummary> body = response.body();
+                    if (params.getPage() == 1 && !hasActiveFilters(params) && body.getData() != null) {
+                        synchronized (CatalogRepository.this) {
+                            inMemoryProductCache.clear();
+                            inMemoryProductCache.addAll(body.getData());
+                            lastCacheTimestamp = System.currentTimeMillis();
+                        }
+                    }
+                    callback.onSuccess(body);
                 } else {
                     callback.onError(parseError(response));
                 }
@@ -99,6 +165,15 @@ public class CatalogRepository {
                 callback.onError(t);
             }
         });
+    }
+
+    private boolean hasActiveFilters(@NonNull ProductParams params) {
+        return params.getCategoryId() != null
+                || (params.getQ() != null && !params.getQ().trim().isEmpty())
+                || (params.getSort() != null && !ProductParams.SORT_NEWEST.equals(params.getSort()))
+                || params.getMinPrice() != null
+                || params.getMaxPrice() != null
+                || Boolean.TRUE.equals(params.getInStock());
     }
 
     /**

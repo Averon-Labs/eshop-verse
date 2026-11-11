@@ -6,11 +6,13 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule;
 
@@ -266,7 +268,56 @@ public class CatalogListViewModelTest {
     @Test
     public void testReloadCallsFirstPage() {
         viewModel.reload();
-        verify(repository, times(1)).listProducts(any(), any());
+        verify(repository, times(1)).listProducts(any(), eq(true), any());
         assertEquals(1, viewModel.getCurrentParams().getPage());
+    }
+
+    @Test
+    public void testHasDataAndGetLoadedProducts() {
+        assertFalse(viewModel.hasData());
+        assertTrue(viewModel.getLoadedProducts().isEmpty());
+
+        List<ProductSummary> dummyList = Collections.singletonList(createDummyProduct(1, "Sneaker", "99.00"));
+        PagedResponse<ProductSummary> pagedResponse = new PagedResponse<>(
+                dummyList,
+                new Pagination(1, 20, 1, 1)
+        );
+
+        doAnswer(invocation -> {
+            CatalogRepository.CatalogCallback<PagedResponse<ProductSummary>> cb = invocation.getArgument(1);
+            cb.onSuccess(pagedResponse);
+            return null;
+        }).when(repository).listProducts(any(), any());
+
+        viewModel.loadFirstPage();
+
+        assertTrue(viewModel.hasData());
+        assertEquals(1, viewModel.getLoadedProducts().size());
+        assertEquals("Sneaker", viewModel.getLoadedProducts().get(0).getName());
+    }
+
+    @Test
+    public void testWarmCacheDoesNotEmitLoadingStateOnFirstPage() {
+        when(repository.hasValidCache()).thenReturn(true);
+
+        List<ProductSummary> dummyList = Collections.singletonList(createDummyProduct(1, "Cached Sneaker", "50.00"));
+        PagedResponse<ProductSummary> pagedResponse = new PagedResponse<>(
+                dummyList,
+                new Pagination(1, 20, 1, 1)
+        );
+
+        doAnswer(invocation -> {
+            CatalogRepository.CatalogCallback<PagedResponse<ProductSummary>> cb = invocation.getArgument(1);
+            cb.onSuccess(pagedResponse);
+            return null;
+        }).when(repository).listProducts(any(), any());
+
+        viewModel.loadFirstPage();
+
+        UiState<List<ProductSummary>> state = viewModel.getProductsState().getValue();
+        assertNotNull(state);
+        assertTrue(state.isContent());
+        assertEquals(1, state.getData().size());
+        assertEquals("Cached Sneaker", state.getData().get(0).getName());
     }
 }

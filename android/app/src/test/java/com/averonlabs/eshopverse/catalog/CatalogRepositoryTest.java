@@ -300,4 +300,133 @@ public class CatalogRepositoryTest {
         assertEquals(429, apiException.getHttpStatus());
         assertEquals(ApiErrorCodes.RATE_LIMITED, apiException.getCode());
     }
+
+    @Test
+    public void testListProductsReturnsCachedProductsWhenCacheValid() throws Exception {
+        String fixture = ApiFixtureLoader.load("listProducts", "success");
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody(fixture));
+
+        AtomicReference<PagedResponse<ProductSummary>> ref1 = new AtomicReference<>();
+        CountDownLatch latch1 = new CountDownLatch(1);
+        repository.listProducts(new ProductParams(), new CatalogRepository.CatalogCallback<PagedResponse<ProductSummary>>() {
+            @Override
+            public void onSuccess(PagedResponse<ProductSummary> result) {
+                ref1.set(result);
+                latch1.countDown();
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                latch1.countDown();
+            }
+        });
+
+        assertTrue(latch1.await(3, TimeUnit.SECONDS));
+        assertNotNull(ref1.get());
+        assertTrue(repository.hasValidCache());
+        assertEquals(2, repository.getCachedProducts().size());
+        assertEquals(1, mockWebServer.getRequestCount());
+
+        // Second call with warm cache - note NO mock response is enqueued!
+        AtomicReference<PagedResponse<ProductSummary>> ref2 = new AtomicReference<>();
+        repository.listProducts(new ProductParams(), false, new CatalogRepository.CatalogCallback<PagedResponse<ProductSummary>>() {
+            @Override
+            public void onSuccess(PagedResponse<ProductSummary> result) {
+                ref2.set(result);
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+            }
+        });
+
+        // Returned synchronously in 0ms from cache without hitting server
+        assertNotNull(ref2.get());
+        assertEquals(2, ref2.get().getData().size());
+        assertEquals(1, mockWebServer.getRequestCount());
+    }
+
+    @Test
+    public void testListProductsBypassesCacheWhenForceRefreshTrue() throws Exception {
+        String fixture = ApiFixtureLoader.load("listProducts", "success");
+        // Enqueue two responses
+        mockWebServer.enqueue(new MockResponse().setResponseCode(200).setHeader("Content-Type", "application/json").setBody(fixture));
+        mockWebServer.enqueue(new MockResponse().setResponseCode(200).setHeader("Content-Type", "application/json").setBody(fixture));
+
+        CountDownLatch latch1 = new CountDownLatch(1);
+        repository.listProducts(new ProductParams(), new CatalogRepository.CatalogCallback<PagedResponse<ProductSummary>>() {
+            @Override
+            public void onSuccess(PagedResponse<ProductSummary> result) {
+                latch1.countDown();
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                latch1.countDown();
+            }
+        });
+        assertTrue(latch1.await(3, TimeUnit.SECONDS));
+        assertEquals(1, mockWebServer.getRequestCount());
+
+        // Second call with forceRefresh = true must hit the network
+        CountDownLatch latch2 = new CountDownLatch(1);
+        repository.listProducts(new ProductParams(), true, new CatalogRepository.CatalogCallback<PagedResponse<ProductSummary>>() {
+            @Override
+            public void onSuccess(PagedResponse<ProductSummary> result) {
+                latch2.countDown();
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                latch2.countDown();
+            }
+        });
+        assertTrue(latch2.await(3, TimeUnit.SECONDS));
+        assertEquals(2, mockWebServer.getRequestCount());
+    }
+
+    @Test
+    public void testListProductsFetchesFromNetworkWhenCacheExpired() throws Exception {
+        String fixture = ApiFixtureLoader.load("listProducts", "success");
+        mockWebServer.enqueue(new MockResponse().setResponseCode(200).setHeader("Content-Type", "application/json").setBody(fixture));
+        mockWebServer.enqueue(new MockResponse().setResponseCode(200).setHeader("Content-Type", "application/json").setBody(fixture));
+
+        CountDownLatch latch1 = new CountDownLatch(1);
+        repository.listProducts(new ProductParams(), new CatalogRepository.CatalogCallback<PagedResponse<ProductSummary>>() {
+            @Override
+            public void onSuccess(PagedResponse<ProductSummary> result) {
+                latch1.countDown();
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                latch1.countDown();
+            }
+        });
+        assertTrue(latch1.await(3, TimeUnit.SECONDS));
+        assertTrue(repository.hasValidCache());
+
+        // Expire cache manually: set timestamp to 6 minutes ago
+        repository.setCacheForTesting(repository.getCachedProducts(), System.currentTimeMillis() - (6 * 60 * 1000L));
+        assertFalse(repository.hasValidCache());
+
+        // Next call must hit network because cache is expired
+        CountDownLatch latch2 = new CountDownLatch(1);
+        repository.listProducts(new ProductParams(), false, new CatalogRepository.CatalogCallback<PagedResponse<ProductSummary>>() {
+            @Override
+            public void onSuccess(PagedResponse<ProductSummary> result) {
+                latch2.countDown();
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                latch2.countDown();
+            }
+        });
+        assertTrue(latch2.await(3, TimeUnit.SECONDS));
+        assertEquals(2, mockWebServer.getRequestCount());
+    }
 }

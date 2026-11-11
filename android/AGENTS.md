@@ -122,7 +122,7 @@ starting any Android task.
   and textual information must render immediately upon data arrival (<100ms) on the UI thread. Never hold UI rendering
   waiting for images. Image viewports must enforce fixed aspect ratios (1:1 for catalog cards, 16:9 for banners, 4:5 for detail galleries,
   or explicit dimensions) to guarantee zero Cumulative Layout Shift (CLS = 0). `wrap_content` is strictly forbidden on network image containers.
-  Follow skill `.agents/skills/text-first-async-image-loading/SKILL.md`.
+  Follow skill `.agents/skills/recyclerview-loading/SKILL.md`.
 - **Curated shimmer skeleton & luxury error fallbacks.** Image viewports must display a refined brand shimmer/skeleton
   drawable (`@drawable/bg_placeholder_shimmer`) or editorial watermark (`@drawable/ic_image_placeholder`) during load.
   Failed images must display a muted luxury fallback vector (`@drawable/bg_placeholder_error`); never show raw

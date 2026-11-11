@@ -663,7 +663,7 @@ All three steps in this phase may run concurrently: they own disjoint packages, 
 
 ## Phase 11 — Text-First Immediate Rendering & Full Asynchronous Image Pipeline
 
-**Cross-component release check:** verify 100% adherence to `docs/ARCHITECTURE.md` (§112–145) and `.agents/skills/text-first-async-image-loading/SKILL.md` across all Android viewports and web admin surfaces, eliminating all blocking full-screen skeleton anti-patterns and layout shift.
+**Cross-component release check:** verify 100% adherence to `docs/ARCHITECTURE.md` (§112–145) and `.agents/skills/recyclerview-loading/SKILL.md` across all Android viewports and web admin surfaces, eliminating all blocking full-screen skeleton anti-patterns and layout shift.
 
 ### Step 1 — IMG-002 — Optimistic Text-First Transition for Product Detail Screen (M-05)
 
@@ -796,6 +796,77 @@ All three steps in this phase may run concurrently: they own disjoint packages, 
 - [x] **d.** Unit and instrumentation tests pass cleanly with zero regressions.
 
 **Verification:** implemented `ProductGridAdapter.getImageUrls()`, wired forward & backward lookahead prefetching with `ImageLoaderHelper.preloadBatch` in `ExploreFragment`, added unit tests in `ProductGridAdapterTest` (246 tests passing 100% in Gradle `testDebugUnitTest`). Phase 12 complete!
+
+## Phase 13 — RecyclerView Data Caching, Navigation Lifecycle & Favorites Authentication Gate
+
+**Objective:** Eliminate redundant network refetching and jarring skeleton flickering on bottom navigation tab transitions through in-memory repository caching and lifecycle-aware viewmodels, and enforce clean authentication gates for customer favorites/wishlist actions per `.agents/skills/recyclerview-loading/SKILL.md`.
+
+### Step 1 — CACHE-001 — In-Memory Repository & ViewModel Caching for Catalog & Home
+
+**Status:** `[x]`
+
+**Depends on:** CAT-001, CAT-002
+
+**Scope:** Update `CatalogRepository` and `CatalogListViewModel` to maintain an in-memory cache of loaded items (`List<ProductSummary>`) along with an acquisition timestamp (`lastFetchedAt`). Introduce `hasValidCache()` with a 5-minute TTL, `getCachedProducts()`, and `hasData()`. Prevent `CatalogListViewModel.loadFirstPage()` from emitting `UiState.loading()` or hitting the network if valid in-memory cached data exists, while allowing `SwipeRefreshLayout` (pull-to-refresh) to explicitly bypass the cache and revalidate.
+
+**Acceptance criteria:**
+- [x] **a.** `CatalogRepository` caches the first-page product list in memory and records the fetch timestamp.
+- [x] **b.** `CatalogRepository.listProducts()` returns cached products synchronously within 0ms if `forceRefresh` is false and cache is younger than 5 minutes.
+- [x] **c.** `CatalogListViewModel` exposes `hasData()` and `getLoadedProducts()` so viewports can check for existing content without triggering a loading state.
+- [x] **d.** `CatalogListViewModel.reload()` forces a network call (`forceRefresh = true`), clearing the stale cache only upon successful replacement.
+- [x] **e.** Unit tests in `CatalogRepositoryTest` and `CatalogListViewModelTest` verify in-memory hit, TTL expiry, and force-refresh behaviors.
+
+**Verification:** Gradle unit tests in `CatalogRepositoryTest` and `CatalogListViewModelTest` pass cleanly with Mockito and MockWebServer (49 of 49 catalog tests green; 100% full project suite success).
+
+### Step 2 — UI-004 — Instant Tab Navigation & Anti-Skeleton Guard in `HomeFragment`
+
+**Status:** `[ ]`
+
+**Depends on:** CACHE-001
+
+**Scope:** Refactor `HomeFragment.onViewCreated` to guard against the skeleton anti-pattern on tab return. If `catalogViewModel.hasData()` or cached items exist, immediately bind the existing products into carousel and grid adapters without attaching `SkeletonAdapter` or clearing active views. Attach `SkeletonAdapter` only during initial cold application launch.
+
+**Acceptance criteria:**
+- [ ] **a.** `HomeFragment.onViewCreated` checks `catalogViewModel.hasData()` before setting adapters.
+- [ ] **b.** If data is already loaded, `rvTrendingCarousel`, `rvBestsellersGrid`, `rvSpecialOffersCarousel`, and `rvEssentialsGrid` are immediately populated with real product data (0ms perceived latency).
+- [ ] **c.** `SkeletonAdapter` is only attached when both repository and ViewModel hold zero items (cold start).
+- [ ] **d.** Navigating away from `HomeFragment` to `AccountFragment` (or `CartFragment`/`ExploreFragment`) and pressing Back or switching tabs does not display skeletons or trigger redundant network requests.
+- [ ] **e.** Pull-to-refresh on `swipeRefreshHome` continues to invoke `catalogViewModel.reload()` and updates the UI smoothly with `DiffUtil`.
+
+**Verification:** UI inspection and unit tests confirming adapter retainment on fragment view re-creation.
+
+### Step 3 — FAV-002 — Unified Authentication Gate & Guest Dialog for Favorites
+
+**Status:** `[ ]`
+
+**Depends on:** AUTH-001, FAV-001
+
+**Scope:** Unify authentication checks across all favorites entry points: `ProductGridAdapter`, `ProductDetailFragment`, and `AccountFragment`. When an unauthenticated guest user taps the heart button or accesses "My Favorites" in `AccountFragment`, present a standard Material 3 dialog informing them that sign-in is required, with a direct CTA navigating to `accountFragment`.
+
+**Acceptance criteria:**
+- [ ] **a.** Tapping `btnCardFavorite` in any catalog grid or carousel when unauthenticated displays a Material 3 dialog (`favorites_login_required_title`, `favorites_login_required_message`).
+- [ ] **b.** Tapping `btnFavorite` in `ProductDetailFragment` when unauthenticated displays the same sign-in prompt dialog.
+- [ ] **c.** In `AccountFragment`, clicking `cardFavoritesNav` when unauthenticated presents the sign-in prompt dialog or smoothly scrolls/focuses the guest sign-in form.
+- [ ] **d.** Dialog positive button "Sign In" (`favorites_action_sign_in`) navigates smoothly to the login screen or focuses the input fields.
+- [ ] **e.** Favorited items are never mutated locally for unauthenticated guests unless the user successfully signs in.
+
+**Verification:** Unit tests in `AccountFragmentTest` and adapter tests verifying dialog display and unauthenticated guards.
+
+### Step 4 — QUAL-006 — End-to-End Navigation, Caching & Auth Gate Test Suite
+
+**Status:** `[ ]`
+
+**Depends on:** CACHE-001, UI-004, FAV-002
+
+**Scope:** Create and execute automated unit tests covering the full caching lifecycle, 0ms tab return behavior, and favorites guest authentication gate.
+
+**Acceptance criteria:**
+- [ ] **a.** Unit test verifying `CatalogListViewModel.loadFirstPage()` does not issue an HTTP call when cache is warm.
+- [ ] **b.** Unit test verifying `CatalogListViewModel.reload()` bypasses cache and issues an HTTP call.
+- [ ] **c.** Unit test verifying unauthenticated favorite toggle displays sign-in dialog and does not modify `FavoritesRepository`.
+- [ ] **d.** Full Android test suite (`./gradlew testDebugUnitTest`) passes with 100% success and zero regressions.
+
+**Verification:** `.\gradlew testDebugUnitTest` passes cleanly with all tests green.
 
 ## External dependencies owned by other components
 
