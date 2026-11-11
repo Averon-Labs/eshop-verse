@@ -854,19 +854,19 @@ All three steps in this phase may run concurrently: they own disjoint packages, 
 
 ### Step 4 — QUAL-006 — End-to-End Navigation, Caching & Auth Gate Test Suite
 
-**Status:** `[ ]`
+**Status:** `[x]`
 
 **Depends on:** CACHE-001, UI-004, FAV-002
 
 **Scope:** Create and execute automated unit tests covering the full caching lifecycle, 0ms tab return behavior, and favorites guest authentication gate.
 
 **Acceptance criteria:**
-- [ ] **a.** Unit test verifying `CatalogListViewModel.loadFirstPage()` does not issue an HTTP call when cache is warm.
-- [ ] **b.** Unit test verifying `CatalogListViewModel.reload()` bypasses cache and issues an HTTP call.
-- [ ] **c.** Unit test verifying unauthenticated favorite toggle displays sign-in dialog and does not modify `FavoritesRepository`.
-- [ ] **d.** Full Android test suite (`./gradlew testDebugUnitTest`) passes with 100% success and zero regressions.
+- [x] **a.** Unit test verifying `CatalogListViewModel.loadFirstPage()` does not issue an HTTP call when cache is warm.
+- [x] **b.** Unit test verifying `CatalogListViewModel.reload()` bypasses cache and issues an HTTP call.
+- [x] **c.** Unit test verifying unauthenticated favorite toggle displays sign-in dialog and does not modify `FavoritesRepository`.
+- [x] **d.** Full Android test suite (`./gradlew testDebugUnitTest`) passes with 100% success and zero regressions.
 
-**Verification:** `.\gradlew testDebugUnitTest` passes cleanly with all tests green.
+**Verification:** Implemented `FavoritesAuthGateTest.java` verifying unauthenticated guest favorite toggle blocks modification to `FavoritesRepository` while prompting sign-in dialog; verified `CatalogListViewModelTest.java` warm-cache and reload forceRefresh bypass suites; executed `.\gradlew.bat testDebugUnitTest` with 100% passing across all 26 tasks and zero regressions. Phase 13 is 100% complete!
 
 ## External dependencies owned by other components
 
