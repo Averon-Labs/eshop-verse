@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { MouseEvent as ReactMouseEvent } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { ConfirmDialog } from './ConfirmDialog';
+import { CommandPalette } from './CommandPalette';
 import { NavigationGuardProvider, useNavigationGuard } from './NavigationGuard';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
@@ -25,9 +26,23 @@ function AppShellLayout() {
   const { isBlocked, setBlocked } = useNavigationGuard();
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const [pendingPath, setPendingPath] = useState<string | null>(null);
 
   const drawerButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  // Global Ctrl+K / Cmd+K keyboard shortcut for Spotlight Command Palette
+  useEffect(() => {
+    function handleGlobalKeyDown(event: KeyboardEvent) {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setPaletteOpen((open) => !open);
+      }
+    }
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
 
   // Lock body scroll when mobile drawer is open
   useEffect(() => {
@@ -57,7 +72,11 @@ function AppShellLayout() {
       {/* Main Workspace */}
       <div className="flex flex-col md:pl-[280px]">
         {/* Top Header Bar */}
-        <TopBar onOpenDrawer={() => setDrawerOpen(true)} drawerOpen={drawerOpen} />
+        <TopBar
+          onOpenDrawer={() => setDrawerOpen(true)}
+          drawerOpen={drawerOpen}
+          onOpenCommandPalette={() => setPaletteOpen(true)}
+        />
 
         {/* Content Body */}
         <main id="admin-main" className="w-full max-w-[1440px] px-6 py-4 lg:px-10 lg:py-6">
@@ -118,6 +137,8 @@ function AppShellLayout() {
           }
         }}
       />
+      {/* Global Spotlight / Command Palette */}
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </div>
   );
 }

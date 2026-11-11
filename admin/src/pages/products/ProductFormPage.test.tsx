@@ -408,6 +408,68 @@ describe('ProductFormPage (A-03)', () => {
     ).toBeInTheDocument();
     expect(window.sessionStorage.getItem('eshopverse_admin_product_draft')).toBeNull();
   });
+
+  it('duplicate_form_prefills_values_and_submits_cloned_product', async () => {
+    const fetchMock = mockApi([
+      sessionRoute(),
+      categoryListRoute(),
+      {
+        method: 'POST',
+        path: '/admin/products',
+        handler: () => jsonResponse(201, { data: product({ name: '[Copy] Designer Silk Scarf' }) }),
+      },
+      {
+        method: 'GET',
+        path: '/admin/products',
+        handler: () => jsonResponse(200, { data: [], pagination: pagination() }),
+      },
+    ]);
+
+    window.history.pushState(
+      {
+        usr: {
+          duplicateProduct: {
+            name: 'Designer Silk Scarf',
+            description: '100% pure silk scarf with hand-rolled edges.',
+            price: '49.99',
+            sku: 'SILK-001',
+            categoryId: 1,
+            status: 'active',
+          },
+        },
+        key: 'default',
+      },
+      '',
+      '/products/new',
+    );
+
+    render(<App />);
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Duplicate product' })).toBeInTheDocument();
+    await screen.findByRole('option', { name: 'Lighting' });
+    expect(screen.getByLabelText('Name')).toHaveValue('[Copy] Designer Silk Scarf');
+    expect(screen.getByLabelText('Price (USD)')).toHaveValue('49.99');
+    expect(screen.getByLabelText(/^SKU/)).toHaveValue('SILK-001-copy');
+    expect(screen.getByLabelText(/^Description/)).toHaveValue('100% pure silk scarf with hand-rolled edges.');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => {
+      const postCalls = fetchMock.mock.calls.filter(
+        ([, init]) => (init as RequestInit | undefined)?.method === 'POST',
+      );
+      expect(postCalls.length).toBeGreaterThan(0);
+      const postBody = JSON.parse((postCalls[0][1] as RequestInit).body as string);
+      expect(postBody.name).toBe('[Copy] Designer Silk Scarf');
+      expect(postBody.sku).toBe('SILK-001-copy');
+      expect(postBody.price).toBe('49.99');
+      expect(postBody.categoryId).toBe(1);
+    });
+
+    expect(
+      await screen.findByText('[Copy] Designer Silk Scarf was created. Set its stock in Inventory.'),
+    ).toBeInTheDocument();
+  });
 });
 
 /**

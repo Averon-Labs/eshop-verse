@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
   createAdminProduct,
   deleteAdminProductImage,
@@ -10,7 +10,7 @@ import {
   uploadAdminProductImage,
 } from '../../api/catalog';
 import { ApiError } from '../../api/http';
-import type { AdminCategory, AdminProductInput, ProductImage } from '../../api/types';
+import type { AdminCategory, AdminProductInput, ProductImage, ProductStatus } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { useNavigationGuard } from '../../components/NavigationGuard';
 import { ErrorPanel } from '../../components/StatePanels';
@@ -89,13 +89,51 @@ function ImagePreview({ url }: { url: string }) {
  */
 export default function ProductFormPage() {
   const { productId: productIdParam } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const { setBlocked } = useNavigationGuard();
   const productId = productIdParam ? Number(productIdParam) : null;
   const invalidId = productId !== null && (!Number.isInteger(productId) || productId <= 0);
 
+  const locState = ((location.state as any) || (window.history.state as any)) as {
+    duplicateProduct?: Partial<Omit<FormState, 'status'>> & {
+      sku?: string | null;
+      categoryId?: number | string | null;
+      status?: ProductStatus | string;
+    };
+    usr?: {
+      duplicateProduct?: Partial<Omit<FormState, 'status'>> & {
+        sku?: string | null;
+        categoryId?: number | string | null;
+        status?: ProductStatus | string;
+      };
+    };
+  } | null;
+
+  const duplicateState = locState?.duplicateProduct || locState?.usr?.duplicateProduct;
+
   const [form, setForm] = useState<FormState>(() => {
     if (productId === null) {
+      if (duplicateState) {
+        return {
+          ...EMPTY_FORM,
+          name: duplicateState.name
+            ? duplicateState.name.startsWith('[Copy] ')
+              ? duplicateState.name
+              : `[Copy] ${duplicateState.name}`
+            : '',
+          description: duplicateState.description || '',
+          price: duplicateState.price != null ? String(duplicateState.price) : '',
+          sku: duplicateState.sku
+            ? duplicateState.sku.endsWith('-copy')
+              ? duplicateState.sku
+              : `${duplicateState.sku}-copy`
+            : '',
+          categoryId: duplicateState.categoryId != null ? String(duplicateState.categoryId) : '',
+          status: duplicateState.status === 'inactive' ? 'inactive' : 'active',
+          images: [],
+        };
+      }
       try {
         const saved = sessionStorage.getItem(DRAFT_STORAGE_KEY);
         if (saved) {
@@ -515,16 +553,18 @@ export default function ProductFormPage() {
             /
           </span>
           <span className="text-brand-primary">
-            {productId !== null ? 'Edit product' : 'New product'}
+            {productId !== null ? 'Edit product' : duplicateState ? 'Duplicate product' : 'New product'}
           </span>
         </nav>
         <div className="flex flex-wrap items-center justify-between gap-4 pt-1">
           <div>
             <h1 id="product-form-title" className="text-2xl font-bold tracking-tight text-text-on-surface">
-              {productId !== null ? 'Edit product' : 'Create product'}
+              {productId !== null ? 'Edit product' : duplicateState ? 'Duplicate product' : 'Create product'}
             </h1>
             <p className="mt-1 text-sm text-text-secondary">
-              Fill in product information. Media and stock can be configured for Android storefronts.
+              {duplicateState
+                ? 'Review and adjust product information. A new distinct SKU has been generated.'
+                : 'Fill in product information. Media and stock can be configured for Android storefronts.'}
             </p>
           </div>
         </div>

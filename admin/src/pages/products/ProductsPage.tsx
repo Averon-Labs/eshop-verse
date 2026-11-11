@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   archiveAdminProduct,
   deleteAdminProduct,
   listAdminCategories,
   listAdminProducts,
+  updateAdminProduct,
 } from '../../api/catalog';
 import { ApiError } from '../../api/http';
 import type {
@@ -16,7 +17,7 @@ import type {
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { Pagination } from '../../components/Pagination';
 import { EmptyPanel, ErrorPanel, FeedbackBanner, TableSkeleton } from '../../components/StatePanels';
-import { CustomSelect } from '../../components/ui';
+import { CustomSelect, FloatingBulkBar } from '../../components/ui';
 import { formatUsd } from '../../lib/format';
 import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import {
@@ -146,6 +147,115 @@ export default function ProductsPage() {
   } | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
+  // Bulk Selection State
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkAction, setBulkAction] = useState<'activate' | 'archive' | 'delete' | null>(null);
+  const selectAllRef = useRef<HTMLInputElement>(null);
+
+  const isAllSelected = products.length > 0 && products.every((p) => selectedIds.has(p.id));
+  const isSomeSelected = products.some((p) => selectedIds.has(p.id)) && !isAllSelected;
+
+  useEffect(() => {
+    if (selectAllRef.current) {
+      selectAllRef.current.indeterminate = isSomeSelected;
+    }
+  }, [isSomeSelected]);
+
+  function toggleSelectAll() {
+    if (isAllSelected) {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        products.forEach((p) => next.delete(p.id));
+        return next;
+      });
+    } else {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        products.forEach((p) => next.add(p.id));
+        return next;
+      });
+    }
+  }
+
+  function toggleSelect(id: number) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }
+
+  function clearSelection() {
+    setSelectedIds(new Set());
+  }
+
+  useEffect(() => {
+    clearSelection();
+  }, [page, debouncedSearch, categoryFilter, statusFilter]);
+
+  async function confirmBulkAction() {
+    if (!bulkAction || selectedIds.size === 0) return;
+    setBulkBusy(true);
+    setActionError(null);
+
+    const ids = Array.from(selectedIds);
+    let successCount = 0;
+    const errors: string[] = [];
+
+    for (const id of ids) {
+      try {
+        if (bulkAction === 'archive') {
+          await archiveAdminProduct(id);
+          successCount++;
+        } else if (bulkAction === 'delete') {
+          await deleteAdminProduct(id);
+          successCount++;
+        } else if (bulkAction === 'activate') {
+          const prod = products.find((p) => p.id === id);
+          if (prod && prod.status !== 'active') {
+            await updateAdminProduct(id, {
+              name: prod.name,
+              description: prod.description ?? null,
+              price: prod.price,
+              sku: prod.sku ?? null,
+              categoryId: prod.categoryId,
+              status: 'active',
+              imageUrls: [],
+            });
+            successCount++;
+          } else {
+            successCount++;
+          }
+        }
+      } catch (err) {
+        if (err instanceof ApiError) {
+          errors.push(err.message);
+        } else {
+          errors.push('Action failed on one or more items.');
+        }
+      }
+    }
+
+    setBulkBusy(false);
+    setBulkAction(null);
+    clearSelection();
+    setReloadToken((t) => t + 1);
+
+    if (errors.length > 0) {
+      setActionError(`${errors.length} product(s) could not be updated: ${errors[0]}`);
+    }
+    if (successCount > 0) {
+      const actionPast =
+        bulkAction === 'archive' ? 'archived' : bulkAction === 'delete' ? 'deleted' : 'activated';
+      setFeedback(`${successCount} product(s) successfully ${actionPast}.`);
+    }
+  }
+
   // Feedback handed over by the product form after a create/update.
   useEffect(() => {
     const state = location.state as {
@@ -228,6 +338,21 @@ export default function ProductsPage() {
     setCategoryFilter('');
     setStatusFilter('');
     setPage(1);
+  }
+
+  function handleDuplicate(product: AdminProduct) {
+    navigate('/products/new', {
+      state: {
+        duplicateProduct: {
+          name: product.name,
+          sku: product.sku,
+          price: product.price,
+          categoryId: product.categoryId,
+          status: product.status,
+          description: product.description ?? '',
+        },
+      },
+    });
   }
 
   async function confirmArchive() {
@@ -620,6 +745,16 @@ export default function ProductsPage() {
               <caption className="sr-only">Products</caption>
               <thead className="border-b border-border-outline/40 bg-bg-surface-variant/40 text-[11px] font-bold uppercase tracking-wider text-text-secondary">
                 <tr>
+                  <th scope="col" className="w-12 px-5 py-3.5">
+                    <input
+                      ref={selectAllRef}
+                      type="checkbox"
+                      aria-label="Select all products on this page"
+                      className="h-4 w-4 rounded border-border-outline/60 text-brand-primary focus:ring-brand-primary"
+                      checked={isAllSelected}
+                      onChange={toggleSelectAll}
+                    />
+                  </th>
                   <th scope="col" className="px-5 py-3.5 font-bold">
                     Product
                   </th>
@@ -647,8 +782,21 @@ export default function ProductsPage() {
                 {products.map((product) => (
                   <tr
                     key={product.id}
-                    className="hover:bg-bg-surface-variant/30 transition-colors"
+                    className={`transition-colors ${
+                      selectedIds.has(product.id)
+                        ? 'bg-brand-primary-container/20 hover:bg-brand-primary-container/30'
+                        : 'hover:bg-bg-surface-variant/30'
+                    }`}
                   >
+                    <td className="w-12 px-5 py-4">
+                      <input
+                        type="checkbox"
+                        aria-label={`Select ${product.name}`}
+                        className="h-4 w-4 rounded border-border-outline/60 text-brand-primary focus:ring-brand-primary"
+                        checked={selectedIds.has(product.id)}
+                        onChange={() => toggleSelect(product.id)}
+                      />
+                    </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3.5">
                         <ProductThumb product={product} />
@@ -705,6 +853,28 @@ export default function ProductsPage() {
                           </svg>
                           Edit
                         </Link>
+                        <button
+                          type="button"
+                          aria-label={`Duplicate ${product.name}`}
+                          className={actionButtonClass}
+                          onClick={() => handleDuplicate(product)}
+                        >
+                          <svg
+                            className="mr-1 h-3.5 w-3.5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                            aria-hidden="true"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                            />
+                          </svg>
+                          Duplicate
+                        </button>
                         {product.status === 'archived' ? (
                           <span className="px-3 py-1.5 text-xs font-semibold text-text-disabled">
                             Archived
@@ -744,9 +914,21 @@ export default function ProductsPage() {
           {/* Mobile Card List View */}
           <ul className="divide-y divide-border-outline/30 md:hidden" aria-label="Products list">
             {products.map((product) => (
-              <li key={product.id} className="p-4 space-y-3">
+              <li
+                key={product.id}
+                className={`p-4 space-y-3 transition-colors ${
+                  selectedIds.has(product.id) ? 'bg-brand-primary-container/15' : ''
+                }`}
+              >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      aria-label={`Select ${product.name}`}
+                      className="h-4 w-4 rounded border-border-outline/60 text-brand-primary focus:ring-brand-primary"
+                      checked={selectedIds.has(product.id)}
+                      onChange={() => toggleSelect(product.id)}
+                    />
                     <ProductThumb product={product} />
                     <div>
                       <Link
@@ -780,7 +962,7 @@ export default function ProductsPage() {
                     </dd>
                   </div>
                 </dl>
-                <div className="flex items-center gap-2 pt-1">
+                <div className="flex flex-wrap items-center gap-2 pt-1">
                   <Link
                     to={`/products/${product.id}/edit`}
                     aria-label={`Edit ${product.name}`}
@@ -788,6 +970,14 @@ export default function ProductsPage() {
                   >
                     Edit
                   </Link>
+                  <button
+                    type="button"
+                    aria-label={`Duplicate ${product.name}`}
+                    className={`${actionButtonClass} flex-1 justify-center`}
+                    onClick={() => handleDuplicate(product)}
+                  >
+                    Duplicate
+                  </button>
                   {product.status !== 'archived' && (
                     <button
                       type="button"
@@ -856,6 +1046,49 @@ export default function ProductsPage() {
           }
         }}
         onConfirm={() => void confirmDelete()}
+      />
+
+      {/* Floating Bulk Action Bar */}
+      <FloatingBulkBar
+        selectedCount={selectedIds.size}
+        busy={bulkBusy}
+        onActivate={() => setBulkAction('activate')}
+        onArchive={() => setBulkAction('archive')}
+        onDelete={() => setBulkAction('delete')}
+        onClear={clearSelection}
+      />
+
+      {/* Bulk Action Confirmation Dialog */}
+      <ConfirmDialog
+        open={bulkAction !== null}
+        title={
+          bulkAction === 'archive'
+            ? `Archive ${selectedIds.size} product${selectedIds.size > 1 ? 's' : ''}?`
+            : bulkAction === 'delete'
+              ? `Delete ${selectedIds.size} product${selectedIds.size > 1 ? 's' : ''}?`
+              : `Activate ${selectedIds.size} product${selectedIds.size > 1 ? 's' : ''}?`
+        }
+        description={
+          bulkAction === 'archive'
+            ? 'Selected products will be hidden from the public catalog.'
+            : bulkAction === 'delete'
+              ? 'Selected products and their images will be permanently removed. Products with existing orders cannot be deleted.'
+              : 'Selected products will be set to active and visible in the public catalog.'
+        }
+        confirmLabel={
+          bulkAction === 'archive'
+            ? 'Archive selected'
+            : bulkAction === 'delete'
+              ? 'Delete selected'
+              : 'Activate selected'
+        }
+        busy={bulkBusy}
+        onCancel={() => {
+          if (!bulkBusy) {
+            setBulkAction(null);
+          }
+        }}
+        onConfirm={() => void confirmBulkAction()}
       />
     </section>
   );

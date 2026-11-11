@@ -370,4 +370,124 @@ describe('ProductsPage (A-02)', () => {
       '/products/new',
     );
   });
+
+  it('duplicate_product_navigates_to_new_product_with_prefilled_state', async () => {
+    mockApi([
+      sessionRoute(),
+      categoryListRoute([]),
+      productsRoute(() =>
+        jsonResponse(200, {
+          data: [product({ id: 10, name: 'Vintage Leather Jacket', sku: 'LEATHER-10' })],
+          pagination: pagination(1, 20, 1, 1),
+        }),
+      ),
+    ]);
+
+    render(<App />);
+
+    const table = await findProductsTable();
+    expect(table).toBeInTheDocument();
+
+    const duplicateBtn = within(table).getByRole('button', { name: 'Duplicate Vintage Leather Jacket' });
+    expect(duplicateBtn).toBeInTheDocument();
+    fireEvent.click(duplicateBtn);
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Duplicate product' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Name')).toHaveValue('[Copy] Vintage Leather Jacket');
+    expect(screen.getByLabelText(/^SKU/)).toHaveValue('LEATHER-10-copy');
+  });
+
+  it('bulk_selection_toggles_all_and_individual_checkboxes', async () => {
+    mockApi([
+      sessionRoute(),
+      categoryListRoute([]),
+      productsRoute(() =>
+        jsonResponse(200, {
+          data: [
+            product({ id: 1, name: 'Item One' }),
+            product({ id: 2, name: 'Item Two' }),
+          ],
+          pagination: pagination(1, 20, 2, 1),
+        }),
+      ),
+    ]);
+
+    render(<App />);
+
+    const table = await findProductsTable();
+    expect(table).toBeInTheDocument();
+
+    // Initially no toolbar
+    expect(screen.queryByRole('region', { name: 'Bulk actions toolbar' })).not.toBeInTheDocument();
+
+    // Check individual item
+    const rowCheckboxes = within(table).getAllByRole('checkbox');
+    // rowCheckboxes[0] is select all in thead, rowCheckboxes[1] and [2] are rows
+    expect(rowCheckboxes.length).toBe(3);
+
+    fireEvent.click(rowCheckboxes[1]); // select Item One
+    expect(await screen.findByRole('region', { name: 'Bulk actions toolbar' })).toBeInTheDocument();
+    expect(screen.getByText(/1.*selected/)).toBeInTheDocument();
+
+    // Click select all
+    fireEvent.click(rowCheckboxes[0]); // select all
+    expect(screen.getByText(/2.*selected/)).toBeInTheDocument();
+
+    // Clear selection
+    fireEvent.click(screen.getByRole('button', { name: 'Clear selection' }));
+    expect(screen.queryByRole('region', { name: 'Bulk actions toolbar' })).not.toBeInTheDocument();
+  });
+
+  it('bulk_archive_action_confirms_calls_api_and_shows_feedback', async () => {
+    const archivedIds: number[] = [];
+    mockApi([
+      sessionRoute(),
+      categoryListRoute([]),
+      productsRoute(() =>
+        jsonResponse(200, {
+          data: [
+            product({ id: 101, name: 'Prod A', status: 'active' }),
+            product({ id: 102, name: 'Prod B', status: 'active' }),
+          ],
+          pagination: pagination(1, 20, 2, 1),
+        }),
+      ),
+      {
+        method: 'POST',
+        path: '/admin/products/101/archive',
+        handler: () => {
+          archivedIds.push(101);
+          return jsonResponse(200, { data: product({ id: 101, status: 'archived' }) });
+        },
+      },
+      {
+        method: 'POST',
+        path: '/admin/products/102/archive',
+        handler: () => {
+          archivedIds.push(102);
+          return jsonResponse(200, { data: product({ id: 102, status: 'archived' }) });
+        },
+      },
+    ]);
+
+    render(<App />);
+
+    const table = await findProductsTable();
+    const rowCheckboxes = within(table).getAllByRole('checkbox');
+    fireEvent.click(rowCheckboxes[0]); // Select all
+
+    expect(await screen.findByRole('region', { name: 'Bulk actions toolbar' })).toBeInTheDocument();
+
+    // Click Archive on bulk toolbar
+    fireEvent.click(screen.getByRole('button', { name: 'Archive' }));
+
+    // Confirm dialog appears
+    const dialog = await screen.findByRole('dialog', { name: 'Archive 2 products?' });
+    expect(dialog).toBeInTheDocument();
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Archive selected' }));
+
+    expect(await screen.findByRole('status')).toHaveTextContent('2 product(s) successfully archived.');
+    expect(archivedIds).toEqual([101, 102]);
+  });
 });

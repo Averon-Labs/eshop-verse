@@ -407,3 +407,58 @@ upload archive is `deploy/eshopverse-admin-dist.zip`; live upload is the owner's
 - [x] **d.** Verify complete test suite (all 116+ tests), production build, and live deployment to Wasmer Edge host.
 
 **Verification:** eliminated redundant brand header inside mobile drawer (`!isMobile` guard in `Sidebar.tsx`). Verified minimum 44px touch targets across all new UI components, passing 100% of the test suite (19 test files, 123 tests green), clean type checking, and successful Vite production build (`index-YO0EUExX.css`, `index-DAcZ9vhe.js`).
+
+---
+
+## Phase 9 — Product Power Tools, Bulk Operations, and Global Search
+
+**Project phase gate:** Product duplication workflow, multi-select bulk operations with floating action bar, and active global search command palette.
+
+### Step 1 — PROD-901 — Product Cloning and Duplication Workflow
+
+**Status:** `[x]`
+
+**Depends on:** UI-804
+
+**Scope:** provide an instant "Duplicate" action for catalog products, prefilling the product creation form with existing product attributes while enforcing unique SKU and distinct title constraints.
+
+**Acceptance criteria:**
+- [x] **a.** Add "Duplicate" action to desktop table row actions and mobile card menu on `ProductsPage.tsx`.
+- [x] **b.** When clicked, navigate to `/products/new` prefilled with existing product title (`[Copy] <Title>`), price, category, stock, and description.
+- [x] **c.** Automatically clear or suffix SKU (`<SKU>-copy`) to prevent unique SKU conflicts during submission.
+- [x] **d.** Write unit tests verifying state prefilling, form validation, and successful creation of cloned products.
+
+**Verification:** implemented Duplicate action on `ProductsPage.tsx` (desktop table and mobile cards) and `ProductDetailPage.tsx`. Pre-fills `ProductFormPage.tsx` with copy title (`[Copy] <Name>`), suffixed SKU (`<SKU>-copy`), price, category, and description. Verified with 3 dedicated unit tests across `ProductFormPage.test.tsx`, `ProductsPage.test.tsx`, and `ProductDetailPage.test.tsx`. Passed 100% of test suite (19 test files, 126 tests green) and clean Vite production build.
+
+### Step 2 — PROD-902 — Multi-Select Checkboxes and Floating Bulk Action Bar
+
+**Status:** `[x]`
+
+**Depends on:** PROD-901
+
+**Scope:** implement table row selection, header select-all with indeterminate state, and a modern Dribbble-style floating action bar for bulk operations (bulk activate, bulk archive, bulk delete).
+
+**Acceptance criteria:**
+- [x] **a.** Add header "select all" checkbox with indeterminate visual state when partial items are selected on the current page.
+- [x] **b.** Add row-level selection checkboxes to desktop table and touch-friendly selection on mobile cards.
+- [x] **c.** Render a floating bottom capsule action bar (`FloatingBulkBar`) displaying selected count, quick bulk actions (`Active`, `Archive`, `Delete`), and a clear-selection button.
+- [x] **d.** Provide a safety confirmation dialog for bulk operations with itemized count, executing resilient batch requests and refreshing catalog state.
+
+**Verification:** implemented `FloatingBulkBar` capsule component with counter badge, actions, and portal rendering. Added select-all checkbox with `indeterminate` ref state and row checkboxes on `ProductsPage.tsx` (desktop and mobile cards). Integrated safety `ConfirmDialog` for bulk activate, archive, and delete. Added comprehensive unit tests in `FloatingBulkBar.test.tsx` and `ProductsPage.test.tsx`. 100% of the test suite (20 test files, 131 tests) passing, clean TypeScript type check, and production build succeeded.
+
+### Step 3 — SEARCH-903 — Global Spotlight and Command Palette Search
+
+**Status:** `[x]`
+
+**Depends on:** UI-805
+
+**Scope:** activate the top bar search in `TopBar.tsx` into a functional Global Command Palette (`Ctrl+K` / `Cmd+K`) that searches across products, orders, categories, and administrative navigation.
+
+**Acceptance criteria:**
+- [x] **a.** Connect `TopBar.tsx` search input to open an interactive Spotlight/Command Palette modal with keyboard shortcut support (`Ctrl+K` / `/`).
+- [x] **b.** Provide instant debounced search querying matching products, orders by reference, and admin quick links.
+- [x] **c.** Support full keyboard navigation (arrow keys to highlight, Enter to navigate, Escape to close).
+- [x] **d.** Graceful empty states and mobile-friendly search dialog overlay.
+
+**Verification:** implemented `CommandPalette.tsx` accessible modal dialog with backdrop blur, keyboard shortcuts (`Ctrl+K` / `Cmd+K` / `Esc` / arrows / enter), debounced product & order search queries via admin APIs, and instant navigation. Added Command Palette trigger to `TopBar.tsx` and integrated in `AppShell.tsx`. Added 5 dedicated unit tests in `CommandPalette.test.tsx`. 100% test suite passing (21 test files, 136 tests), clean type checks, and production bundle built.
+
