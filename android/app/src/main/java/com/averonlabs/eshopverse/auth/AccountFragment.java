@@ -208,6 +208,14 @@ public class AccountFragment extends Fragment {
             binding.layoutSignedInActions.setVisibility(signedIn ? View.VISIBLE : View.GONE);
             binding.layoutGuestState.setVisibility(signedIn ? View.GONE : View.VISIBLE);
             binding.tvAccountTitle.setText(signedIn ? R.string.auth_account_title : R.string.auth_sign_in_title);
+
+            // Update favorites badge according to auth status
+            if (!signedIn) {
+                binding.tvFavoritesCountBadge.setText(R.string.favorites_action_sign_in);
+            } else {
+                int count = FavoritesRepository.getInstance(requireContext()).getFavoritesCount();
+                binding.tvFavoritesCountBadge.setText(count + " " + (count == 1 ? "item" : "items"));
+            }
         });
 
         sessionViewModel.getCurrentUser().observe(getViewLifecycleOwner(), user -> {
@@ -350,19 +358,39 @@ public class AccountFragment extends Fragment {
 
     private void setupFavoritesSection() {
         binding.cardFavoritesNav.setOnClickListener(v -> {
-            try {
-                NavHostFragment.findNavController(this).navigate(R.id.action_accountFragment_to_favoritesFragment);
-            } catch (Exception e) {
+            boolean signedIn = Boolean.TRUE.equals(sessionViewModel.getIsSignedIn().getValue());
+            if (signedIn) {
                 try {
-                    NavHostFragment.findNavController(this).navigate(R.id.favoritesFragment);
-                } catch (Exception ignored) {}
+                    NavHostFragment.findNavController(this).navigate(R.id.action_accountFragment_to_favoritesFragment);
+                } catch (Exception e) {
+                    try {
+                        NavHostFragment.findNavController(this).navigate(R.id.favoritesFragment);
+                    } catch (Exception ignored) {}
+                }
+            } else {
+                new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                        .setTitle(R.string.favorites_login_required_title)
+                        .setMessage(R.string.favorites_login_required_message)
+                        .setPositiveButton(R.string.favorites_action_sign_in, (dialog, which) -> {
+                            if (binding != null) {
+                                binding.etGuestEmail.requestFocus();
+                                binding.scrollContent.smoothScrollTo(0, binding.layoutGuestState.getTop());
+                            }
+                        })
+                        .setNegativeButton(R.string.favorites_action_cancel, null)
+                        .show();
             }
         });
 
         FavoritesRepository.getInstance(requireContext()).getFavorites().observe(getViewLifecycleOwner(), list -> {
             if (binding == null) return;
-            int count = list != null ? list.size() : 0;
-            binding.tvFavoritesCountBadge.setText(count + " " + (count == 1 ? "item" : "items"));
+            boolean signedIn = Boolean.TRUE.equals(sessionViewModel.getIsSignedIn().getValue());
+            if (!signedIn) {
+                binding.tvFavoritesCountBadge.setText(R.string.favorites_action_sign_in);
+            } else {
+                int count = list != null ? list.size() : 0;
+                binding.tvFavoritesCountBadge.setText(count + " " + (count == 1 ? "item" : "items"));
+            }
         });
     }
 

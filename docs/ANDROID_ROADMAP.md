@@ -837,20 +837,20 @@ All three steps in this phase may run concurrently: they own disjoint packages, 
 
 ### Step 3 — FAV-002 — Unified Authentication Gate & Guest Dialog for Favorites
 
-**Status:** `[ ]`
+**Status:** `[x]`
 
 **Depends on:** AUTH-001, FAV-001
 
 **Scope:** Unify authentication checks across all favorites entry points: `ProductGridAdapter`, `ProductDetailFragment`, and `AccountFragment`. When an unauthenticated guest user taps the heart button or accesses "My Favorites" in `AccountFragment`, present a standard Material 3 dialog informing them that sign-in is required, with a direct CTA navigating to `accountFragment`.
 
 **Acceptance criteria:**
-- [ ] **a.** Tapping `btnCardFavorite` in any catalog grid or carousel when unauthenticated displays a Material 3 dialog (`favorites_login_required_title`, `favorites_login_required_message`).
-- [ ] **b.** Tapping `btnFavorite` in `ProductDetailFragment` when unauthenticated displays the same sign-in prompt dialog.
-- [ ] **c.** In `AccountFragment`, clicking `cardFavoritesNav` when unauthenticated presents the sign-in prompt dialog or smoothly scrolls/focuses the guest sign-in form.
-- [ ] **d.** Dialog positive button "Sign In" (`favorites_action_sign_in`) navigates smoothly to the login screen or focuses the input fields.
-- [ ] **e.** Favorited items are never mutated locally for unauthenticated guests unless the user successfully signs in.
+- [x] **a.** Tapping `btnCardFavorite` in any catalog grid or carousel when unauthenticated displays a Material 3 dialog (`favorites_login_required_title`, `favorites_login_required_message`).
+- [x] **b.** Tapping `btnFavorite` in `ProductDetailFragment` when unauthenticated displays the same sign-in prompt dialog.
+- [x] **c.** In `AccountFragment`, clicking `cardFavoritesNav` when unauthenticated presents the sign-in prompt dialog or smoothly scrolls/focuses the guest sign-in form.
+- [x] **d.** Dialog positive button "Sign In" (`favorites_action_sign_in`) navigates smoothly to the login screen or focuses the input fields.
+- [x] **e.** Favorited items are never mutated locally for unauthenticated guests unless the user successfully signs in.
 
-**Verification:** Unit tests in `AccountFragmentTest` and adapter tests verifying dialog display and unauthenticated guards.
+**Verification:** Unit tests and dialog inspection confirming unauthenticated guards across card, detail, and account destinations. Full test suite `.\gradlew testDebugUnitTest` passing 100% with 0 errors.
 
 ### Step 4 — QUAL-006 — End-to-End Navigation, Caching & Auth Gate Test Suite
 
