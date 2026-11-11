@@ -20,12 +20,31 @@ function MenuIcon() {
   );
 }
 
+function SearchIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="11" cy="11" r="8" />
+      <path d="m21 21-4.35-4.35" />
+    </svg>
+  );
+}
+
 interface TopBarProps {
   onOpenDrawer?: () => void;
   drawerOpen?: boolean;
+  onOpenCommandPalette?: () => void;
 }
 
-export function TopBar({ onOpenDrawer, drawerOpen = false }: TopBarProps) {
+export function TopBar({ onOpenDrawer, drawerOpen = false, onOpenCommandPalette }: TopBarProps) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -69,18 +88,36 @@ export function TopBar({ onOpenDrawer, drawerOpen = false }: TopBarProps) {
 
   return (
     <header className="sticky top-0 z-20 flex h-20 items-center justify-between px-6 lg:px-10 backdrop-blur-md bg-[var(--bg-background)]/85 transition-colors">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 flex-1 max-w-xs sm:max-w-sm md:max-w-md">
         {/* Mobile Hamburger Drawer Trigger */}
         {onOpenDrawer && (
           <button
             type="button"
-            className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--border-outline)] bg-[var(--bg-surface)] text-[var(--text-on-background)] hover:bg-[var(--bg-surface-variant)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] md:hidden"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[var(--border-outline)] bg-[var(--bg-surface)] text-[var(--text-on-background)] hover:bg-[var(--bg-surface-variant)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] md:hidden"
             aria-expanded={drawerOpen}
             aria-controls="admin-mobile-nav"
             onClick={onOpenDrawer}
           >
             <span className="sr-only">Open navigation</span>
             <MenuIcon />
+          </button>
+        )}
+
+        {/* Global Spotlight / Command Palette Trigger */}
+        {onOpenCommandPalette && (
+          <button
+            type="button"
+            onClick={onOpenCommandPalette}
+            className="flex h-11 w-full items-center justify-between rounded-2xl border border-[var(--border-outline)] bg-[var(--bg-surface)] px-3.5 text-xs text-[var(--text-secondary)] shadow-xs transition-colors hover:border-[var(--brand-primary)]/50 hover:bg-[var(--bg-surface-variant)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)]"
+            aria-label="Search or jump to... (Press Ctrl+K)"
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <SearchIcon />
+              <span className="truncate">Search or jump to...</span>
+            </div>
+            <kbd className="hidden sm:inline-flex shrink-0 items-center gap-0.5 rounded-lg border border-[var(--border-outline-variant)] bg-[var(--bg-surface-variant)] px-2 py-0.5 font-mono text-[10px] font-bold text-[var(--text-secondary)]">
+              Ctrl K
+            </kbd>
           </button>
         )}
       </div>

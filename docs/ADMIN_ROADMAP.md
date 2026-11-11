@@ -448,15 +448,17 @@ upload archive is `deploy/eshopverse-admin-dist.zip`; live upload is the owner's
 
 ### Step 3 — SEARCH-903 — Global Spotlight and Command Palette Search
 
-**Status:** `[ ]`
+**Status:** `[x]`
 
 **Depends on:** UI-805
 
 **Scope:** activate the top bar search in `TopBar.tsx` into a functional Global Command Palette (`Ctrl+K` / `Cmd+K`) that searches across products, orders, categories, and administrative navigation.
 
 **Acceptance criteria:**
-- [ ] **a.** Connect `TopBar.tsx` search input to open an interactive Spotlight/Command Palette modal with keyboard shortcut support (`Ctrl+K` / `/`).
-- [ ] **b.** Provide instant debounced search querying matching products, orders by reference, and admin quick links.
-- [ ] **c.** Support full keyboard navigation (arrow keys to highlight, Enter to navigate, Escape to close).
-- [ ] **d.** Graceful empty states and mobile-friendly search dialog overlay.
+- [x] **a.** Connect `TopBar.tsx` search input to open an interactive Spotlight/Command Palette modal with keyboard shortcut support (`Ctrl+K` / `/`).
+- [x] **b.** Provide instant debounced search querying matching products, orders by reference, and admin quick links.
+- [x] **c.** Support full keyboard navigation (arrow keys to highlight, Enter to navigate, Escape to close).
+- [x] **d.** Graceful empty states and mobile-friendly search dialog overlay.
+
+**Verification:** implemented `CommandPalette.tsx` accessible modal dialog with backdrop blur, keyboard shortcuts (`Ctrl+K` / `Cmd+K` / `Esc` / arrows / enter), debounced product & order search queries via admin APIs, and instant navigation. Added Command Palette trigger to `TopBar.tsx` and integrated in `AppShell.tsx`. Added 5 dedicated unit tests in `CommandPalette.test.tsx`. 100% test suite passing (21 test files, 136 tests), clean type checks, and production bundle built.
 
