@@ -116,7 +116,7 @@ Deeper reading: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) and [`docs/decisi
 |-------|--------------|
 | **Android** | Java 11, XML, Material 3, MVVM, Repository pattern, ViewBinding, AndroidX Navigation, Retrofit 3, OkHttp 5, Glide 4.16 · minSdk 25, targetSdk 36, compileSdk 36.1 |
 | **Admin** | React 19.3, TypeScript 6.0 (strict), Vite 8.3, Tailwind CSS 4.3, React Router 7.18, Vitest 5 |
-| **Backend** | PHP 8.3+, Laravel 13.17, Laravel Sanctum 4.3, PHPUnit 12.5, Laravel Pint |
+| **Backend** | PHP 8.3+, Laravel 13, Laravel Sanctum 4.3, PHPUnit 12.5, Laravel Pint |
 | **Database** | MySQL 8.4 locally and in CI (`utf8mb4`); the public demo runs on PostgreSQL 17 |
 | **API contract** | OpenAPI 3.1, linted with Redocly CLI |
 | **Quality / CI** | GitHub Actions: Android build, Android Lint, unit tests, backend PHPUnit against MySQL 8.4, Pint, and OpenAPI lint |
