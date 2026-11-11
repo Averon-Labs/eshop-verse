@@ -820,20 +820,20 @@ All three steps in this phase may run concurrently: they own disjoint packages, 
 
 ### Step 2 — UI-004 — Instant Tab Navigation & Anti-Skeleton Guard in `HomeFragment`
 
-**Status:** `[ ]`
+**Status:** `[x]`
 
 **Depends on:** CACHE-001
 
 **Scope:** Refactor `HomeFragment.onViewCreated` to guard against the skeleton anti-pattern on tab return. If `catalogViewModel.hasData()` or cached items exist, immediately bind the existing products into carousel and grid adapters without attaching `SkeletonAdapter` or clearing active views. Attach `SkeletonAdapter` only during initial cold application launch.
 
 **Acceptance criteria:**
-- [ ] **a.** `HomeFragment.onViewCreated` checks `catalogViewModel.hasData()` before setting adapters.
-- [ ] **b.** If data is already loaded, `rvTrendingCarousel`, `rvBestsellersGrid`, `rvSpecialOffersCarousel`, and `rvEssentialsGrid` are immediately populated with real product data (0ms perceived latency).
-- [ ] **c.** `SkeletonAdapter` is only attached when both repository and ViewModel hold zero items (cold start).
-- [ ] **d.** Navigating away from `HomeFragment` to `AccountFragment` (or `CartFragment`/`ExploreFragment`) and pressing Back or switching tabs does not display skeletons or trigger redundant network requests.
-- [ ] **e.** Pull-to-refresh on `swipeRefreshHome` continues to invoke `catalogViewModel.reload()` and updates the UI smoothly with `DiffUtil`.
+- [x] **a.** `HomeFragment.onViewCreated` checks `catalogViewModel.hasData()` before setting adapters.
+- [x] **b.** If data is already loaded, `rvTrendingCarousel`, `rvBestsellersGrid`, `rvSpecialOffersCarousel`, and `rvEssentialsGrid` are immediately populated with real product data (0ms perceived latency).
+- [x] **c.** `SkeletonAdapter` is only attached when both repository and ViewModel hold zero items (cold start).
+- [x] **d.** Navigating away from `HomeFragment` to `AccountFragment` (or `CartFragment`/`ExploreFragment`) and pressing Back or switching tabs does not display skeletons or trigger redundant network requests.
+- [x] **e.** Pull-to-refresh on `swipeRefreshHome` continues to invoke `catalogViewModel.reload()` and updates the UI smoothly with `DiffUtil`.
 
-**Verification:** UI inspection and unit tests confirming adapter retainment on fragment view re-creation.
+**Verification:** UI inspection and unit tests confirming adapter retainment on fragment view re-creation. Full test suite `.\gradlew testDebugUnitTest` passing 100% with 0 errors.
 
 ### Step 3 — FAV-002 — Unified Authentication Gate & Guest Dialog for Favorites
 

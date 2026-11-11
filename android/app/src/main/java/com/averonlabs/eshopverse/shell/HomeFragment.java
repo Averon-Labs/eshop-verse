@@ -70,8 +70,20 @@ public class HomeFragment extends Fragment {
         updateThemeIcon();
         observeViewModel();
 
-        catalogViewModel.loadFirstPage();
-        categoryViewModel.loadCategories();
+        if (catalogViewModel.hasData()) {
+            renderProducts(catalogViewModel.getLoadedProducts());
+        } else {
+            catalogViewModel.loadFirstPage();
+        }
+
+        if (categoryViewModel.hasData()) {
+            UiState<List<Category>> catState = categoryViewModel.getCategoriesState().getValue();
+            if (catState != null && catState.getData() != null) {
+                renderCategoryMoodCircles(catState.getData());
+            }
+        } else {
+            categoryViewModel.loadCategories();
+        }
     }
 
     private void updateThemeIcon() {
@@ -84,27 +96,33 @@ public class HomeFragment extends Fragment {
     private void setupSections() {
         // Section 1: Trending This Week (Horizontal Carousel)
         trendingCarouselAdapter = new ProductGridAdapter(this::onProductClicked, true);
-        binding.rvTrendingCarousel.setAdapter(new SkeletonAdapter(R.layout.item_skeleton_product_card, 4));
 
         // Section 2: Popular & Best Sellers (2-Column Grid)
         bestSellersAdapter = new ProductGridAdapter(this::onProductClicked, false);
-        binding.rvBestsellersGrid.setAdapter(new SkeletonAdapter(R.layout.item_skeleton_product_card, 4));
 
         // Section 3: Special Offers (Horizontal Carousel)
         specialOffersAdapter = new ProductGridAdapter(this::onProductClicked, true);
-        binding.rvSpecialOffersCarousel.setAdapter(new SkeletonAdapter(R.layout.item_skeleton_product_card, 4));
 
         // Section 4: Curated Essentials (2-Column Grid)
         essentialsAdapter = new ProductGridAdapter(this::onProductClicked, false);
-        binding.rvEssentialsGrid.setAdapter(new SkeletonAdapter(R.layout.item_skeleton_product_card, 4));
+
+        // Attach skeleton adapters only when there is no existing data (cold launch)
+        if (!catalogViewModel.hasData()) {
+            binding.rvTrendingCarousel.setAdapter(new SkeletonAdapter(R.layout.item_skeleton_product_card, 4));
+            binding.rvBestsellersGrid.setAdapter(new SkeletonAdapter(R.layout.item_skeleton_product_card, 4));
+            binding.rvSpecialOffersCarousel.setAdapter(new SkeletonAdapter(R.layout.item_skeleton_product_card, 4));
+            binding.rvEssentialsGrid.setAdapter(new SkeletonAdapter(R.layout.item_skeleton_product_card, 4));
+        }
     }
 
     private void setupCategories() {
         LinearLayoutManager layoutManager = new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false);
         binding.rvHomeCategories.setLayoutManager(layoutManager);
 
-        // Immediately attach 8 skeleton mood circles so category row is never blank on initial render
-        binding.rvHomeCategories.setAdapter(new SkeletonAdapter(R.layout.item_skeleton_category_circle, 8));
+        // Immediately attach 8 skeleton mood circles only if category data is not yet loaded
+        if (!categoryViewModel.hasData()) {
+            binding.rvHomeCategories.setAdapter(new SkeletonAdapter(R.layout.item_skeleton_category_circle, 8));
+        }
 
         categoryViewModel.getCategoriesState().observe(getViewLifecycleOwner(), state -> {
             if (state != null && state.isContent() && state.getData() != null) {
@@ -175,7 +193,7 @@ public class HomeFragment extends Fragment {
         binding.swipeRefreshHome.setColorSchemeResources(R.color.color_botanical_green);
         binding.swipeRefreshHome.setOnRefreshListener(() -> {
             catalogViewModel.reload();
-            categoryViewModel.loadCategories();
+            categoryViewModel.reload();
         });
     }
 
@@ -185,54 +203,58 @@ public class HomeFragment extends Fragment {
                 binding.swipeRefreshHome.setRefreshing(false);
             }
             if (state != null && state.getStatus() == UiState.Status.CONTENT && state.getData() != null) {
-                List<ProductSummary> all = state.getData();
-                if (!all.isEmpty()) {
-                    int total = all.size();
-                    if (binding.rvTrendingCarousel.getAdapter() != trendingCarouselAdapter) {
-                        binding.rvTrendingCarousel.setAdapter(trendingCarouselAdapter);
-                    }
-                    trendingCarouselAdapter.submitList(all.subList(0, Math.min(8, total)));
-
-                    if (binding.rvBestsellersGrid.getAdapter() != bestSellersAdapter) {
-                        binding.rvBestsellersGrid.setAdapter(bestSellersAdapter);
-                    }
-                    if (total > 8) {
-                        bestSellersAdapter.submitList(all.subList(8, Math.min(12, total)));
-                    } else {
-                        bestSellersAdapter.submitList(all.subList(0, Math.min(4, total)));
-                    }
-
-                    if (binding.rvSpecialOffersCarousel.getAdapter() != specialOffersAdapter) {
-                        binding.rvSpecialOffersCarousel.setAdapter(specialOffersAdapter);
-                    }
-                    if (total > 12) {
-                        specialOffersAdapter.submitList(all.subList(12, Math.min(20, total)));
-                    } else {
-                        specialOffersAdapter.submitList(all.subList(Math.max(0, total - 4), total));
-                    }
-
-                    if (binding.rvEssentialsGrid.getAdapter() != essentialsAdapter) {
-                        binding.rvEssentialsGrid.setAdapter(essentialsAdapter);
-                    }
-                    if (total > 20) {
-                        essentialsAdapter.submitList(all.subList(20, Math.min(24, total)));
-                    } else {
-                        essentialsAdapter.submitList(all.subList(0, Math.min(4, total)));
-                    }
-
-                    // Proactive background prefetching for top section product cards
-                    List<String> preloadUrls = new ArrayList<>();
-                    int preloadCount = Math.min(12, total);
-                    for (int i = 0; i < preloadCount; i++) {
-                        ProductSummary p = all.get(i);
-                        if (p != null && p.getImageUrl() != null && !p.getImageUrl().trim().isEmpty()) {
-                            preloadUrls.add(p.getImageUrl());
-                        }
-                    }
-                    ImageLoaderHelper.preloadBatch(getContext(), preloadUrls);
-                }
+                renderProducts(state.getData());
             }
         });
+    }
+
+    private void renderProducts(@NonNull List<ProductSummary> all) {
+        if (binding == null || all.isEmpty()) {
+            return;
+        }
+        int total = all.size();
+        if (binding.rvTrendingCarousel.getAdapter() != trendingCarouselAdapter) {
+            binding.rvTrendingCarousel.setAdapter(trendingCarouselAdapter);
+        }
+        trendingCarouselAdapter.submitList(all.subList(0, Math.min(8, total)));
+
+        if (binding.rvBestsellersGrid.getAdapter() != bestSellersAdapter) {
+            binding.rvBestsellersGrid.setAdapter(bestSellersAdapter);
+        }
+        if (total > 8) {
+            bestSellersAdapter.submitList(all.subList(8, Math.min(12, total)));
+        } else {
+            bestSellersAdapter.submitList(all.subList(0, Math.min(4, total)));
+        }
+
+        if (binding.rvSpecialOffersCarousel.getAdapter() != specialOffersAdapter) {
+            binding.rvSpecialOffersCarousel.setAdapter(specialOffersAdapter);
+        }
+        if (total > 12) {
+            specialOffersAdapter.submitList(all.subList(12, Math.min(20, total)));
+        } else {
+            specialOffersAdapter.submitList(all.subList(Math.max(0, total - 4), total));
+        }
+
+        if (binding.rvEssentialsGrid.getAdapter() != essentialsAdapter) {
+            binding.rvEssentialsGrid.setAdapter(essentialsAdapter);
+        }
+        if (total > 20) {
+            essentialsAdapter.submitList(all.subList(20, Math.min(24, total)));
+        } else {
+            essentialsAdapter.submitList(all.subList(0, Math.min(4, total)));
+        }
+
+        // Proactive background prefetching for top section product cards
+        List<String> preloadUrls = new ArrayList<>();
+        int preloadCount = Math.min(12, total);
+        for (int i = 0; i < preloadCount; i++) {
+            ProductSummary p = all.get(i);
+            if (p != null && p.getImageUrl() != null && !p.getImageUrl().trim().isEmpty()) {
+                preloadUrls.add(p.getImageUrl());
+            }
+        }
+        ImageLoaderHelper.preloadBatch(getContext(), preloadUrls);
     }
 
     private void onProductClicked(@NonNull ProductSummary product) {

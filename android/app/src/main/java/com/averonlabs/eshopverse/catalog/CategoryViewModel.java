@@ -40,12 +40,28 @@ public class CategoryViewModel extends ViewModel {
         return selectedCategoryId;
     }
 
+    public boolean hasData() {
+        UiState<List<Category>> current = categoriesState.getValue();
+        return current != null && current.isContent() && current.getData() != null && !current.getData().isEmpty();
+    }
+
     public void selectCategory(@Nullable Long categoryId) {
         selectedCategoryId.setValue(categoryId);
     }
 
     public void loadCategories() {
+        loadCategories(false);
+    }
+
+    public void reload() {
+        loadCategories(true);
+    }
+
+    public void loadCategories(boolean forceRefresh) {
         if (inFlight) {
+            return;
+        }
+        if (!forceRefresh && hasData()) {
             return;
         }
         inFlight = true;
