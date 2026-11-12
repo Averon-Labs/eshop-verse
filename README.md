@@ -43,12 +43,14 @@ a React admin dashboard, and a Laravel REST API behind one OpenAPI contract.</p>
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/assets/readme/android-storefront.png" width="100%" alt="Android storefront showing the EShop Verse catalog, search, and category filters" /></td>
-    <td width="50%"><img src="docs/assets/readme/android-product-detail.png" width="100%" alt="Android product detail page for a Luxury Designer Clutch with price, stock, quantity, and add-to-cart action" /></td>
+    <td width="33%"><img src="docs/assets/readme/android-storefront.png" width="100%" alt="Android storefront in the light theme showing the EShop Verse catalog, search, and category filters" /></td>
+    <td width="33%"><img src="docs/assets/readme/android-product-detail.png" width="100%" alt="Android product detail page for a Luxury Designer Clutch with price, stock, quantity, and add-to-cart action" /></td>
+    <td width="33%"><img src="docs/assets/readme/android-storefront-dark.png" width="100%" alt="The same Android storefront in the dark theme with the catalog, category filters, and product grid" /></td>
   </tr>
   <tr>
-    <td align="center"><sub><strong>Storefront</strong> — catalog, search, categories, and sorting</sub></td>
+    <td align="center"><sub><strong>Storefront · light</strong> — catalog, search, and categories</sub></td>
     <td align="center"><sub><strong>Product detail</strong> — imagery, price, stock, and quantity</sub></td>
+    <td align="center"><sub><strong>Storefront · dark</strong> — the same flow in the dark theme</sub></td>
   </tr>
 </table>
 
@@ -70,7 +72,7 @@ a React admin dashboard, and a Laravel REST API behind one OpenAPI contract.</p>
 
 ## What it includes
 
-- **Android customer app** — browse, search, and filter the catalog; product details; server-priced cart; address and order review; an explicitly labelled simulated payment; order history with status timelines; account, registration, Google Sign-In, and password reset.
+- **Android customer app** — browse, search, and filter the catalog; product details; server-priced cart; address and order review; an explicitly labelled simulated payment; order history with status timelines; account, registration, Google Sign-In, password reset, and a persisted light/dark theme.
 - **Admin dashboard** — product and category management, inventory adjustment, order search and status transitions, sales reporting with 7/30/90-day ranges, persisted light/dark theme, and responsive table-to-card layouts.
 - **REST API** — Sanctum customer authentication, Google ID-token verification, public catalog reads, cart, checkout quote, idempotent order creation, admin session/CSRF flows, media, and sales reports — all defined in the OpenAPI 3.1 contract.
 
