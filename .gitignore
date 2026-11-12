@@ -50,6 +50,8 @@ android/.idea/
 android/.gradle/
 android/build/
 android/app/build/
+android/app/release/
+*.apk
 android/local.properties
 android/gradle/gradle-daemon-jvm.properties
 android/captures/
