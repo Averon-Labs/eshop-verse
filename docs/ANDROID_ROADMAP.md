@@ -868,6 +868,69 @@ All three steps in this phase may run concurrently: they own disjoint packages, 
 
 **Verification:** Implemented `FavoritesAuthGateTest.java` verifying unauthenticated guest favorite toggle blocks modification to `FavoritesRepository` while prompting sign-in dialog; verified `CatalogListViewModelTest.java` warm-cache and reload forceRefresh bypass suites; executed `.\gradlew.bat testDebugUnitTest` with 100% passing across all 26 tasks and zero regressions. Phase 13 is 100% complete!
 
+## Phase 14 — Universal Taxonomy Caching, Explore 0ms Anti-Flicker & Image Resolution Optimization
+
+**Objective:** Extend offline-first and Stale-While-Revalidate (SWR) caching to categories, tags, and all screens (Explore, Search, Categories), eliminate skeleton flickering in `ExploreFragment`, and optimize Glide downsampling and image resolution to resolve multi-second decoding latency, per `.agents/skills/recyclerview-loading/SKILL.md`.
+
+### Step 1 — CACHE-002 — Taxonomy & Category Persistent / In-Memory SWR Caching
+
+**Status:** `[ ]`
+
+**Depends on:** CACHE-001
+
+**Scope:** Update `CatalogRepository` to maintain an in-memory cache and SharedPreferences local persistence for categories (`List<Category>`) with TTL (30 min). Implement `hasValidCategoryCache()`, `getCachedCategories()`, and `listCategories(boolean forceRefresh, CatalogCallback<List<Category>> callback)`. Update `CategoryViewModel` to return cached categories immediately on warm cache and expose `getCachedCategories()` / `hasData()`.
+
+**Acceptance criteria:**
+- [ ] **a.** `CatalogRepository` caches categories in memory and persists serialized JSON in `SharedPreferences` for instant cold-start restore.
+- [ ] **b.** `CatalogRepository.listCategories()` returns cached categories synchronously within 0ms if `forceRefresh` is false and cache is valid.
+- [ ] **c.** `CategoryViewModel` checks cache before emitting loading state and avoids redundant network fetches when warm.
+- [ ] **d.** Pull-to-refresh on `ExploreFragment` or `HomeFragment` triggers `categoryViewModel.reload()` with `forceRefresh = true`.
+- [ ] **e.** Unit tests in `CatalogRepositoryTest` and `CategoryViewModelTest` verify category cache hit, TTL expiration, and refresh bypass.
+
+### Step 2 — UI-005 — Explore Screen Instant 0ms Navigation & Anti-Flicker
+
+**Status:** `[ ]`
+
+**Depends on:** CACHE-002, UI-004
+
+**Scope:** Refactor `ExploreFragment.java` to check `categoryViewModel.hasData()` / repository category cache and `catalogViewModel.hasData()` before mounting adapters. Render category chips and product grid immediately without mounting `SkeletonAdapter` when cached items exist. Eliminate skeleton flicker when switching between Home, Explore, and other tabs.
+
+**Acceptance criteria:**
+- [ ] **a.** `ExploreFragment.onViewCreated` binds cached category chips immediately (0ms) without mounting skeleton chip adapters if cache exists.
+- [ ] **b.** `ExploreFragment.onViewCreated` binds cached product items immediately without mounting skeleton product cards if catalog cache exists.
+- [ ] **c.** Skeleton adapters are attached only on cold start when both repository and ViewModel hold zero items.
+- [ ] **d.** Switching tabs back and forth between Home and Explore incurs zero perceived latency (0ms) and zero UI flicker.
+- [ ] **e.** Filter bottom sheet and search input continue to function cleanly with cache bypass on query change.
+
+### Step 3 — PERF-001 — Image Loading Downsampling & Thumbnail Resolution Guard
+
+**Status:** `[ ]`
+
+**Depends on:** UI-005
+
+**Scope:** Update `ImageLoaderHelper.java` to enforce Glide downsampling (`.override(300, 300)` and `DownsampleStrategy.AT_MOST`) on grid cards. Add disk cache strategy (`DiskCacheStrategy.AUTOMATIC`) and optimize decoding to eliminate multi-second image render delays.
+
+**Acceptance criteria:**
+- [ ] **a.** `ImageLoaderHelper.loadImage` applies downsampling and target viewport dimensions (`override(300, 300)`) on card thumbnails.
+- [ ] **b.** Bitmap memory footprint is capped and bitmap decoding latency is reduced from multi-second decodes to <100ms.
+- [ ] **c.** Glide disk cache strategy is explicitly set to cache both original and downsampled versions.
+- [ ] **d.** High-performance placeholder shimmer and smooth cross-fade are preserved across cards and detail screens.
+
+### Step 4 — QUAL-007 — Universal Caching, Explore Lifecycle & Image Performance Test Suite
+
+**Status:** `[ ]`
+
+**Depends on:** CACHE-002, UI-005, PERF-001
+
+**Scope:** Execute full test suite covering category caching, Explore fragment lifecycle behavior, and image helper downsampling.
+
+**Acceptance criteria:**
+- [ ] **a.** Unit test verifying category caching and SWR bypass in `CatalogRepositoryTest`.
+- [ ] **b.** Unit test verifying `CategoryViewModel` avoids network call on warm cache.
+- [ ] **c.** Full Android test suite (`./gradlew testDebugUnitTest`) passes with 100% success and zero regressions.
+
+**Verification:** Full Gradle test suite execution passing 100% cleanly.
+
 ## External dependencies owned by other components
 
 These are the only cross-component items the Android tasks depend on. They are listed here **once** for

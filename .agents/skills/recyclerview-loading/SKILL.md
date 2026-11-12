@@ -63,6 +63,30 @@ This skill defines the non-negotiable architectural standard for managing list d
   3. Offer a clear primary action "Sign In" (`R.string.favorites_action_sign_in`) that navigates directly to `accountFragment`, and an optional dismiss action.
   4. In `AccountFragment`, unauthenticated guests should see a visual indicator (such as a sign-in badge or prompt) on protected cards rather than assuming offline-only persistence.
 
+### 1.9 Taxonomy & Metadata Offline-First & Stale-While-Revalidate (SWR)
+- **Metadata Permanence Principle:** High-permanence taxonomy and metadata (Categories, Tags, Filter Lists, Status Dictionaries) rarely mutate (<1% turnover). They must **never** be treated as ephemeral data re-fetched over the network on every screen load.
+- **Two-Tier Storage (Memory + Disk):**
+  1. **Tier 1 (RAM):** Hot in-memory collection (`List<Category>`) within singleton `CatalogRepository` for instant 0ms access across all fragments.
+  2. **Tier 2 (Disk Persistence):** Serialized in local app storage (e.g. `SharedPreferences` or local database) upon arrival. On app launch (cold start), load from disk synchronously or near-instantaneously (<5ms) before initiating any network request.
+- **Silent Background Revalidation (SWR):**
+  1. Render disk/RAM cached categories/tags **immediately** on view initialization (zero skeletons).
+  2. Dispatch a background revalidation request silently (e.g. using HTTP conditional headers `If-None-Match` / `ETag` or version hash).
+  3. If server returns `304 Not Modified`, consume zero extra payload bytes and leave the UI untouched.
+  4. If new or altered taxonomy arrives (`200 OK`), update local storage and notify the UI adapter seamlessly using `DiffUtil` without blanking or flickering.
+
+### 1.10 Universal App-Wide Scope (Home, Explore, Search, Category Screens)
+- Caching and anti-flicker policies apply **universally** across the entire application, not merely to `HomeFragment`:
+  - `ExploreFragment` (All Products & Category Chips)
+  - `CategoryProductsFragment` (Filtered by Category)
+  - `SearchResultsFragment` (Query Results)
+  - `ProductDetailFragment` (Product Metadata)
+- Repositories must be application-wide singletons. Transient fragment-scoped ViewModels must read from the shared Repository cache so that navigating across navigation graph destinations does not incur cache misses or duplicate network trips.
+
+### 1.11 Image Resolution Sizing, Thumbnail Downsampling & CDN Efficiency
+- **Appropriate Thumbnail Dimensions:** Never download or decode full-size high-resolution images (e.g. 800x800 or 1200x1200px, 200KB–2MB) for small grid cards or thumbnail slots (typically 150dp–200dp on mobile, ~300x300px target).
+- **Client Downsampling & Override:** Enforce Glide downsampling (`.override(300, 300)` or `DownsampleStrategy.AT_MOST`) to conserve device RAM and eliminate multi-second bitmap decoding.
+- **Direct CDN Delivery:** In production backends, image URLs must point directly to an optimized CDN or static bucket (serving WebP/AVIF with immutable cache headers). Avoid external demo mock APIs (such as uncompressed `picsum.photos` with 302 redirect chains) that inflate latency by multiple seconds.
+
 ---
 
 ## 2. Android Implementation Standard (Java & XML)
@@ -197,6 +221,88 @@ binding.btnCardFavorite.setOnClickListener(v -> {
                 .show();
     }
 });
+```
+
+### 2.5 Category & Taxonomy SWR Caching Pattern
+
+In `CatalogRepository`:
+
+```java
+public class CatalogRepository {
+    private static final long CATEGORY_CACHE_TTL = 30 * 60 * 1000L; // 30 minutes
+    private List<Category> cachedCategories = new ArrayList<>();
+    private long lastCategoriesFetchedAt = 0;
+
+    public boolean hasValidCategoryCache() {
+        return !cachedCategories.isEmpty() && (System.currentTimeMillis() - lastCategoriesFetchedAt < CATEGORY_CACHE_TTL);
+    }
+
+    public List<Category> getCachedCategories() {
+        return Collections.unmodifiableList(new ArrayList<>(cachedCategories));
+    }
+
+    public void listCategories(boolean forceRefresh, @NonNull CatalogCallback<List<Category>> callback) {
+        // Instant synchronous return on warm cache
+        if (!forceRefresh && hasValidCategoryCache()) {
+            callback.onSuccess(getCachedCategories());
+            return;
+        }
+
+        apiRoutes.listCategories().enqueue(new Callback<ApiResponse<List<Category>>>() {
+            @Override
+            public void onResponse(...) {
+                if (response.isSuccessful() && response.body() != null) {
+                    cachedCategories.clear();
+                    cachedCategories.addAll(response.body().getData());
+                    lastCategoriesFetchedAt = System.currentTimeMillis();
+                    callback.onSuccess(getCachedCategories());
+                }
+            }
+        });
+    }
+}
+```
+
+### 2.6 Explore Screen Anti-Skeleton & 0ms Navigation Pattern
+
+In `ExploreFragment.java`:
+
+```java
+// Check warm category and product cache BEFORE attaching any adapter
+if (categoryViewModel.hasData()) {
+    renderCategoryChips(categoryViewModel.getCategories());
+} else if (catalogRepository.hasValidCategoryCache()) {
+    renderCategoryChips(catalogRepository.getCachedCategories());
+} else {
+    binding.rvCategories.setAdapter(new SkeletonAdapter(R.layout.item_skeleton_category_chip, 5));
+    categoryViewModel.loadCategories();
+}
+
+if (catalogViewModel.hasData()) {
+    binding.rvProducts.setAdapter(gridAdapter);
+    gridAdapter.submitList(catalogViewModel.getLoadedProducts());
+} else if (catalogRepository.hasValidCache()) {
+    binding.rvProducts.setAdapter(gridAdapter);
+    gridAdapter.submitList(catalogRepository.getCachedProducts());
+} else {
+    binding.rvProducts.setAdapter(new SkeletonAdapter(R.layout.item_skeleton_product_card, 6));
+    catalogViewModel.loadFirstPage();
+}
+```
+
+### 2.7 Image Downsampling & Decoding Optimization Pattern
+
+In `ImageLoaderHelper.java`:
+
+```java
+// Force thumbnail downsampling on image grids to avoid decoding multi-megabyte 800x800 bitmaps
+Glide.with(context)
+    .load(imageUrl)
+    .override(300, 300) // matches mobile viewport density without blowing up heap
+    .downsample(DownsampleStrategy.AT_MOST)
+    .placeholder(placeholderRes)
+    .error(errorRes)
+    .into(imageView);
 ```
 
 ---
