@@ -139,7 +139,10 @@ All error responses follow a consistent format:
 
 - Android authenticates with revocable Sanctum bearer tokens in the `Authorization` header.
 - The first-party React admin uses Sanctum's cookie/session flow and CSRF protections; it must share a compatible top-level domain with the API.
-- The demo requires an account for checkout. There is no guest checkout or social login in the first release.
+- The demo requires an account for checkout. There is no guest checkout.
+- Email addresses are **case-insensitive**: the backend trims and lowercases them on registration, treats addresses that differ only by case as the same account, and matches sign-in and password-reset requests regardless of input casing.
+- Google Sign-In (`POST /auth/google`, owner-approved AUTH-004, 2026-10-19) verifies a Google ID token server-side (signature, issuer, audience, expiry, verified email) and issues the same revocable Sanctum bearer session as password sign-in. New Google accounts are always `customer` role; no admin account is ever created or escalated through this endpoint. The audience may match the primary `GOOGLE_CLIENT_ID` or any additional first-party client ID listed in `GOOGLE_CLIENT_IDS` (AUTH-B03, 2026-10-25).
+- A deactivated account is distinguished from bad credentials: after the caller proves ownership (correct password, or a Google-verified identity), password and Google sign-in answer `403 ACCOUNT_DISABLED` instead of `401 INVALID_CREDENTIALS` (AUTH-B02, 2026-10-25). Wrong credentials on a deactivated account keep the generic `401` response so account existence is never disclosed.
 - The backend enforces customer ownership and admin roles on every protected resource. Hiding a control in the UI is not authorization.
 
 ---
@@ -166,6 +169,7 @@ All error responses follow a consistent format:
 | 401 | Unauthorized — authentication required |
 | 403 | Forbidden — insufficient permissions |
 | 404 | Not Found — resource does not exist |
+| 405 | Method Not Allowed — the path exists but not for this HTTP method |
 | 409 | Conflict — resource conflict (e.g., duplicate) |
 | 422 | Unprocessable Entity — syntactically valid request with invalid field values |
 | 429 | Too Many Requests — rate limited |
@@ -180,10 +184,12 @@ All error responses follow a consistent format:
 The first-release contract must cover:
 
 - Registration, login, logout, and the authenticated customer profile.
+- Owner-approved Google Sign-In for customer accounts (`POST /auth/google`, AUTH-004).
 - Public product/category listing, search, sorting, and product details.
 - Authenticated cart read/update operations.
 - Order creation, customer order history/details, and a simulated payment outcome.
 - Admin-only product/category/inventory management and order status updates.
+- Admin-only sales reporting for an inclusive UTC date range (`GET /admin/reports/sales`, RPT-001).
 
 Order creation must be safe against accidental duplicate submission (for example, an idempotency key). Prices and totals use fixed-precision decimal values and include the `USD` currency code; clients must not use binary floating-point arithmetic for money.
 
@@ -200,7 +206,12 @@ English is the only supported API-facing locale in the first release. Error mess
 
 ---
 
-## Open Decisions
+## Open Decisions and Resolution Status
 
-- [ ] Exact endpoint schemas and examples in `docs/openapi.yaml` (must be completed before endpoint implementation)
-- [ ] Rate limits for each endpoint class
+- [x] **Reviewed and accepted by the API owner (FND-004):** [`openapi.yaml`](openapi.yaml) is the approved OpenAPI 3.1 machine-readable contract, covering customer registration/login/logout/profile/password reset, public category and product read/search/sort/pagination, the authenticated cart, checkout quote and order creation with idempotency, the simulated payment outcome, customer order history and detail, admin session authentication, admin product/category/inventory management, admin order status transitions, the shared error envelope and error-code list, and the status-code contract. Endpoint and client integration must follow it; any contract change is made in the contract first (canonical task: Backend FND-004). Full backend implementation completed across Phase 1–3 (`c42dbd0`). Later owner-approved additions: Google Sign-In (`POST /auth/google`, AUTH-004, 2026-10-19) and the read-only admin sales report (`GET /admin/reports/sales`, RPT-001, 2026-10-29).
+- [x] **Rate limits (QUAL-003):** Implemented in backend `AppServiceProvider` and `bootstrap/app.php` using `x-rate-limit-classes` in [`openapi.yaml`](openapi.yaml) (global 300/min/ip plus per-operation throttles).
+- [x] **Google Sign-In (AUTH-004, 2026-10-19):** Owner-approved addition to the first-release contract. `POST /auth/google` accepts a Google ID token, verifies it server-side without an SDK dependency, and answers the shared `AuthSession` envelope (`201` when the account is created, `200` when it already exists). The endpoint carries its own `google-login` rate limit (10/min/ip) and the new `GOOGLE_ACCOUNT_CONFLICT` (409) error code. Contract updated before implementation; canonical task: Backend Roadmap — Phase 1 — Step 4.
+- [x] **Category lifecycle (OPEN-2):** Resolved as archived-only (`status: active | archived`). Backend `AdminCategoryController` enforces refusal to archive while active products remain assigned.
+- [x] **Flat sample shipping rate (OPEN-3):** Resolved as USD 5.00 flat rate per order (`CartPricing::SAMPLE_SHIPPING_CENTS = 500`).
+- [x] **Failed payment order state (OPEN-4):** Resolved as remaining in `pending_payment` on simulated failure, leaving stock intact and allowing client payment retry.
+- [ ] **Production API Host (OPEN-1):** Placeholder `api.example.test` remains for local/demo runs; real host to be specified prior to production deployment.

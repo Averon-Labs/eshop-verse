@@ -35,13 +35,13 @@ EShop Verse follows a client-server architecture with clearly separated componen
 | UI | XML layouts with Material 3 | DECIDED |
 | Architecture | MVVM (Model-View-ViewModel) | DECIDED |
 | Data Layer | Repository Pattern | DECIDED |
-| Local Storage | Room (where appropriate) | DECIDED |
+| Local Storage | Deferred for initial release; server is single source of truth (ADR-004). Secure tokens use KeystoreTokenStore (ADR-003). | DECIDED |
 | Networking | REST API client | DECIDED |
 | HTTP Client | Retrofit | DECIDED |
 | Image Loading | Glide | DECIDED |
 | Dependency Injection | Constructor injection/manual wiring for the first release | DECIDED |
 | Navigation | AndroidX Navigation | DECIDED |
-| Min SDK | 24 for the initial target; verify against the actual Android toolchain | DECIDED |
+| Min SDK | 25, matching the checked-in Android scaffold | DECIDED |
 
 ### Backend API
 
@@ -105,7 +105,44 @@ docs/       → Shared documentation
 | Logging | Server-side structured logs; never include credentials or payment data | DECIDED |
 | Monitoring | Out of scope for the portfolio demo; define before public production use | DEFERRED |
 | Caching | HTTP/client caching only where useful; no distributed cache in the first release | DECIDED |
-| File Storage | Seeded image URLs or local development storage; production storage is out of scope | DECIDED |
+| File Storage | Admin-uploaded product images stored on the API host and served through the public media endpoint; seeded/external URLs remain valid | DECIDED |
+
+---
+
+## UI & Data Loading Principles (Core Architectural Rules)
+
+Modeled after industry-leading consumer platforms (Netflix, Pinterest, Digikala, Instagram), all client presentation layers must strictly follow these core progressive loading principles:
+
+1. **Text-First Immediate Rendering & Independent Asynchronous Image Loading (Core Law):**
+   - **Zero UI-Blocking:** Textual and structural metadata (titles, prices, discounts, stock status, ratings, category badges) must bind and render synchronously on the UI thread immediately (<100ms) upon receiving payloads. UI presentation must NEVER block, wait, or defer rendering for image assets to download.
+   - **Decoupled Asynchronous Streaming:** Image URLs are transmitted in the lightweight JSON payload; binary images are never bundled or downloaded synchronously. Each image is dispatched as an independent background worker job (via `ImageLoaderHelper` / Glide). If any image fails or experiences latency, adjacent text and items remain fully interactive and visible.
+   - **Zero Cumulative Layout Shift (CLS = 0):** All image viewports must enforce fixed aspect ratios (1:1 square for catalog cards, 16:9 for banners, 4:5 for detail galleries) via `ConstraintLayout` dimension ratios or fixed pixel dimensions. `wrap_content` is strictly forbidden on network image containers. The layout must never jump, reflow, or jitter when an image completes loading.
+
+2. **Curated Shimmer / Skeleton Placeholders (Never Blank Boxes):**
+   - While image bytes are streaming and decoding in the background, viewports must immediately display a subtle, elegant shimmer or skeleton placeholder (`bg_placeholder_shimmer`) harmonized with the brand palette (warm ivory to soft sandstone in light mode; muted charcoal in dark mode).
+   - Static states use an editorial boutique brand watermark silhouette (`@drawable/ic_image_placeholder`), giving the user a visual sense of life and polish rather than a raw, empty container.
+
+3. **Smooth Asynchronous Cross-Fade Transitions (200–250ms):**
+   - When the byte stream is decoded into a hardware bitmap, it must seamlessly replace the placeholder using a hardware-accelerated cross-fade (`DrawableTransitionOptions.withCrossFade(250)`).
+   - Abrupt image popping, flickering, or white flashes during load are strictly prohibited.
+
+4. **Viewport-Scoped Lazy Loading & Request Cancellation:**
+   - Image loading is strictly on-demand: only viewports entering the visible window initiate downloads.
+   - When an item scrolls out of view or is recycled (`onViewRecycled`), pending network and decoding tasks for that `ImageView` must be cancelled immediately (`ImageLoaderHelper.clear(imageView)`) to preserve bandwidth and background thread capacity.
+
+5. **Multi-Tier Intelligent Caching (RAM + Disk):**
+   - **Tier 1 (RAM Memory Cache):** Fast LRU cache in system RAM (`skipMemoryCache(false)`) providing 0ms instantaneous display when scrolling back and forth or switching tabs.
+   - **Tier 2 (Disk Cache):** Persistent on-disk cache (`DiskCacheStrategy.ALL` / `AUTOMATIC`) ensuring previously viewed assets are available offline and across app restarts without redundant network calls.
+   - **Hardware Downsampling:** Images must decode strictly to the physical pixel bounds of the target ImageView to eliminate wasted memory and prevent OutOfMemory (OOM) exceptions.
+
+6. **Proactive Scroll Prefetching & Incremental Lazy Loading:**
+   - Catalog queries must be paginated in manageable 20-item batches.
+   - As the user scrolls near the end of the loaded batch (e.g. items 15–18), the next page slice must automatically trigger in the background, appending new items without disrupting user scroll position or momentum.
+   - Off-screen images (the next 4–6 visible items in the user's scroll direction) must be proactively prefetched into Glide's cache so that they are already in memory when entering the viewport.
+
+7. **Editorial Graceful Error Fallbacks (No Ugly Broken Icons):**
+   - Network errors, 404s, or decoding failures must never render a raw broken image icon, red alert marker, or blank hole.
+   - Failed images must display an elegant, muted luxury fallback vector (`@drawable/bg_placeholder_error`) in harmonious brand tints, maintaining visual dignity and clean aesthetic continuity.
 
 ---
 

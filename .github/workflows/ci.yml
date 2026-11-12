@@ -1,18 +1,7 @@
 # CI Workflow — EShop Verse
 #
-# This is a placeholder CI workflow. It will be expanded as build systems
-# are set up for each component.
-#
-# Current status:
-# - Android: Java/XML scaffold exists; product features are not implemented yet
-# - Backend: Project not initialized yet
-# - Admin: Project not initialized yet
-#
-# Planned checks (to be implemented when components are ready):
-# - Android: Gradle build, lint, unit tests
-# - Backend: Composer install, PHPUnit tests, PHP lint
-# - Admin: React/TypeScript type-check, tests, production build
-# - Documentation: Markdown lint (optional)
+# CI validates repository structure and runs the Android and Backend checks.
+# The admin job is added when that component is initialized.
 
 name: CI
 
@@ -26,9 +15,13 @@ jobs:
   validate:
     name: Validate Repository
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Verify repository structure
         run: |
@@ -43,38 +36,99 @@ jobs:
           test -d docs/           && echo "✓ docs/"
           echo "Repository structure is valid."
 
-  # Uncomment and configure when Android project is initialized:
-  # android:
-  #   name: Android Build & Test
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: actions/setup-java@v4
-  #       with:
-  #         java-version: '17'
-  #         distribution: 'temurin'
-  #     - name: Build
-  #       working-directory: android
-  #       run: ./gradlew build
-  #     - name: Test
-  #       working-directory: android
-  #       run: ./gradlew test
-  #     - name: Lint
-  #       working-directory: android
-  #       run: ./gradlew lint
+  android:
+    name: Android Build & Test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
-  # Uncomment and configure when Backend project is initialized:
-  # backend:
-  #   name: Backend Build & Test
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: shivammathur/setup-php@v2
-  #       with:
-  #         php-version: '8.2'
-  #     - name: Install Dependencies
-  #       working-directory: backend
-  #       run: composer install --no-progress
-  #     - name: Test
-  #       working-directory: backend
-  #       run: vendor/bin/phpunit
+      - name: Set up JDK 17
+        uses: actions/setup-java@v6
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Build Debug APK
+        working-directory: android
+        run: ./gradlew --no-daemon clean assembleDebug
+
+      - name: Run Lint
+        working-directory: android
+        run: ./gradlew --no-daemon lintDebug
+
+      - name: Run Unit Tests
+        working-directory: android
+        run: ./gradlew --no-daemon testDebugUnitTest
+
+  backend:
+    name: Backend Build & Test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: eshopverse_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: curl, fileinfo, mbstring, openssl, pdo_mysql, mysqli, zip
+          coverage: none
+
+      - name: Install Dependencies
+        working-directory: backend
+        run: composer install --no-interaction --no-progress
+
+      - name: Create environment file
+        working-directory: backend
+        run: cp .env.example .env
+
+      - name: Generate application key
+        working-directory: backend
+        run: php artisan key:generate
+
+      - name: Validate and audit dependencies
+        working-directory: backend
+        run: |
+          composer validate --strict
+          composer audit
+
+      - name: Style check
+        working-directory: backend
+        run: vendor/bin/pint --test
+
+      # phpunit.xml hard-wires DB_DATABASE=eshopverse_test, so these tests
+      # only ever touch the disposable service database above.
+      - name: Run tests
+        working-directory: backend
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: '3306'
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: php artisan test
+
+      - name: Lint OpenAPI contract
+        run: npx --yes "@redocly/cli@2.62.1" lint docs/openapi.yaml

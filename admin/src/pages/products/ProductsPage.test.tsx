@@ -1,0 +1,493 @@
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import App from '../../App';
+import { jsonResponse, mockApi } from '../../test/apiMock';
+import type { MockRoute } from '../../test/apiMock';
+import { category, pagination, product, sessionRoute } from '../../test/adminMock';
+
+function productsRoute(handler: MockRoute['handler']): MockRoute {
+  return { method: 'GET', path: '/admin/products', handler };
+}
+
+function categoryListRoute(items = [category()]): MockRoute {
+  return {
+    method: 'GET',
+    path: '/admin/categories',
+    handler: () => jsonResponse(200, { data: items }),
+  };
+}
+
+async function findProductsTable() {
+  return screen.findByRole('table', { name: 'Products' });
+}
+
+beforeEach(() => {
+  window.history.pushState({}, '', '/products');
+  window.localStorage.clear();
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
+describe('ProductsPage (A-02)', () => {
+  it('products_list_renders_status_stock_and_price_from_the_api', async () => {
+    mockApi([
+      sessionRoute(),
+      categoryListRoute(),
+      productsRoute(() =>
+        jsonResponse(200, { data: [product()], pagination: pagination(1, 20, 1, 1) }),
+      ),
+    ]);
+
+    render(<App />);
+
+    const table = await findProductsTable();
+    expect(within(table).getByText('Aurora Desk Lamp')).toBeInTheDocument();
+    expect(within(table).getByText('$39.99')).toBeInTheDocument();
+    expect(within(table).getByText('7 in stock')).toBeInTheDocument();
+    expect(within(table).getByText('Active')).toBeInTheDocument();
+    expect(within(table).getByRole('link', { name: 'Edit Aurora Desk Lamp' })).toBeInTheDocument();
+    expect(
+      within(table).getByRole('button', { name: 'Archive Aurora Desk Lamp' }),
+    ).toBeInTheDocument();
+  });
+
+  it('products_empty_catalog_offers_add_product', async () => {
+    mockApi([
+      sessionRoute(),
+      categoryListRoute([]),
+      productsRoute(() => jsonResponse(200, { data: [], pagination: pagination() })),
+    ]);
+
+    render(<App />);
+
+    const emptyTitle = await screen.findByText('No products yet');
+    expect(
+      within(emptyTitle.parentElement as HTMLElement).getByRole('link', { name: 'Add product' }),
+    ).toHaveAttribute('href', '/products/new');
+  });
+
+  it('products_no_results_state_clears_filters_and_reloads', async () => {
+    mockApi([
+      sessionRoute(),
+      categoryListRoute(),
+      productsRoute((request) =>
+        request.url.includes('q=')
+          ? jsonResponse(200, { data: [], pagination: pagination() })
+          : jsonResponse(200, { data: [product()], pagination: pagination(1, 20, 1, 1) }),
+      ),
+    ]);
+
+    render(<App />);
+
+    const table = await findProductsTable();
+    expect(within(table).getByText('Aurora Desk Lamp')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Search products'), { target: { value: 'zzz' } });
+
+    const emptyTitle = await screen.findByText('No products match your filters');
+    fireEvent.click(
+      within(emptyTitle.parentElement as HTMLElement).getByRole('button', {
+        name: 'Clear filters',
+      }),
+    );
+
+    const reloaded = await findProductsTable();
+    expect(within(reloaded).getByText('Aurora Desk Lamp')).toBeInTheDocument();
+    expect(screen.getByLabelText('Search products')).toHaveValue('');
+  });
+
+  it('products_error_state_retries_and_recovers', async () => {
+    let calls = 0;
+    mockApi([
+      sessionRoute(),
+      categoryListRoute([]),
+      productsRoute(() => {
+        calls += 1;
+        return calls === 1
+          ? jsonResponse(500, {
+              error: { code: 'INTERNAL_ERROR', message: 'The server failed to handle the request.' },
+            })
+          : jsonResponse(200, { data: [product()], pagination: pagination(1, 20, 1, 1) });
+      }),
+    ]);
+
+    render(<App />);
+
+    expect(await screen.findByText('Products could not be loaded')).toBeInTheDocument();
+    expect(screen.getByText('The server failed to handle the request.')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
+
+    const table = await findProductsTable();
+    expect(within(table).getByText('Aurora Desk Lamp')).toBeInTheDocument();
+  });
+
+  it('archive_product_confirms_and_refreshes_the_row', async () => {
+    let archived = false;
+    mockApi([
+      sessionRoute(),
+      categoryListRoute([]),
+      productsRoute(() =>
+        jsonResponse(200, {
+          data: [archived ? product({ status: 'archived' }) : product()],
+          pagination: pagination(1, 20, 1, 1),
+        }),
+      ),
+      {
+        method: 'POST',
+        path: '/admin/products/5/archive',
+        handler: () => {
+          archived = true;
+          return jsonResponse(200, { data: product({ status: 'archived' }) });
+        },
+      },
+    ]);
+
+    render(<App />);
+
+    const table = await findProductsTable();
+    fireEvent.click(within(table).getByRole('button', { name: 'Archive Aurora Desk Lamp' }));
+
+    const dialog = await screen.findByRole('dialog', { name: 'Archive Aurora Desk Lamp?' });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Archive product' }));
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Aurora Desk Lamp was archived.');
+
+    await waitFor(() => {
+      const table = screen.getByRole('table', { name: 'Products' });
+      expect(within(table).getAllByText('Archived').length).toBeGreaterThan(0);
+      expect(
+        within(table).queryByRole('button', { name: 'Archive Aurora Desk Lamp' }),
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  it('archive_conflict_surfaces_the_server_message', async () => {
+    mockApi([
+      sessionRoute(),
+      categoryListRoute([]),
+      productsRoute(() =>
+        jsonResponse(200, { data: [product()], pagination: pagination(1, 20, 1, 1) }),
+      ),
+      {
+        method: 'POST',
+        path: '/admin/products/5/archive',
+        handler: () =>
+          jsonResponse(409, {
+            error: { code: 'INVALID_PRODUCT_STATE', message: 'The product is already archived.' },
+          }),
+      },
+    ]);
+
+    render(<App />);
+
+    const table = await findProductsTable();
+    fireEvent.click(within(table).getByRole('button', { name: 'Archive Aurora Desk Lamp' }));
+
+    const dialog = await screen.findByRole('dialog', { name: 'Archive Aurora Desk Lamp?' });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Archive product' }));
+
+    expect(await screen.findByText('The product is already archived.')).toBeInTheDocument();
+  });
+
+  it('products_category_and_status_filters_are_sent_to_the_api', async () => {
+    const urls: string[] = [];
+    mockApi([
+      sessionRoute(),
+      categoryListRoute([category(), category({ id: 2, name: 'Outdoor', status: 'archived' })]),
+      productsRoute((request) => {
+        urls.push(request.url);
+        if (request.url.includes('categoryId=1') && request.url.includes('status=active')) {
+          return jsonResponse(200, { data: [product()], pagination: pagination(1, 20, 1, 1) });
+        }
+        return jsonResponse(200, { data: [], pagination: pagination() });
+      }),
+    ]);
+
+    render(<App />);
+
+    expect(await screen.findByText('No products yet')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Category'), { target: { value: '1' } });
+    fireEvent.change(screen.getByLabelText('Status'), { target: { value: 'active' } });
+
+    const table = await findProductsTable();
+    expect(within(table).getByText('Aurora Desk Lamp')).toBeInTheDocument();
+    expect(
+      urls.some((url) => url.includes('categoryId=1') && url.includes('status=active')),
+    ).toBe(true);
+  });
+
+  it('products_pagination_follows_api_metadata', async () => {
+    const urls: string[] = [];
+    mockApi([
+      sessionRoute(),
+      categoryListRoute([]),
+      productsRoute((request) => {
+        urls.push(request.url);
+        if (request.url.includes('page=2')) {
+          return jsonResponse(200, {
+            data: [product({ id: 6, name: 'Second Page Lamp' })],
+            pagination: pagination(2, 20, 21, 2),
+          });
+        }
+        return jsonResponse(200, { data: [product()], pagination: pagination(1, 20, 21, 2) });
+      }),
+    ]);
+
+    render(<App />);
+
+    await findProductsTable();
+    const firstNav = await screen.findByRole('navigation', { name: 'Pagination' });
+    expect(within(firstNav).getByText('Page 1 of 2')).toBeInTheDocument();
+    expect(within(firstNav).getByText('21 products')).toBeInTheDocument();
+    expect(within(firstNav).getByRole('button', { name: 'Previous' })).toBeDisabled();
+
+    fireEvent.click(within(firstNav).getByRole('button', { name: 'Next' }));
+
+    await waitFor(() => {
+      const table = screen.getByRole('table', { name: 'Products' });
+      expect(within(table).getByText('Second Page Lamp')).toBeInTheDocument();
+    });
+    const secondNav = screen.getByRole('navigation', { name: 'Pagination' });
+    expect(within(secondNav).getByText('Page 2 of 2')).toBeInTheDocument();
+    expect(within(secondNav).getByRole('button', { name: 'Next' })).toBeDisabled();
+    expect(urls.some((url) => url.includes('page=2'))).toBe(true);
+  });
+
+  it('delete_product_confirms_calls_the_api_and_refreshes_the_list', async () => {
+    let deleted = false;
+    const fetchMock = mockApi([
+      sessionRoute(),
+      categoryListRoute([]),
+      productsRoute(() =>
+        jsonResponse(200, {
+          data: deleted ? [] : [product()],
+          pagination: deleted ? pagination() : pagination(1, 20, 1, 1),
+        }),
+      ),
+      {
+        method: 'DELETE',
+        path: '/admin/products/5',
+        handler: () => {
+          deleted = true;
+          return jsonResponse(204);
+        },
+      },
+    ]);
+
+    render(<App />);
+
+    const table = await findProductsTable();
+    fireEvent.click(within(table).getByRole('button', { name: 'Delete Aurora Desk Lamp' }));
+
+    const dialog = await screen.findByRole('dialog', { name: 'Delete Aurora Desk Lamp?' });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Delete product' }));
+
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      'Aurora Desk Lamp was deleted, including its images.',
+    );
+    expect(await screen.findByText('No products yet')).toBeInTheDocument();
+
+    const deleteCall = fetchMock.mock.calls.find(
+      ([url, init]) =>
+        (init as RequestInit | undefined)?.method === 'DELETE' &&
+        String(url).endsWith('/admin/products/5'),
+    );
+    expect(deleteCall).toBeDefined();
+  });
+
+  it('delete_conflict_surfaces_the_server_message_and_keeps_the_product', async () => {
+    mockApi([
+      sessionRoute(),
+      categoryListRoute([]),
+      productsRoute(() =>
+        jsonResponse(200, { data: [product()], pagination: pagination(1, 20, 1, 1) }),
+      ),
+      {
+        method: 'DELETE',
+        path: '/admin/products/5',
+        handler: () =>
+          jsonResponse(409, {
+            error: {
+              code: 'PRODUCT_HAS_ORDERS',
+              message: 'This product belongs to an existing order and cannot be deleted.',
+            },
+          }),
+      },
+    ]);
+
+    render(<App />);
+
+    const table = await findProductsTable();
+    fireEvent.click(within(table).getByRole('button', { name: 'Delete Aurora Desk Lamp' }));
+
+    const dialog = await screen.findByRole('dialog', { name: 'Delete Aurora Desk Lamp?' });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Delete product' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'This product belongs to an existing order and cannot be deleted.',
+    );
+    expect(within(await findProductsTable()).getByText('Aurora Desk Lamp')).toBeInTheDocument();
+
+    // PROD-104: 1-click fallback to archive the conflicted product
+    fireEvent.click(screen.getByRole('button', { name: 'Archive product instead' }));
+    expect(await screen.findByRole('dialog', { name: 'Archive Aurora Desk Lamp?' })).toBeInTheDocument();
+  });
+
+  it('product_creation_success_state_renders_view_and_add_another_actions', async () => {
+    mockApi([
+      sessionRoute(),
+      categoryListRoute([]),
+      productsRoute(() =>
+        jsonResponse(200, { data: [product({ id: 42, name: 'Ceramic Lamp' })], pagination: pagination(1, 20, 1, 1) }),
+      ),
+    ]);
+    window.history.pushState(
+      {
+        usr: {
+          feedback: 'Ceramic Lamp was created. Set its stock in Inventory.',
+          createdProduct: { id: 42, name: 'Ceramic Lamp' },
+        },
+        key: 'default',
+      },
+      '',
+      '/products',
+    );
+
+    render(<App />);
+
+    expect(await screen.findByText('Product created successfully')).toBeInTheDocument();
+    expect(screen.getByText(/Product ID: EVG-0042/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'View product' })).toHaveAttribute(
+      'href',
+      '/products/42',
+    );
+    expect(screen.getByRole('link', { name: 'Add another' })).toHaveAttribute(
+      'href',
+      '/products/new',
+    );
+  });
+
+  it('duplicate_product_navigates_to_new_product_with_prefilled_state', async () => {
+    mockApi([
+      sessionRoute(),
+      categoryListRoute([]),
+      productsRoute(() =>
+        jsonResponse(200, {
+          data: [product({ id: 10, name: 'Vintage Leather Jacket', sku: 'LEATHER-10' })],
+          pagination: pagination(1, 20, 1, 1),
+        }),
+      ),
+    ]);
+
+    render(<App />);
+
+    const table = await findProductsTable();
+    expect(table).toBeInTheDocument();
+
+    const duplicateBtn = within(table).getByRole('button', { name: 'Duplicate Vintage Leather Jacket' });
+    expect(duplicateBtn).toBeInTheDocument();
+    fireEvent.click(duplicateBtn);
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Duplicate product' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Name')).toHaveValue('[Copy] Vintage Leather Jacket');
+    expect(screen.getByLabelText(/^SKU/)).toHaveValue('LEATHER-10-copy');
+  });
+
+  it('bulk_selection_toggles_all_and_individual_checkboxes', async () => {
+    mockApi([
+      sessionRoute(),
+      categoryListRoute([]),
+      productsRoute(() =>
+        jsonResponse(200, {
+          data: [
+            product({ id: 1, name: 'Item One' }),
+            product({ id: 2, name: 'Item Two' }),
+          ],
+          pagination: pagination(1, 20, 2, 1),
+        }),
+      ),
+    ]);
+
+    render(<App />);
+
+    const table = await findProductsTable();
+    expect(table).toBeInTheDocument();
+
+    // Initially no toolbar
+    expect(screen.queryByRole('region', { name: 'Bulk actions toolbar' })).not.toBeInTheDocument();
+
+    // Check individual item
+    const rowCheckboxes = within(table).getAllByRole('checkbox');
+    // rowCheckboxes[0] is select all in thead, rowCheckboxes[1] and [2] are rows
+    expect(rowCheckboxes.length).toBe(3);
+
+    fireEvent.click(rowCheckboxes[1]); // select Item One
+    expect(await screen.findByRole('region', { name: 'Bulk actions toolbar' })).toBeInTheDocument();
+    expect(screen.getByText(/1.*selected/)).toBeInTheDocument();
+
+    // Click select all
+    fireEvent.click(rowCheckboxes[0]); // select all
+    expect(screen.getByText(/2.*selected/)).toBeInTheDocument();
+
+    // Clear selection
+    fireEvent.click(screen.getByRole('button', { name: 'Clear selection' }));
+    expect(screen.queryByRole('region', { name: 'Bulk actions toolbar' })).not.toBeInTheDocument();
+  });
+
+  it('bulk_archive_action_confirms_calls_api_and_shows_feedback', async () => {
+    const archivedIds: number[] = [];
+    mockApi([
+      sessionRoute(),
+      categoryListRoute([]),
+      productsRoute(() =>
+        jsonResponse(200, {
+          data: [
+            product({ id: 101, name: 'Prod A', status: 'active' }),
+            product({ id: 102, name: 'Prod B', status: 'active' }),
+          ],
+          pagination: pagination(1, 20, 2, 1),
+        }),
+      ),
+      {
+        method: 'POST',
+        path: '/admin/products/101/archive',
+        handler: () => {
+          archivedIds.push(101);
+          return jsonResponse(200, { data: product({ id: 101, status: 'archived' }) });
+        },
+      },
+      {
+        method: 'POST',
+        path: '/admin/products/102/archive',
+        handler: () => {
+          archivedIds.push(102);
+          return jsonResponse(200, { data: product({ id: 102, status: 'archived' }) });
+        },
+      },
+    ]);
+
+    render(<App />);
+
+    const table = await findProductsTable();
+    const rowCheckboxes = within(table).getAllByRole('checkbox');
+    fireEvent.click(rowCheckboxes[0]); // Select all
+
+    expect(await screen.findByRole('region', { name: 'Bulk actions toolbar' })).toBeInTheDocument();
+
+    // Click Archive on bulk toolbar
+    fireEvent.click(screen.getByRole('button', { name: 'Archive' }));
+
+    // Confirm dialog appears
+    const dialog = await screen.findByRole('dialog', { name: 'Archive 2 products?' });
+    expect(dialog).toBeInTheDocument();
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Archive selected' }));
+
+    expect(await screen.findByRole('status')).toHaveTextContent('2 product(s) successfully archived.');
+    expect(archivedIds).toEqual([101, 102]);
+  });
+});

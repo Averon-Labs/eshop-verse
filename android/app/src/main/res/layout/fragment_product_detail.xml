@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.averonlabs.eshopverse.core.ui.view.StateContainerView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/state_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/canvas_background">
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/content_detail"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/scroll_product_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="130dp"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- Image Gallery Container (1:1 Aspect Ratio Bento Card) -->
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/card_product_gallery"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:layout_marginStart="@dimen/spacing_md"
+                        android:layout_marginEnd="@dimen/spacing_md"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        app:layout_constraintDimensionRatio="1:1"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:cardCornerRadius="@dimen/corner_bento"
+                        app:cardElevation="0dp"
+                        app:strokeColor="@color/m3_outline_variant"
+                        app:strokeWidth="1dp"
+                        app:cardBackgroundColor="@color/surface_color">
+
+                        <FrameLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+                            <androidx.viewpager2.widget.ViewPager2
+                                android:id="@+id/vp_product_images"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent" />
+
+                            <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/tv_image_indicator"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="bottom|end"
+                                android:layout_margin="@dimen/spacing_md"
+                                android:background="@drawable/bg_pill_search"
+                                android:paddingStart="@dimen/spacing_sm"
+                                android:paddingEnd="@dimen/spacing_sm"
+                                android:paddingTop="@dimen/spacing_xs"
+                                android:paddingBottom="@dimen/spacing_xs"
+                                android:textAppearance="@style/TextAppearance.EShopVerse.Supporting"
+                                android:textColor="@color/text_primary_ink"
+                                android:visibility="gone"
+                                tools:text="1 / 3"
+                                tools:visibility="visible" />
+
+                        </FrameLayout>
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <!-- Product Information -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/spacing_md">
+
+                    <!-- Category tag / Breadcrumb in uppercase -->
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/tv_product_category"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:letterSpacing="0.08"
+                        android:textAllCaps="true"
+                        android:textAppearance="@style/TextAppearance.EShopVerse.Supporting"
+                        android:textColor="@color/text_secondary"
+                        android:textStyle="bold"
+                        android:visibility="gone"
+                        tools:text="HOME OBJECTS / LIGHTING"
+                        tools:visibility="visible" />
+
+                    <!-- Product Name & Favorite Row -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_xs"
+                        android:gravity="top"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/tv_product_name"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="@dimen/spacing_md"
+                            android:textAppearance="@style/TextAppearance.EShopVerse.PageTitle"
+                            android:textColor="@color/text_primary_ink"
+                            android:textStyle="bold"
+                            tools:text="Soft Glow Table Lamp" />
+
+                        <!-- Circular Favorite Button across from Title -->
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/btn_favorite"
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:contentDescription="@string/favorites_title"
+                            app:cardCornerRadius="22dp"
+                            app:cardElevation="0dp"
+                            app:strokeWidth="1dp"
+                            app:strokeColor="@color/m3_outline_variant"
+                            app:cardBackgroundColor="@color/surface_color">
+
+                            <ImageView
+                                android:id="@+id/iv_favorite_icon"
+                                android:layout_width="22dp"
+                                android:layout_height="22dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_heart_outline"
+                                android:importantForAccessibility="no" />
+
+                        </com.google.android.material.card.MaterialCardView>
+
+                    </LinearLayout>
+
+                    <!-- Price & Stock Badge Row -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_sm"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <com.averonlabs.eshopverse.core.ui.view.PriceTextView
+                            android:id="@+id/tv_product_price"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="@style/TextAppearance.EShopVerse.PageTitle"
+                            android:textColor="@color/color_botanical_green"
+                            android:textStyle="bold"
+                            tools:text="$89.00" />
+
+                        <com.averonlabs.eshopverse.core.ui.view.StatusBadgeView
+                            android:id="@+id/badge_stock"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/spacing_md"
+                            tools:text="In stock" />
+
+                    </LinearLayout>
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:layout_marginBottom="@dimen/spacing_md"
+                        android:background="@color/m3_outline_variant" />
+
+                    <!-- Description Section -->
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/catalog_label_description"
+                        android:textAppearance="@style/TextAppearance.EShopVerse.ComponentTitle"
+                        android:textColor="@color/text_primary_ink"
+                        android:textStyle="bold" />
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/tv_product_description"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_xs"
+                        android:lineSpacingMultiplier="1.3"
+                        android:textAppearance="@style/TextAppearance.EShopVerse.Body"
+                        android:textColor="@color/text_secondary"
+                        tools:text="A warm, sculptural accent that brings a soft glow to slow mornings and quiet evenings." />
+
+                    <!-- Description Shimmer Skeleton (while loading full detail) -->
+                    <LinearLayout
+                        android:id="@+id/skeleton_description"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginTop="@dimen/spacing_xs"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="14dp"
+                            android:layout_marginBottom="6dp"
+                            android:background="@drawable/bg_shimmer_bar" />
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="14dp"
+                            android:layout_marginBottom="6dp"
+                            android:background="@drawable/bg_shimmer_bar" />
+
+                        <View
+                            android:layout_width="180dp"
+                            android:layout_height="14dp"
+                            android:background="@drawable/bg_shimmer_bar" />
+
+                    </LinearLayout>
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:layout_marginBottom="@dimen/spacing_md"
+                        android:background="@color/m3_outline_variant" />
+
+                    <!-- Quantity Section -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/layout_quantity"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:cardCornerRadius="@dimen/corner_card_pinterest"
+                        app:cardElevation="0dp"
+                        app:strokeColor="@color/m3_outline_variant"
+                        app:strokeWidth="1dp"
+                        app:cardBackgroundColor="@color/surface_color">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingStart="@dimen/spacing_md"
+                            android:paddingEnd="@dimen/spacing_md"
+                            android:paddingTop="@dimen/spacing_sm"
+                            android:paddingBottom="@dimen/spacing_sm">
+
+                            <com.google.android.material.textview.MaterialTextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/catalog_label_quantity"
+                                android:textAppearance="@style/TextAppearance.EShopVerse.ComponentTitle"
+                                android:textColor="@color/text_primary_ink" />
+
+                            <com.averonlabs.eshopverse.core.ui.view.QuantityStepperView
+                                android:id="@+id/stepper_quantity"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content" />
+
+                        </LinearLayout>
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </androidx.core.widget.NestedScrollView>
+
+        <!-- Full-Screen Shimmer Skeleton for Product Detail -->
+        <include
+            android:id="@+id/skeleton_product_detail"
+            layout="@layout/layout_skeleton_product_detail"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="visible" />
+
+        <!-- Sticky Bottom Action Bar (Floating Pill / Elevated Surface) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_bottom_actions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            app:cardElevation="8dp"
+            app:cardCornerRadius="0dp"
+            app:strokeWidth="0dp"
+            app:cardBackgroundColor="@color/canvas_background"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="@dimen/spacing_md"
+                android:paddingEnd="@dimen/spacing_md"
+                android:paddingTop="@dimen/spacing_sm"
+                android:paddingBottom="@dimen/spacing_md">
+
+                <!-- Notice / Unavailable label -->
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/tv_add_to_cart_notice"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="@string/catalog_add_to_cart_unavailable"
+                    android:textAppearance="@style/TextAppearance.EShopVerse.Supporting"
+                    android:textColor="@color/text_secondary"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+
+                <!-- Add to bag button (Botanical Green Pill) -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_add_to_cart"
+                    style="@style/Widget.EShopVerse.Button.Filled"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginTop="@dimen/spacing_xs"
+                    android:backgroundTint="@color/color_botanical_green"
+                    android:textColor="@color/m3_on_primary"
+                    app:cornerRadius="@dimen/corner_pill"
+                    android:text="@string/catalog_action_add_to_cart" />
+
+                <!-- Delivery Note matching Figma: Free shipping on orders over $100 -->
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/tv_delivery_note"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_xs"
+                    android:gravity="center"
+                    android:text="@string/catalog_shipping_notice"
+                    android:textAppearance="@style/TextAppearance.EShopVerse.Supporting"
+                    android:textColor="@color/text_secondary" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Circular Floating Back Button (MUSE Style) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/btn_back"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_gravity="top|start"
+            android:layout_marginStart="@dimen/spacing_md"
+            android:layout_marginTop="@dimen/spacing_md"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="@string/catalog_cd_back"
+            app:cardCornerRadius="22dp"
+            app:cardElevation="6dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="@color/m3_outline_variant"
+            app:cardBackgroundColor="@color/surface_color">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_arrow_back"
+                app:tint="@color/text_primary_ink"
+                android:importantForAccessibility="no" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+</com.averonlabs.eshopverse.core.ui.view.StateContainerView>

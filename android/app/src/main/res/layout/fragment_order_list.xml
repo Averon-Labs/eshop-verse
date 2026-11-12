@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.averonlabs.eshopverse.core.ui.view.StateContainerView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/state_container_orders"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/surface_container_low">
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_refresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_orders"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingTop="@dimen/spacing_md_sm"
+            android:paddingBottom="@dimen/spacing_lg"
+            tools:listitem="@layout/item_order_card" />
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+</com.averonlabs.eshopverse.core.ui.view.StateContainerView>

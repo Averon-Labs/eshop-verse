@@ -2,6 +2,8 @@
 
 > Read the root `AGENTS.md` first. This file contains backend-specific rules.
 
+The canonical Backend task steps and acceptance criteria are in [`docs/BACKEND_ROADMAP.md`](../docs/BACKEND_ROADMAP.md). Project gates and shared tasks are in [`docs/ROADMAP.md`](../docs/ROADMAP.md).
+
 ---
 
 ## Architecture

@@ -6,7 +6,7 @@
 
 ## Roadmap Task
 
-- Task ID: <!-- e.g. FND-001; use docs/ROADMAP.md -->
+- Task ID: <!-- e.g. FND-001; use the canonical component roadmap or docs/ROADMAP.md for shared tasks -->
 
 ## Related Issue (optional)
 

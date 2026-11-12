@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "PAYMENT_FAILED",
+    "message": "Demo simulated payment declined by issuer",
+    "details": []
+  }
+}

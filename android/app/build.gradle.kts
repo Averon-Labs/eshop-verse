@@ -1,39 +1,115 @@
 plugins {
-    id("com.android.application")
+    alias(libs.plugins.android.application)
 }
 
+val apiBaseUrlOverride = providers.gradleProperty("apiBaseUrl")
+val googleWebClientIdOverride = providers.gradleProperty("googleWebClientId")
+
+// Hosted demo backend (Laravel API + admin SPA on the same origin).
+// Local servers can still be used with -PapiBaseUrl="http://10.0.2.2:8000/api/v1".
+val defaultApiBaseUrl = "https://eshopverse.wasmer.app/api/v1"
+val defaultGoogleWebClientId = "629866052539-50edn5o2jbjg449u5pjui72bnm4atojo.apps.googleusercontent.com"
+
 android {
-    namespace = "com.AveronLabs.eshop_verse"
-    compileSdk = 34
+    namespace = "com.averonlabs.eshopverse"
+    compileSdk {
+        version = release(36) {
+            minorApiLevel = 1
+        }
+    }
 
     defaultConfig {
-        applicationId = "com.AveronLabs.eshop_verse"
+        applicationId = "com.averonlabs.eshopverse"
         minSdk = 25
-        targetSdk = 34
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+    }
+
+    testOptions {
+        unitTests.isReturnDefaultValues = true
     }
 
     buildTypes {
+        debug {
+            buildConfigField(
+                "String",
+                "API_BASE_URL",
+                "\"${apiBaseUrlOverride.orElse(defaultApiBaseUrl).get()}\""
+            )
+            buildConfigField(
+                "String",
+                "GOOGLE_WEB_CLIENT_ID",
+                "\"${googleWebClientIdOverride.orElse(defaultGoogleWebClientId).get()}\""
+            )
+        }
+
         release {
             isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            buildConfigField(
+                "String",
+                "API_BASE_URL",
+                "\"${apiBaseUrlOverride.orElse(defaultApiBaseUrl).get()}\""
+            )
+            buildConfigField(
+                "String",
+                "GOOGLE_WEB_CLIENT_ID",
+                "\"${googleWebClientIdOverride.orElse(defaultGoogleWebClientId).get()}\""
+            )
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
+
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    buildFeatures {
+        viewBinding = true
+        buildConfig = true
+    }
+
+    testOptions {
+        unitTests.all {
+            it.jvmArgs("-XX:+EnableDynamicAgentLoading")
+        }
     }
 }
 
 dependencies {
+    implementation(libs.activity)
+    implementation(libs.appcompat)
+    implementation(libs.constraintlayout)
+    implementation(libs.core)
+    implementation(libs.fragment)
+    implementation(libs.material)
+    implementation(libs.navigation.fragment)
+    implementation(libs.navigation.ui)
+    implementation(libs.recyclerview)
+    implementation(libs.lifecycle.viewmodel)
+    implementation(libs.lifecycle.livedata)
+    implementation(libs.swiperefreshlayout)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging.interceptor)
+    implementation(libs.glide)
+    implementation(libs.credentials)
+    implementation(libs.credentials.play.services.auth)
+    implementation(libs.googleid)
 
-    implementation("androidx.appcompat:appcompat:1.8.0")
-    implementation("com.google.android.material:material:1.14.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.2.2")
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.3.0")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
+    testImplementation(libs.junit)
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockwebserver)
+    testImplementation(libs.arch.core.testing)
+
+    androidTestImplementation(libs.espresso.core)
+    androidTestImplementation(libs.ext.junit)
 }

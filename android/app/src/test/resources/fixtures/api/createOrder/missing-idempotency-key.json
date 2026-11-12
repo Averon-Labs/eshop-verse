@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "MISSING_IDEMPOTENCY_KEY",
+    "message": "Idempotency-Key header is required for this operation",
+    "details": []
+  }
+}

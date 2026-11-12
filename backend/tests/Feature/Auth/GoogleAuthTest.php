@@ -1,0 +1,528 @@
+<?php
+
+namespace Tests\Feature\Auth;
+
+use App\Models\User;
+use Illuminate\Database\QueryException;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Tests\TestCase;
+
+/**
+ * AUTH-004: POST /auth/google. Tokens are signed with a locally generated
+ * RSA key and Google's JWKS endpoint is faked, so the suite is hermetic
+ * and never contacts Google or uses a real credential.
+ */
+class GoogleAuthTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private const CLIENT_ID = 'test-google-client-id';
+
+    private const KEY_ID = 'test-key';
+
+    /** @var array{0: \OpenSSLAsymmetricKey, 1: string}|null */
+    private static ?array $keyPair = null;
+
+    private static ?string $opensslConfig = null;
+
+    private bool $googleKeysAvailable = true;
+
+    /** When false, the JWKS mirrors Google's live response (`n`/`e`, no `x5c`). */
+    private bool $jwksIncludesCertificates = true;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config([
+            'services.google.client_id' => self::CLIENT_ID,
+            'services.google.client_ids' => '',
+        ]);
+        Cache::flush();
+
+        Http::fake([
+            'https://www.googleapis.com/oauth2/v3/certs' => function () {
+                if (! $this->googleKeysAvailable) {
+                    return Http::response('', 503);
+                }
+
+                if ($this->jwksIncludesCertificates) {
+                    return Http::response([
+                        'keys' => [[
+                            'kty' => 'RSA',
+                            'alg' => 'RS256',
+                            'use' => 'sig',
+                            'kid' => self::KEY_ID,
+                            'x5c' => [self::keyPair()[1]],
+                        ]],
+                    ]);
+                }
+
+                $details = openssl_pkey_get_details(self::keyPair()[0]);
+
+                return Http::response([
+                    'keys' => [[
+                        'kty' => 'RSA',
+                        'alg' => 'RS256',
+                        'use' => 'sig',
+                        'kid' => self::KEY_ID,
+                        'n' => $this->encode($details['rsa']['n']),
+                        'e' => $this->encode($details['rsa']['e']),
+                    ]],
+                ]);
+            },
+        ]);
+    }
+
+    public function test_google_sign_in_creates_customer_account_without_password(): void
+    {
+        $response = $this->postJson('/api/v1/auth/google', ['idToken' => $this->token()]);
+
+        $response->assertCreated()
+            ->assertJsonStructure(['data' => ['token', 'expiresAt', 'user' => ['id', 'email', 'firstName', 'lastName', 'role', 'status']]])
+            ->assertJsonPath('data.user.email', 'grace@example.com')
+            ->assertJsonPath('data.user.firstName', 'Grace')
+            ->assertJsonPath('data.user.lastName', 'Hopper')
+            ->assertJsonPath('data.user.role', 'customer')
+            ->assertJsonPath('data.user.status', 'active');
+
+        $user = User::where('email', 'grace@example.com')->firstOrFail();
+
+        $this->assertSame('google-subject-001', $user->google_id);
+        $this->assertNull($user->password);
+        $this->assertNotNull($user->email_verified_at);
+
+        $this->withToken($response->json('data.token'))
+            ->getJson('/api/v1/auth/profile')
+            ->assertOk();
+    }
+
+    public function test_google_sign_in_logs_in_existing_linked_customer(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'grace@example.com',
+            'google_id' => 'google-subject-001',
+        ]);
+
+        $response = $this->postJson('/api/v1/auth/google', ['idToken' => $this->token()]);
+
+        $response->assertOk()
+            ->assertJsonPath('data.user.id', $user->id)
+            ->assertJsonStructure(['data' => ['token', 'expiresAt', 'user']]);
+
+        $this->assertSame(1, User::count());
+    }
+
+    public function test_google_sign_in_links_existing_password_account(): void
+    {
+        $user = User::factory()->create(['email' => 'grace@example.com']);
+
+        $response = $this->postJson('/api/v1/auth/google', ['idToken' => $this->token()]);
+
+        $response->assertOk()
+            ->assertJsonPath('data.user.id', $user->id);
+
+        $user->refresh();
+
+        $this->assertSame('google-subject-001', $user->google_id);
+        $this->assertNotNull($user->password);
+        $this->assertSame('customer', $user->role);
+    }
+
+    public function test_google_sign_in_refuses_conflicting_google_identity(): void
+    {
+        User::factory()->create([
+            'email' => 'grace@example.com',
+            'google_id' => 'a-different-google-subject',
+        ]);
+
+        $response = $this->postJson('/api/v1/auth/google', ['idToken' => $this->token()]);
+
+        $this->assertApiError($response, 409, 'GOOGLE_ACCOUNT_CONFLICT');
+    }
+
+    public function test_google_sign_in_rejects_suspended_account_with_account_disabled(): void
+    {
+        User::factory()->create([
+            'email' => 'grace@example.com',
+            'google_id' => 'google-subject-001',
+            'status' => 'suspended',
+        ]);
+
+        $response = $this->postJson('/api/v1/auth/google', ['idToken' => $this->token()]);
+
+        $this->assertApiError($response, 403, 'ACCOUNT_DISABLED');
+        $this->assertSame(
+            'This account has been deactivated. Please contact support.',
+            $response->json('error.message'),
+        );
+    }
+
+    public function test_google_sign_in_rejects_expired_token(): void
+    {
+        $response = $this->postJson('/api/v1/auth/google', [
+            'idToken' => $this->token(['exp' => now()->subHour()->getTimestamp()]),
+        ]);
+
+        $this->assertApiError($response, 401, 'INVALID_CREDENTIALS');
+    }
+
+    public function test_google_sign_in_rejects_wrong_audience(): void
+    {
+        $response = $this->postJson('/api/v1/auth/google', [
+            'idToken' => $this->token(['aud' => 'a-different-client-id']),
+        ]);
+
+        $this->assertApiError($response, 401, 'INVALID_CREDENTIALS');
+    }
+
+    public function test_google_sign_in_rejects_wrong_issuer(): void
+    {
+        $response = $this->postJson('/api/v1/auth/google', [
+            'idToken' => $this->token(['iss' => 'https://evil.example']),
+        ]);
+
+        $this->assertApiError($response, 401, 'INVALID_CREDENTIALS');
+    }
+
+    public function test_google_sign_in_rejects_unverified_email(): void
+    {
+        $response = $this->postJson('/api/v1/auth/google', [
+            'idToken' => $this->token(['email_verified' => false]),
+        ]);
+
+        $this->assertApiError($response, 401, 'INVALID_CREDENTIALS');
+    }
+
+    public function test_google_sign_in_rejects_token_signed_by_an_unknown_key(): void
+    {
+        $rogueKey = openssl_pkey_new([
+            'private_key_bits' => 2048,
+            'private_key_type' => OPENSSL_KEYTYPE_RSA,
+            'config' => self::opensslConfigPath(),
+        ]);
+
+        $response = $this->postJson('/api/v1/auth/google', [
+            'idToken' => $this->token([], $rogueKey),
+        ]);
+
+        $this->assertApiError($response, 401, 'INVALID_CREDENTIALS');
+    }
+
+    public function test_google_sign_in_verifies_a_token_against_googles_published_jwks_shape(): void
+    {
+        // Google's /oauth2/v3/certs returns only `n` and `e` (no `x5c`), so the
+        // verifier has to rebuild the RSA key from those members.
+        $this->useCertificateLessJwks();
+
+        $response = $this->postJson('/api/v1/auth/google', ['idToken' => $this->token()]);
+
+        $response->assertCreated()
+            ->assertJsonPath('data.user.email', 'grace@example.com');
+    }
+
+    public function test_google_sign_in_rejects_another_key_when_jwks_has_no_certificates(): void
+    {
+        $this->useCertificateLessJwks();
+
+        $rogueKey = openssl_pkey_new([
+            'private_key_bits' => 2048,
+            'private_key_type' => OPENSSL_KEYTYPE_RSA,
+            'config' => self::opensslConfigPath(),
+        ]);
+
+        $response = $this->postJson('/api/v1/auth/google', [
+            'idToken' => $this->token([], $rogueKey),
+        ]);
+
+        $this->assertApiError($response, 401, 'INVALID_CREDENTIALS');
+        $this->assertSame(0, User::count());
+    }
+
+    public function test_google_sign_in_accepts_the_shipped_production_client_pairing(): void
+    {
+        $web = (string) env('SHIPPED_GOOGLE_WEB_CLIENT_ID', '');
+        $android = (string) env('SHIPPED_GOOGLE_ANDROID_CLIENT_ID', '');
+
+        if ($web === '' || $android === '') {
+            $this->markTestSkipped('Set SHIPPED_GOOGLE_WEB_CLIENT_ID and SHIPPED_GOOGLE_ANDROID_CLIENT_ID to check the shipped IDs.');
+        }
+
+        config([
+            'services.google.client_id' => $web,
+            'services.google.client_ids' => $android,
+        ]);
+
+        // The shape observed on the device: the ID token's `aud` is the Web
+        // client while `azp` names the Android client.
+        $deviceShape = $this->postJson('/api/v1/auth/google', [
+            'idToken' => $this->token([
+                'aud' => $web,
+                'azp' => $android,
+                'sub' => 'production-web-subject',
+                'email' => 'production.web@example.com',
+            ]),
+        ]);
+        $deviceShape->assertCreated()
+            ->assertJsonPath('data.user.email', 'production.web@example.com');
+
+        // A build that asks Google for a token addressed to the Android client.
+        $androidShape = $this->postJson('/api/v1/auth/google', [
+            'idToken' => $this->token([
+                'aud' => $android,
+                'sub' => 'production-android-subject',
+                'email' => 'production.android@example.com',
+            ]),
+        ]);
+        $androidShape->assertCreated()
+            ->assertJsonPath('data.user.email', 'production.android@example.com');
+
+        // Any other client is still refused.
+        $foreign = $this->postJson('/api/v1/auth/google', [
+            'idToken' => $this->token(['aud' => 'foreign-client.apps.googleusercontent.com']),
+        ]);
+        $this->assertApiError($foreign, 401, 'INVALID_CREDENTIALS');
+    }
+
+    public function test_google_sign_in_rejects_malformed_token(): void
+    {
+        $response = $this->postJson('/api/v1/auth/google', ['idToken' => 'not-a-valid-jwt-token']);
+
+        $this->assertApiError($response, 401, 'INVALID_CREDENTIALS');
+    }
+
+    public function test_google_sign_in_validates_request_body(): void
+    {
+        $missing = $this->postJson('/api/v1/auth/google', []);
+        $this->assertApiError($missing, 422, 'VALIDATION_ERROR');
+
+        $tooShort = $this->postJson('/api/v1/auth/google', ['idToken' => 'short']);
+        $this->assertApiError($tooShort, 422, 'VALIDATION_ERROR');
+
+        $oversized = $this->postJson('/api/v1/auth/google', ['idToken' => str_repeat('a', 4097)]);
+        $this->assertApiError($oversized, 422, 'VALIDATION_ERROR');
+
+        $unknownField = $this->postJson('/api/v1/auth/google', [
+            'idToken' => $this->token(),
+            'role' => 'admin',
+        ]);
+        $this->assertApiError($unknownField, 422, 'VALIDATION_ERROR');
+    }
+
+    public function test_google_id_column_is_nullable_and_unique(): void
+    {
+        User::factory()->create(['google_id' => null]);
+        User::factory()->create(['google_id' => null]);
+
+        $this->assertSame(2, User::whereNull('google_id')->count());
+
+        User::factory()->create(['google_id' => 'google-subject-001']);
+
+        $this->expectException(QueryException::class);
+
+        User::factory()->create([
+            'email' => 'second@example.com',
+            'google_id' => 'google-subject-001',
+        ]);
+    }
+
+    public function test_google_sign_in_fails_closed_when_client_id_is_not_configured(): void
+    {
+        Log::spy();
+        config([
+            'services.google.client_id' => null,
+            'services.google.client_ids' => '',
+        ]);
+
+        $response = $this->postJson('/api/v1/auth/google', ['idToken' => $this->token()]);
+
+        $this->assertApiError($response, 500, 'INTERNAL_ERROR');
+        $this->assertSame(0, User::count());
+
+        // AUTH-B01: the misconfiguration must be actionable in server logs.
+        // The generic exception log may add another error entry, so only the
+        // presence of the explicit configuration message matters.
+        Log::shouldHaveReceived('error')
+            ->atLeast()
+            ->once()
+            ->withArgs(fn (string $message): bool => str_contains($message, 'GOOGLE_CLIENT_ID is not configured'));
+    }
+
+    public function test_google_sign_in_accepts_an_additional_comma_separated_audience(): void
+    {
+        config(['services.google.client_ids' => 'web-client-id, ios-client-id']);
+
+        $response = $this->postJson('/api/v1/auth/google', [
+            'idToken' => $this->token(['aud' => 'ios-client-id']),
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('data.user.email', 'grace@example.com');
+    }
+
+    public function test_google_sign_in_accepts_an_array_of_configured_client_ids(): void
+    {
+        config(['services.google.client_id' => [self::CLIENT_ID, 'web-client-id']]);
+
+        $response = $this->postJson('/api/v1/auth/google', [
+            'idToken' => $this->token(['aud' => 'web-client-id']),
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('data.user.email', 'grace@example.com');
+    }
+
+    public function test_google_sign_in_accepts_an_array_audience_claim_with_a_trusted_id(): void
+    {
+        config(['services.google.client_ids' => 'web-client-id']);
+
+        $response = $this->postJson('/api/v1/auth/google', [
+            'idToken' => $this->token(['aud' => ['unknown-client-id', 'web-client-id']]),
+        ]);
+
+        $response->assertCreated();
+    }
+
+    public function test_google_sign_in_rejects_audience_outside_the_configured_whitelist(): void
+    {
+        config(['services.google.client_ids' => 'web-client-id, ios-client-id']);
+
+        $response = $this->postJson('/api/v1/auth/google', [
+            'idToken' => $this->token(['aud' => 'untrusted-client-id']),
+        ]);
+
+        $this->assertApiError($response, 401, 'INVALID_CREDENTIALS');
+        $this->assertSame(0, User::count());
+    }
+
+    public function test_google_sign_in_fails_closed_when_google_keys_are_unavailable(): void
+    {
+        $this->googleKeysAvailable = false;
+
+        $response = $this->postJson('/api/v1/auth/google', ['idToken' => $this->token()]);
+
+        $this->assertApiError($response, 500, 'INTERNAL_ERROR');
+        $this->assertSame(0, User::count());
+    }
+
+    public function test_google_sign_in_is_rate_limited_per_ip_after_ten_requests_per_minute(): void
+    {
+        $blocked = null;
+
+        for ($i = 1; $i <= 11; $i++) {
+            $response = $this->postJson('/api/v1/auth/google', ['idToken' => 'not-a-valid-jwt-token']);
+
+            if ($i <= 10) {
+                $response->assertStatus(401);
+            } else {
+                $blocked = $response;
+            }
+        }
+
+        $this->assertApiError($blocked, 429, 'RATE_LIMITED');
+        $this->assertTrue($blocked->headers->has('Retry-After'));
+    }
+
+    /**
+     * Serve Google's real JWKS shape: RSA `n`/`e` members without certificates.
+     */
+    private function useCertificateLessJwks(): void
+    {
+        $this->jwksIncludesCertificates = false;
+
+        Cache::flush();
+    }
+
+    /**
+     * Sign a Google ID token with the test key.
+     *
+     * @param  array<string, mixed>  $overrides
+     */
+    private function token(array $overrides = [], ?\OpenSSLAsymmetricKey $signingKey = null, string $keyId = self::KEY_ID): string
+    {
+        $header = $this->encode(['alg' => 'RS256', 'kid' => $keyId, 'typ' => 'JWT']);
+        $payload = $this->encode(array_merge([
+            'iss' => 'https://accounts.google.com',
+            'aud' => self::CLIENT_ID,
+            'exp' => now()->addHour()->getTimestamp(),
+            'iat' => now()->getTimestamp(),
+            'sub' => 'google-subject-001',
+            'email' => 'grace@example.com',
+            'email_verified' => true,
+            'name' => 'Grace Hopper',
+            'given_name' => 'Grace',
+            'family_name' => 'Hopper',
+        ], $overrides));
+
+        $signedInput = $header.'.'.$payload;
+
+        openssl_sign($signedInput, $signature, $signingKey ?? self::keyPair()[0], OPENSSL_ALGO_SHA256);
+
+        return $signedInput.'.'.$this->encode($signature);
+    }
+
+    /**
+     * A fresh RSA key pair and its self-signed certificate (base64 DER,
+     * as Google's JWKS `x5c` entries are), shared within the process.
+     *
+     * A minimal OpenSSL config is supplied explicitly because bare PHP
+     * builds (for example the Windows CLI install) ship without an
+     * `openssl.cnf`, which makes `openssl_csr_new()` return false and the
+     * certificate generation crash instead of testing the endpoint.
+     *
+     * @return array{0: \OpenSSLAsymmetricKey, 1: string}
+     */
+    private static function keyPair(): array
+    {
+        if (self::$keyPair === null) {
+            $configPath = self::opensslConfigPath();
+            $options = ['digest_alg' => 'sha256', 'config' => $configPath];
+
+            $resource = openssl_pkey_new([
+                'private_key_bits' => 2048,
+                'private_key_type' => OPENSSL_KEYTYPE_RSA,
+                'config' => $configPath,
+            ]);
+
+            $request = openssl_csr_new(['commonName' => 'eshopverse-test'], $resource, $options);
+            $certificate = openssl_csr_sign($request, null, $resource, 1, $options);
+            openssl_x509_export($certificate, $certificatePem);
+
+            self::$keyPair = [
+                $resource,
+                preg_replace('/-----(BEGIN|END) CERTIFICATE-----|\s+/', '', $certificatePem),
+            ];
+        }
+
+        return self::$keyPair;
+    }
+
+    /**
+     * Write (once per process) the minimal config OpenSSL needs to build the
+     * test certificate when the PHP build has no system `openssl.cnf`.
+     */
+    private static function opensslConfigPath(): string
+    {
+        if (self::$opensslConfig === null) {
+            $path = tempnam(sys_get_temp_dir(), 'eshopverse-openssl');
+
+            file_put_contents($path, "[req]\ndistinguished_name = req_distinguished_name\nprompt = no\n[req_distinguished_name]\nCN = eshopverse-test\n");
+
+            self::$opensslConfig = $path;
+        }
+
+        return self::$opensslConfig;
+    }
+
+    private function encode(array|string $value): string
+    {
+        if (is_array($value)) {
+            $value = json_encode($value, JSON_THROW_ON_ERROR);
+        }
+
+        return rtrim(strtr(base64_encode($value), '+/', '-_'), '=');
+    }
+}

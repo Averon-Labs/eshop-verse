@@ -1,0 +1,16 @@
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "The given data failed validation.",
+    "details": [
+      {
+        "field": "email",
+        "message": "The email field must be a valid email address."
+      },
+      {
+        "field": "password",
+        "message": "The password must be at least 8 characters."
+      }
+    ]
+  }
+}

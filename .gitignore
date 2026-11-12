@@ -45,14 +45,21 @@ hs_err_pid*
 replay_pid*
 
 # Android Studio / Gradle
+/EShopVerse/
+android/.idea/
 android/.gradle/
 android/build/
 android/app/build/
+android/app/release/
+*.apk
 android/local.properties
+android/gradle/gradle-daemon-jvm.properties
 android/captures/
 android/.externalNativeBuild/
 android/.cxx/
 android/google-services.json
+# The Gradle Wrapper JAR is required to run the checked-in wrapper from a clean checkout.
+!android/gradle/wrapper/gradle-wrapper.jar
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
@@ -77,3 +84,19 @@ admin/.env
 *.zip
 *.tar.gz
 *.rar
+
+# =====================
+# Generated deployment packages
+# =====================
+# output/backend, output/admin and their archives are built locally from
+# backend/ and admin/dist for a host upload; the source of truth is the repo
+# and the instructions live in docs/DEPLOYMENT.md.
+output/
+
+# =====================
+# Operator-only production secrets
+# =====================
+# IMPORTANT/ holds the live production .env (PostgreSQL password, APP_KEY),
+# the database/Google configuration notes, and the uploaded deployment
+# bundle. Never commit or push it; see IMPORTANT/README.md locally.
+IMPORTANT/

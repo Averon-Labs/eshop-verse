@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "INTERNAL_ERROR",
+    "message": "An unexpected server error occurred.",
+    "details": []
+  }
+}
