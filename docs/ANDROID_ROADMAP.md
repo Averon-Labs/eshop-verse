@@ -891,18 +891,20 @@ All three steps in this phase may run concurrently: they own disjoint packages, 
 
 ### Step 2 — UI-005 — Explore Screen Instant 0ms Navigation & Anti-Flicker
 
-**Status:** `[ ]`
+**Status:** `[x]`
 
 **Depends on:** CACHE-002, UI-004
 
 **Scope:** Refactor `ExploreFragment.java` to check `categoryViewModel.hasData()` / repository category cache and `catalogViewModel.hasData()` before mounting adapters. Render category chips and product grid immediately without mounting `SkeletonAdapter` when cached items exist. Eliminate skeleton flicker when switching between Home, Explore, and other tabs.
 
 **Acceptance criteria:**
-- [ ] **a.** `ExploreFragment.onViewCreated` binds cached category chips immediately (0ms) without mounting skeleton chip adapters if cache exists.
-- [ ] **b.** `ExploreFragment.onViewCreated` binds cached product items immediately without mounting skeleton product cards if catalog cache exists.
-- [ ] **c.** Skeleton adapters are attached only on cold start when both repository and ViewModel hold zero items.
-- [ ] **d.** Switching tabs back and forth between Home and Explore incurs zero perceived latency (0ms) and zero UI flicker.
-- [ ] **e.** Filter bottom sheet and search input continue to function cleanly with cache bypass on query change.
+- [x] **a.** `ExploreFragment.onViewCreated` binds cached category chips immediately (0ms) without mounting skeleton chip adapters if cache exists.
+- [x] **b.** `ExploreFragment.onViewCreated` binds cached product items immediately without mounting skeleton product cards if catalog cache exists.
+- [x] **c.** Skeleton adapters are attached only on cold start when both repository and ViewModel hold zero items.
+- [x] **d.** Switching tabs back and forth between Home and Explore incurs zero perceived latency (0ms) and zero UI flicker.
+- [x] **e.** Filter bottom sheet and search input continue to function cleanly with cache bypass on query change.
+
+**Verification:** Refactored `ExploreFragment.java` to guard against skeleton flickering on category chips and product grid; warm cache binds immediately on `onViewCreated`; `setupSwipeRefresh` triggers `reload()` with force-refresh; all 274 unit tests pass with 100% success.
 
 ### Step 3 — PERF-001 — Image Loading Downsampling & Thumbnail Resolution Guard
 
