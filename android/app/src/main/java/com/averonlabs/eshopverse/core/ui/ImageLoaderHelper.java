@@ -11,6 +11,7 @@ import com.averonlabs.eshopverse.R;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.Priority;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.resource.bitmap.DownsampleStrategy;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 
 import java.util.List;
@@ -25,12 +26,15 @@ import java.util.List;
  * 5. Smooth 250ms hardware cross-fade transition.
  * 6. Multi-tier intelligent caching (RAM LRU + Disk Cache AUTOMATIC).
  * 7. Low-priority speculative prefetching (IMG-003) to prevent socket starvation.
+ * 8. Thumbnail downsampling & dimension override (PERF-001) to prevent decoding lag on mobile.
  */
 public final class ImageLoaderHelper {
 
     public static final int DEFAULT_CROSS_FADE_DURATION_MS = 250;
 
     public static final Priority PREFETCH_PRIORITY = Priority.LOW;
+
+    public static final int DEFAULT_THUMBNAIL_MAX_DIMENSION = 400; // Perfect for ~150-200dp cards at high density
 
     @DrawableRes
     public static final int DEFAULT_PLACEHOLDER_RES = R.drawable.bg_placeholder_shimmer;
@@ -44,13 +48,20 @@ public final class ImageLoaderHelper {
 
     /**
      * Loads an image into the target ImageView with standard center-crop scaling,
-     * warm shimmer placeholder, boutique error fallback, and smooth cross-fade.
+     * downsampled thumbnail capping, warm shimmer placeholder, and smooth cross-fade.
      *
      * @param imageView Target ImageView (must not be null).
      * @param url       Remote image URL (may be null or empty).
      */
     public static void loadImage(@NonNull ImageView imageView, @Nullable String url) {
-        loadImage(imageView, url, DEFAULT_PLACEHOLDER_RES, DEFAULT_ERROR_RES, true);
+        loadImage(imageView, url, DEFAULT_PLACEHOLDER_RES, DEFAULT_ERROR_RES, true, DEFAULT_THUMBNAIL_MAX_DIMENSION, DEFAULT_THUMBNAIL_MAX_DIMENSION);
+    }
+
+    /**
+     * Loads an image without downsampling bounds (e.g. for full-bleed detail views).
+     */
+    public static void loadImageFull(@NonNull ImageView imageView, @Nullable String url) {
+        loadImage(imageView, url, DEFAULT_PLACEHOLDER_RES, DEFAULT_ERROR_RES, false, 0, 0);
     }
 
     /**
@@ -62,19 +73,18 @@ public final class ImageLoaderHelper {
             @DrawableRes int placeholderRes,
             @DrawableRes int errorRes
     ) {
-        loadImage(imageView, url, placeholderRes, errorRes, true);
+        loadImage(imageView, url, placeholderRes, errorRes, true, DEFAULT_THUMBNAIL_MAX_DIMENSION, DEFAULT_THUMBNAIL_MAX_DIMENSION);
     }
 
     /**
      * Loads an image into the target ImageView using fitCenter scaling.
      */
     public static void loadImageFitCenter(@NonNull ImageView imageView, @Nullable String url) {
-        loadImage(imageView, url, DEFAULT_PLACEHOLDER_RES, DEFAULT_ERROR_RES, false);
+        loadImage(imageView, url, DEFAULT_PLACEHOLDER_RES, DEFAULT_ERROR_RES, false, DEFAULT_THUMBNAIL_MAX_DIMENSION, DEFAULT_THUMBNAIL_MAX_DIMENSION);
     }
 
     /**
-     * Base loader implementation enforcing multi-tier caching, zero-shift crossfade,
-     * and hardware-accelerated decode.
+     * Loads an image with centerCrop configuration and default thumbnail bounding.
      */
     public static void loadImage(
             @NonNull ImageView imageView,
@@ -82,6 +92,22 @@ public final class ImageLoaderHelper {
             @DrawableRes int placeholderRes,
             @DrawableRes int errorRes,
             boolean centerCrop
+    ) {
+        loadImage(imageView, url, placeholderRes, errorRes, centerCrop, DEFAULT_THUMBNAIL_MAX_DIMENSION, DEFAULT_THUMBNAIL_MAX_DIMENSION);
+    }
+
+    /**
+     * Base loader implementation enforcing multi-tier caching, zero-shift crossfade,
+     * thumbnail downsampling, and hardware-accelerated decode.
+     */
+    public static void loadImage(
+            @NonNull ImageView imageView,
+            @Nullable String url,
+            @DrawableRes int placeholderRes,
+            @DrawableRes int errorRes,
+            boolean centerCrop,
+            int targetWidth,
+            int targetHeight
     ) {
         if (imageView.getContext() == null) {
             return;
@@ -112,9 +138,14 @@ public final class ImageLoaderHelper {
                     .load(url.trim())
                     .placeholder(placeholderRes)
                     .error(errorRes)
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+                    .downsample(DownsampleStrategy.AT_MOST)
                     .skipMemoryCache(false)
                     .transition(DrawableTransitionOptions.withCrossFade(DEFAULT_CROSS_FADE_DURATION_MS));
+
+            if (targetWidth > 0 && targetHeight > 0) {
+                requestBuilder.override(targetWidth, targetHeight);
+            }
 
             if (centerCrop) {
                 requestBuilder.centerCrop();
@@ -149,7 +180,9 @@ public final class ImageLoaderHelper {
             Glide.with(appContext)
                     .load(url.trim())
                     .priority(PREFETCH_PRIORITY)
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+                    .downsample(DownsampleStrategy.AT_MOST)
+                    .override(DEFAULT_THUMBNAIL_MAX_DIMENSION, DEFAULT_THUMBNAIL_MAX_DIMENSION)
                     .skipMemoryCache(false)
                     .preload();
         } catch (Exception ignored) {
