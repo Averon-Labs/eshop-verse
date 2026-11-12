@@ -429,4 +429,126 @@ public class CatalogRepositoryTest {
         assertTrue(latch2.await(3, TimeUnit.SECONDS));
         assertEquals(2, mockWebServer.getRequestCount());
     }
+
+    @Test
+    public void testListCategoriesReturnsCachedWhenAvailable() throws Exception {
+        String fixture = ApiFixtureLoader.load("listCategories", "success");
+        mockWebServer.enqueue(new MockResponse().setResponseCode(200).setHeader("Content-Type", "application/json").setBody(fixture));
+
+        CountDownLatch latch1 = new CountDownLatch(1);
+        repository.listCategories(new CatalogRepository.CatalogCallback<List<Category>>() {
+            @Override
+            public void onSuccess(List<Category> result) {
+                latch1.countDown();
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                latch1.countDown();
+            }
+        });
+        assertTrue(latch1.await(3, TimeUnit.SECONDS));
+        assertEquals(1, mockWebServer.getRequestCount());
+        assertTrue(repository.hasValidCategoryCache());
+        assertEquals(1, repository.getCachedCategories().size());
+
+        // Second call with forceRefresh = false returns synchronous cached items without network call
+        CountDownLatch latch2 = new CountDownLatch(1);
+        AtomicReference<List<Category>> cachedResultRef = new AtomicReference<>();
+        repository.listCategories(false, new CatalogRepository.CatalogCallback<List<Category>>() {
+            @Override
+            public void onSuccess(List<Category> result) {
+                cachedResultRef.set(result);
+                latch2.countDown();
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                latch2.countDown();
+            }
+        });
+        assertTrue(latch2.await(1, TimeUnit.SECONDS));
+        assertEquals(1, mockWebServer.getRequestCount()); // Still 1! No new request
+        assertNotNull(cachedResultRef.get());
+        assertEquals(1, cachedResultRef.get().size());
+    }
+
+    @Test
+    public void testListCategoriesBypassesCacheWhenForceRefreshTrue() throws Exception {
+        String fixture = ApiFixtureLoader.load("listCategories", "success");
+        mockWebServer.enqueue(new MockResponse().setResponseCode(200).setHeader("Content-Type", "application/json").setBody(fixture));
+        mockWebServer.enqueue(new MockResponse().setResponseCode(200).setHeader("Content-Type", "application/json").setBody(fixture));
+
+        CountDownLatch latch1 = new CountDownLatch(1);
+        repository.listCategories(new CatalogRepository.CatalogCallback<List<Category>>() {
+            @Override
+            public void onSuccess(List<Category> result) {
+                latch1.countDown();
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                latch1.countDown();
+            }
+        });
+        assertTrue(latch1.await(3, TimeUnit.SECONDS));
+        assertEquals(1, mockWebServer.getRequestCount());
+
+        // Second call with forceRefresh = true hits network again
+        CountDownLatch latch2 = new CountDownLatch(1);
+        repository.listCategories(true, new CatalogRepository.CatalogCallback<List<Category>>() {
+            @Override
+            public void onSuccess(List<Category> result) {
+                latch2.countDown();
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                latch2.countDown();
+            }
+        });
+        assertTrue(latch2.await(3, TimeUnit.SECONDS));
+        assertEquals(2, mockWebServer.getRequestCount());
+    }
+
+    @Test
+    public void testListCategoriesFetchesFromNetworkWhenCacheExpired() throws Exception {
+        String fixture = ApiFixtureLoader.load("listCategories", "success");
+        mockWebServer.enqueue(new MockResponse().setResponseCode(200).setHeader("Content-Type", "application/json").setBody(fixture));
+        mockWebServer.enqueue(new MockResponse().setResponseCode(200).setHeader("Content-Type", "application/json").setBody(fixture));
+
+        CountDownLatch latch1 = new CountDownLatch(1);
+        repository.listCategories(new CatalogRepository.CatalogCallback<List<Category>>() {
+            @Override
+            public void onSuccess(List<Category> result) {
+                latch1.countDown();
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                latch1.countDown();
+            }
+        });
+        assertTrue(latch1.await(3, TimeUnit.SECONDS));
+        assertTrue(repository.hasValidCategoryCache());
+
+        // Expire category cache (set to 31 minutes ago)
+        repository.setCategoryCacheForTesting(repository.getCachedCategories(), System.currentTimeMillis() - (31 * 60 * 1000L));
+        assertFalse(repository.hasValidCategoryCache());
+
+        CountDownLatch latch2 = new CountDownLatch(1);
+        repository.listCategories(false, new CatalogRepository.CatalogCallback<List<Category>>() {
+            @Override
+            public void onSuccess(List<Category> result) {
+                latch2.countDown();
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                latch2.countDown();
+            }
+        });
+        assertTrue(latch2.await(3, TimeUnit.SECONDS));
+        assertEquals(2, mockWebServer.getRequestCount());
+    }
 }

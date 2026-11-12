@@ -874,18 +874,20 @@ All three steps in this phase may run concurrently: they own disjoint packages, 
 
 ### Step 1 — CACHE-002 — Taxonomy & Category Persistent / In-Memory SWR Caching
 
-**Status:** `[ ]`
+**Status:** `[x]`
 
 **Depends on:** CACHE-001
 
 **Scope:** Update `CatalogRepository` to maintain an in-memory cache and SharedPreferences local persistence for categories (`List<Category>`) with TTL (30 min). Implement `hasValidCategoryCache()`, `getCachedCategories()`, and `listCategories(boolean forceRefresh, CatalogCallback<List<Category>> callback)`. Update `CategoryViewModel` to return cached categories immediately on warm cache and expose `getCachedCategories()` / `hasData()`.
 
 **Acceptance criteria:**
-- [ ] **a.** `CatalogRepository` caches categories in memory and persists serialized JSON in `SharedPreferences` for instant cold-start restore.
-- [ ] **b.** `CatalogRepository.listCategories()` returns cached categories synchronously within 0ms if `forceRefresh` is false and cache is valid.
-- [ ] **c.** `CategoryViewModel` checks cache before emitting loading state and avoids redundant network fetches when warm.
-- [ ] **d.** Pull-to-refresh on `ExploreFragment` or `HomeFragment` triggers `categoryViewModel.reload()` with `forceRefresh = true`.
-- [ ] **e.** Unit tests in `CatalogRepositoryTest` and `CategoryViewModelTest` verify category cache hit, TTL expiration, and refresh bypass.
+- [x] **a.** `CatalogRepository` caches categories in memory and persists serialized JSON in `SharedPreferences` for instant cold-start restore.
+- [x] **b.** `CatalogRepository.listCategories()` returns cached categories synchronously within 0ms if `forceRefresh` is false and cache is valid.
+- [x] **c.** `CategoryViewModel` checks cache before emitting loading state and avoids redundant network fetches when warm.
+- [x] **d.** Pull-to-refresh on `ExploreFragment` or `HomeFragment` triggers `categoryViewModel.reload()` with `forceRefresh = true`.
+- [x] **e.** Unit tests in `CatalogRepositoryTest` and `CategoryViewModelTest` verify category cache hit, TTL expiration, and refresh bypass.
+
+**Verification:** Implemented category in-memory and `SharedPreferences` persistent caching with 30m TTL in `CatalogRepository`; updated `CategoryViewModel` with warm-cache 0ms bypass and `hasData()`/`getLoadedCategories()`; added comprehensive unit test suites in `CatalogRepositoryTest` and new `CategoryViewModelTest`; executed `.\gradlew.bat testDebugUnitTest` with 100% pass rate across all 274 tests and zero regressions.
 
 ### Step 2 — UI-005 — Explore Screen Instant 0ms Navigation & Anti-Flicker
 
