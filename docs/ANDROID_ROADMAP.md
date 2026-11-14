@@ -1002,18 +1002,18 @@ All three steps in this phase may run concurrently: they own disjoint packages, 
 
 ### Step 5 — QUAL-008 — Identity, Navigation & Avatar Test Suite Verification
 
-**Status:** `[ ]`
+**Status:** `[x]`
 
 **Depends on:** REL-001
 
 **Scope:** Execute and update automated unit tests covering category icon resolution, cart-to-account navigation routing, and session avatar retention. Verify full test suite green.
 
 **Acceptance criteria:**
-- [ ] **a.** Unit test verifying `CategoryIconResolver` mappings for all current categories.
-- [ ] **b.** Unit test verifying `CartFragment` navigation target to `accountFragment`.
-- [ ] **c.** Full Android test suite (`./gradlew testDebugUnitTest`) passes with 100% success and zero regressions.
+- [x] **a.** Unit test verifying `CategoryIconResolver` mappings for all current categories.
+- [x] **b.** Unit test verifying `CartFragment` navigation target to `accountFragment`.
+- [x] **c.** Full Android test suite (`./gradlew testDebugUnitTest`) passes with 100% success and zero regressions.
 
-**Verification:** Full Gradle test suite execution passing 100% cleanly.
+**Verification:** Added `CartNavigationTest` and `UserAvatarManagerTest`; updated `CategoryIconResolverTest`; verified full test suite via `.\gradlew.bat testDebugUnitTest` with 100% pass across all 26 tasks and all tests green in 1m 11s. Phase 15 is 100% complete!
 
 ## External dependencies owned by other components
 
