@@ -67,20 +67,49 @@
                             android:orientation="horizontal"
                             android:padding="@dimen/spacing_md">
 
-                            <!-- Circular Avatar Container in Soft Sage -->
+                            <!-- Circular Avatar Container with Elevated Edit Badge -->
                             <FrameLayout
-                                android:layout_width="60dp"
-                                android:layout_height="60dp"
+                                android:id="@+id/layout_avatar_container"
+                                android:layout_width="64dp"
+                                android:layout_height="64dp"
                                 android:layout_marginEnd="@dimen/spacing_md"
-                                android:background="@drawable/bg_avatar_circle">
+                                android:clickable="true"
+                                android:focusable="true">
 
-                                <ImageView
-                                    android:layout_width="32dp"
-                                    android:layout_height="32dp"
+                                <!-- Circular Avatar Image -->
+                                <com.google.android.material.imageview.ShapeableImageView
+                                    android:id="@+id/iv_user_avatar"
+                                    android:layout_width="60dp"
+                                    android:layout_height="60dp"
                                     android:layout_gravity="center"
-                                    android:contentDescription="@string/nav_account"
+                                    android:background="@drawable/bg_avatar_circle"
+                                    android:contentDescription="@string/account_avatar_content_desc"
+                                    android:scaleType="centerCrop"
                                     android:src="@drawable/ic_account"
-                                    app:tint="@color/color_botanical_green" />
+                                    app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+
+                                <!-- Edit Pencil Floating Action Badge -->
+                                <com.google.android.material.card.MaterialCardView
+                                    android:id="@+id/btn_edit_avatar_badge"
+                                    android:layout_width="24dp"
+                                    android:layout_height="24dp"
+                                    android:layout_gravity="bottom|end"
+                                    android:clickable="true"
+                                    android:focusable="true"
+                                    app:cardBackgroundColor="@color/color_botanical_green"
+                                    app:cardCornerRadius="12dp"
+                                    app:cardElevation="3dp"
+                                    app:strokeColor="@color/surface_color"
+                                    app:strokeWidth="1.5dp">
+
+                                    <ImageView
+                                        android:layout_width="12dp"
+                                        android:layout_height="12dp"
+                                        android:layout_gravity="center"
+                                        android:contentDescription="@string/account_edit_avatar_desc"
+                                        android:src="@drawable/ic_edit"
+                                        app:tint="@color/surface_color" />
+                                </com.google.android.material.card.MaterialCardView>
                             </FrameLayout>
 
                             <LinearLayout

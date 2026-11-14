@@ -9,6 +9,8 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -25,6 +27,7 @@ import com.averonlabs.eshopverse.core.state.UiState;
 import com.averonlabs.eshopverse.core.ui.ThemeManager;
 import com.averonlabs.eshopverse.core.ui.view.StateContainerView;
 import com.averonlabs.eshopverse.databinding.FragmentAccountBinding;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Collections;
@@ -40,6 +43,43 @@ public class AccountFragment extends Fragment {
     private AuthViewModel authViewModel;
     private SessionViewModel sessionViewModel;
     private GoogleAuthManager googleAuthManager;
+
+    private ActivityResultLauncher<Void> takePictureLauncher;
+    private ActivityResultLauncher<String> pickGalleryLauncher;
+    private int currentUserId = -1;
+    private String pendingGoogleAvatarUrl = null;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        takePictureLauncher = registerForActivityResult(
+                new ActivityResultContracts.TakePicturePreview(),
+                bitmap -> {
+                    if (bitmap != null && currentUserId > 0 && getContext() != null) {
+                        String savedPath = UserAvatarManager.saveAvatarBitmap(requireContext(), currentUserId, bitmap);
+                        if (savedPath != null && binding != null) {
+                            UserAvatarManager.loadAvatarInto(binding.ivUserAvatar, savedPath);
+                        } else if (savedPath == null) {
+                            showAnchoredSnackbar(R.string.avatar_error_save_failed);
+                        }
+                    }
+                }
+        );
+
+        pickGalleryLauncher = registerForActivityResult(
+                new ActivityResultContracts.GetContent(),
+                uri -> {
+                    if (uri != null && currentUserId > 0 && getContext() != null) {
+                        String savedPath = UserAvatarManager.saveAvatarFromUri(requireContext(), currentUserId, uri);
+                        if (savedPath != null && binding != null) {
+                            UserAvatarManager.loadAvatarInto(binding.ivUserAvatar, savedPath);
+                        } else if (savedPath == null) {
+                            showAnchoredSnackbar(R.string.avatar_error_save_failed);
+                        }
+                    }
+                }
+        );
+    }
 
     @Nullable
     @Override
@@ -111,6 +151,15 @@ public class AccountFragment extends Fragment {
     }
 
     private void setupClickListeners() {
+        View.OnClickListener avatarClickListener = v -> {
+            if (currentUserId > 0) {
+                showAvatarPickerDialog();
+            }
+        };
+        binding.layoutAvatarContainer.setOnClickListener(avatarClickListener);
+        binding.ivUserAvatar.setOnClickListener(avatarClickListener);
+        binding.btnEditAvatarBadge.setOnClickListener(avatarClickListener);
+
         binding.btnSaveProfile.setOnClickListener(v -> {
             String firstName = binding.etFirstName.getText() != null ? binding.etFirstName.getText().toString() : "";
             String lastName = binding.etLastName.getText() != null ? binding.etLastName.getText().toString() : "";
@@ -119,6 +168,11 @@ public class AccountFragment extends Fragment {
 
         binding.btnSignOut.setOnClickListener(v -> {
             sessionViewModel.signOut();
+            currentUserId = -1;
+            pendingGoogleAvatarUrl = null;
+            if (binding != null) {
+                UserAvatarManager.loadAvatarInto(binding.ivUserAvatar, null);
+            }
             // Forget the Google account picked during sign-in so the next
             // sign-in shows the account picker again instead of auto-selecting it.
             googleAuthManager.clearCredentialState(
@@ -136,6 +190,7 @@ public class AccountFragment extends Fragment {
             googleAuthManager.startSignIn(requireActivity(), new GoogleAuthManager.GoogleAuthCallback() {
                 @Override
                 public void onSuccess(@NonNull String idToken) {
+                    pendingGoogleAvatarUrl = UserAvatarManager.extractPictureUrlFromIdToken(idToken);
                     authViewModel.loginWithGoogle(idToken);
                 }
 
@@ -220,6 +275,7 @@ public class AccountFragment extends Fragment {
 
         sessionViewModel.getCurrentUser().observe(getViewLifecycleOwner(), user -> {
             if (binding == null || user == null) return;
+            currentUserId = user.getId();
             String fullName = user.getFirstName() + " " + user.getLastName();
             binding.tvUserName.setText(fullName.trim());
             binding.tvUserEmail.setText(user.getEmail());
@@ -232,6 +288,15 @@ public class AccountFragment extends Fragment {
             if (binding.etLastName.getText() == null || binding.etLastName.getText().length() == 0) {
                 binding.etLastName.setText(user.getLastName());
             }
+
+            // Avatar loading and Google photo integration
+            String avatarPath = UserAvatarManager.getAvatarPath(requireContext(), user.getId());
+            if (avatarPath == null && pendingGoogleAvatarUrl != null) {
+                UserAvatarManager.saveGoogleAvatarUrl(requireContext(), user.getId(), pendingGoogleAvatarUrl);
+                avatarPath = pendingGoogleAvatarUrl;
+                pendingGoogleAvatarUrl = null;
+            }
+            UserAvatarManager.loadAvatarInto(binding.ivUserAvatar, avatarPath);
         });
 
         authViewModel.getFirstNameErrorRes().observe(getViewLifecycleOwner(), resId -> {
@@ -408,6 +473,43 @@ public class AccountFragment extends Fragment {
         binding.switchThemeMode.setChecked(isDark);
         binding.ivAccountThemeIcon.setImageResource(isDark ? R.drawable.ic_light_mode : R.drawable.ic_dark_mode);
         binding.tvThemeModeSubtitle.setText(isDark ? "Dark appearance active" : "Light appearance active");
+    }
+
+    private void showAvatarPickerDialog() {
+        if (!isAdded() || getContext() == null) return;
+        BottomSheetDialog dialog = new BottomSheetDialog(requireContext());
+        View sheetView = LayoutInflater.from(requireContext()).inflate(R.layout.bottom_sheet_avatar_picker, null);
+        dialog.setContentView(sheetView);
+
+        sheetView.findViewById(R.id.btn_take_photo).setOnClickListener(v -> {
+            dialog.dismiss();
+            try {
+                takePictureLauncher.launch(null);
+            } catch (Exception e) {
+                showAnchoredSnackbar(R.string.avatar_error_save_failed);
+            }
+        });
+
+        sheetView.findViewById(R.id.btn_choose_gallery).setOnClickListener(v -> {
+            dialog.dismiss();
+            try {
+                pickGalleryLauncher.launch("image/*");
+            } catch (Exception e) {
+                showAnchoredSnackbar(R.string.avatar_error_save_failed);
+            }
+        });
+
+        sheetView.findViewById(R.id.btn_remove_photo).setOnClickListener(v -> {
+            dialog.dismiss();
+            if (currentUserId > 0 && getContext() != null) {
+                UserAvatarManager.removeAvatar(requireContext(), currentUserId);
+                if (binding != null) {
+                    UserAvatarManager.loadAvatarInto(binding.ivUserAvatar, null);
+                }
+            }
+        });
+
+        dialog.show();
     }
 
     @Override

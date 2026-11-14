@@ -972,17 +972,19 @@ All three steps in this phase may run concurrently: they own disjoint packages, 
 
 ### Step 3 — USER-001 — Profile Avatar Management & Google Photo Integration
 
-**Status:** `[ ]`
+**Status:** `[x]`
 
 **Depends on:** AUTH-004
 
 **Scope:** Add an elevated edit pencil badge to the profile avatar in `AccountFragment`. On tap, present an Instagram-style Material 3 BottomSheetDialog offering "Take Photo" (Camera), "Choose from Gallery", and "Remove Photo". Wire `GoogleSignInAccount.getPhotoUrl()` to automatically assign the user's Google avatar upon Google sign-in.
 
 **Acceptance criteria:**
-- [ ] **a.** Profile avatar displays an edit pencil icon badge indicating interactive avatar capability.
-- [ ] **b.** Tapping the avatar or pencil opens a BottomSheetDialog with Camera, Gallery, and Remove options.
-- [ ] **c.** Camera captures and Gallery picks are handled via Android modern ActivityResultContracts and rendered with Glide.
-- [ ] **d.** Google Sign-In extracts `getPhotoUrl()` and applies the Google avatar image automatically upon login.
+- [x] **a.** Profile avatar displays an edit pencil icon badge indicating interactive avatar capability.
+- [x] **b.** Tapping the avatar or pencil opens a BottomSheetDialog with Camera, Gallery, and Remove options.
+- [x] **c.** Camera captures and Gallery picks are handled via Android modern ActivityResultContracts and rendered with Glide.
+- [x] **d.** Google Sign-In extracts `getPhotoUrl()` and applies the Google avatar image automatically upon login.
+
+**Verification:** Implemented `UserAvatarManager`, elevated circular edit pencil badge, `bottom_sheet_avatar_picker.xml`, ActivityResultContracts camera/gallery launchers, Google ID token picture payload extraction, and full unit test coverage in `UserAvatarManagerTest` (all 26 Gradle tasks green, 100% pass).
 
 ### Step 4 — REL-001 — Version 1.0.1 Bump & Release Build Configuration
 
