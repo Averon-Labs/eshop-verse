@@ -2,12 +2,14 @@
 
 namespace App\Http\Resources;
 
+use App\Services\ProfileImageStorage;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * docs/openapi.yaml User schema: id, email, firstName, lastName, role,
- * status, createdAt. Hidden internals (password, tokens) never appear.
+ * status, createdAt, avatarUrl. Hidden internals (password, tokens) never
+ * appear.
  */
 class UserResource extends JsonResource
 {
@@ -24,6 +26,8 @@ class UserResource extends JsonResource
             'role' => $this->role,
             'status' => $this->status,
             'createdAt' => $this->created_at?->toIso8601String(),
+            // PRF-001: always present, null when the customer has no photo.
+            'avatarUrl' => app(ProfileImageStorage::class)->urlFor($this->avatar_path),
         ];
     }
 }

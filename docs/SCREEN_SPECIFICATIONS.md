@@ -14,8 +14,8 @@ All user-facing copy is English. Customer price and total displays use en-US USD
 - Treat the screen inventory below as a mapping of existing product tasks, not as permission to add scope. When a detailed layout is not supported by an existing product/API requirement, preserve the task-defined flow and apply only the shared visual system.
 - Every network-backed page defines loading, populated, empty, recoverable error/retry, and success feedback as applicable. Keep errors close to the affected content and preserve user input when safe.
 - Use real API-backed data only. Never draw fake revenue, visitors, ratings, reviews, sales counts, discounts, or inventory thresholds to fill empty space.
-- Product images are seeded/demo URLs. Image loading uses a neutral placeholder and a recoverable image-error treatment; no image upload is in scope.
-- Do not add wishlists/favorites, product reviews/ratings, coupons, taxes, saved-address books, customer-management screens, notifications, CMS, or real payment fields. These features are deferred by the product/database scope.
+- Product images are seeded/demo URLs or admin-uploaded files. Image loading uses a neutral placeholder and a recoverable image-error treatment. The only customer upload in scope is the M-17 profile photo (JPEG, PNG, or WebP up to 5 MB); product image upload remains an admin capability.
+- Do not add product reviews/ratings, coupons, taxes, saved-address books, customer-management screens, notifications, CMS, or real payment fields. These features are deferred by the product/database scope. Favorites are the exception: FAV-001 shipped the customer favorite toggle and the Account favorites entry, so they are in scope and must not be removed.
 - Customer browsing is available without an account. A cart belongs to a signed-in customer. Do not create or persist a guest cart. For an auth-required action, follow the existing auth and return-navigation requirements; make no cart mutation until the customer is signed in.
 - Checkout shows subtotal plus the configured sample shipping amount; do not show a tax calculation or invent a discount.
 - Category archive lifecycle is resolved: categories use `status: active | archived`. Hard deletion is not permitted; archiving is refused while active products remain assigned. Category management screens support list, create, edit, reorder, and archive.
@@ -26,9 +26,9 @@ All user-facing copy is English. Customer price and total displays use en-US USD
 
 - Use one Material 3 app theme, one contextual top app bar, and a four-item **Floating Pill Bottom Navigation**: **Home**, **Explore**, **Cart**, **Account** wrapped in an elevated (8dp) 28dp-radius floating card with 16dp bottom and 24dp side margins. Show an item-count badge on Cart when nonzero.
 - Keep floating bottom navigation visible on the four top-level destinations. Hide it on focused checkout/auth/detail steps when it would compete with the task; use normal Android back navigation.
-- Home top bar shows the text wordmark **EShop Verse**, a search entry point, and a profile/account icon. Use initials rather than inventing a profile photo when the API has no avatar.
+- Home top bar shows the text wordmark **EShop Verse**, a search entry point, a profile/account avatar, and a separate theme toggle. Use initials rather than inventing a profile photo when the API has no avatar.
 - Use a 16dp horizontal content gutter, 12dp card/grid gaps, and sticky bottom actions only when the page needs a primary action. Respect system bars and keyboard insets.
-- The reference's heart, discount sticker, shoe size/color selectors, and FAB are not copied: wishlist, discounts, and product variants are not part of the first-release model; actions use the appropriate Material 3 button or navigation item.
+- The reference's heart, discount sticker, shoe size/color selectors, and FAB are not copied wholesale: the decorative heart becomes the shipped favorite toggle (FAV-001), while discounts and product variants are not part of the first-release model; other actions use the appropriate Material 3 button or navigation item.
 - Modern visual craftsmanship per `.agents/skills/my-ui-ux-skill/`:
   - **Bento Card Structure:** Product and catalog cards adopt asymmetric Bento styling with 20dp corners (`bg_bento_item.xml`), 1dp hairline border depth (`colorOutlineVariant`), and spring touch physics (`scaleX(0.97f)` on press).
   - **Glassmorphism:** Navigation bar and floating overlays utilize `bg_card_glass.xml` with subtle blur/tint.
@@ -54,7 +54,7 @@ All user-facing copy is English. Customer price and total displays use en-US USD
 | M-14 | Payment/order result | Distinct success and failure heading, server-returned order reference/status, and next steps. Success offers **View order** and **Continue shopping**; failure offers only a safe retry/recovery path consistent with server state and **View order** when one exists. Never infer success from a timeout. |
 | M-15 | Order history | Signed-in customer's paginated order cards showing order reference/date, USD total, and server status. Empty state says no orders exist yet and links to Explore; each row opens M-16. |
 | M-16 | Order details | Immutable order item/price snapshots, shipping-address snapshot, subtotal/shipping/total, payment result, current status, and order timeline only for transitions supplied by the API. No customer-side status editing. |
-| M-17 | Account | Provide only the account/profile basics supported by PRODUCT.md and the customer API. Apply shared typography, surfaces, and action styles; do not imply customer administration, saved addresses, or other account features. |
+| M-17 | Account | Provide only the account/profile basics supported by PRODUCT.md and the customer API. Signed-in customers can change or remove their profile photo: the picker accepts JPEG, PNG, or WebP up to 5 MB, uploads show progress, and the rendered avatar falls back to the customer's initials when no photo exists. Apply shared typography, surfaces, and action styles; do not imply customer administration, saved addresses, or other account features. |
 
 M-03 and M-04 reuse the M-02 catalog-listing pattern as search/category result states; they do not require extra bottom-navigation destinations or new features.
 
@@ -66,6 +66,7 @@ M-17 Account belongs to AUTH-002 together with M-06–M-09: it presents only the
 - Search is submitted with the keyboard action or search icon. Sort/category changes reset the result page to the beginning. Preserve the query when navigating to a product and back.
 - Empty cart/orders/catalog use the shared empty-state illustration/icon, one sentence, and one relevant action. Do not create a different empty-state visual treatment for each feature.
 - Authenticated API `401` clears protected session state and returns to M-06 with a concise explanation; network/server failures retain safe form/search state and show retry.
+- The M-17 avatar is a single circular image viewport with zero layout shift; the initials fallback shows while no photo exists or while loading fails. Picking a photo reads it off the main thread and rejects files over 5 MB or with unsupported bytes before any upload. Upload and removal show inline progress, disable duplicate actions, and report success or failure through the shared snackbar pattern.
 - The system back action returns to the previous logical step and does not resubmit a payment or order mutation.
 
 ## Admin dashboard (React web)

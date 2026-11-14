@@ -26,6 +26,9 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.TimeZone;
 
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -269,6 +272,92 @@ public class AuthRepository {
             @Override
             public void onFailure(
                     @NonNull Call<ApiResponse<User>> call,
+                    @NonNull Throwable t
+            ) {
+                callback.onError(t);
+            }
+        });
+    }
+
+    /**
+     * Uploads or replaces the customer's profile photo (PRF-001).
+     * The multipart part name and the generated file name are fixed; the
+     * server validates the detected content type and replaces the old file.
+     */
+    public void uploadProfileAvatar(
+            @NonNull String mimeType,
+            @NonNull byte[] imageBytes,
+            @NonNull AuthCallback<User> callback
+    ) {
+        if (!isSignedIn()) {
+            callback.onError(new ApiException(401, ApiErrorCodes.UNAUTHENTICATED, "Session expired", null));
+            return;
+        }
+
+        MediaType mediaType = MediaType.parse(mimeType);
+        if (mediaType == null
+                || !AvatarImageValidator.isSupportedMimeType(mimeType)
+                || !AvatarImageValidator.isWithinSizeLimit(imageBytes.length)) {
+            callback.onError(new ApiException(422, ApiErrorCodes.VALIDATION_ERROR, "Unsupported image", null));
+            return;
+        }
+
+        RequestBody fileBody = RequestBody.create(imageBytes, mediaType);
+        MultipartBody.Part part = MultipartBody.Part.createFormData(
+                "image",
+                AvatarImageValidator.fileNameForMimeType(mimeType),
+                fileBody
+        );
+
+        apiRoutes.uploadProfileAvatar(part).enqueue(new Callback<ApiResponse<User>>() {
+            @Override
+            public void onResponse(
+                    @NonNull Call<ApiResponse<User>> call,
+                    @NonNull Response<ApiResponse<User>> response
+            ) {
+                if (response.isSuccessful() && response.body() != null && response.body().getData() != null) {
+                    callback.onSuccess(response.body().getData());
+                } else {
+                    callback.onError(parseError(response));
+                }
+            }
+
+            @Override
+            public void onFailure(
+                    @NonNull Call<ApiResponse<User>> call,
+                    @NonNull Throwable t
+            ) {
+                callback.onError(t);
+            }
+        });
+    }
+
+    /**
+     * Deletes the customer's profile photo (PRF-001). The operation is
+     * idempotent on the server: a missing photo still answers 204.
+     */
+    public void deleteProfileAvatar(@NonNull AuthCallback<Void> callback) {
+        if (!isSignedIn()) {
+            callback.onError(new ApiException(401, ApiErrorCodes.UNAUTHENTICATED, "Session expired", null));
+            return;
+        }
+
+        apiRoutes.deleteProfileAvatar().enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(
+                    @NonNull Call<Void> call,
+                    @NonNull Response<Void> response
+            ) {
+                if (response.isSuccessful()) {
+                    callback.onSuccess(null);
+                } else {
+                    callback.onError(parseError(response));
+                }
+            }
+
+            @Override
+            public void onFailure(
+                    @NonNull Call<Void> call,
                     @NonNull Throwable t
             ) {
                 callback.onError(t);

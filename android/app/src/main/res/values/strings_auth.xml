@@ -6,6 +6,30 @@
     <string name="auth_request_reset_title">Forgot password</string>
     <string name="auth_set_new_password_title">Set new password</string>
     <string name="auth_account_title">My Account</string>
+    <string name="auth_account_brand">ESHOP VERSE</string>
+    <string name="auth_role_customer">Customer</string>
+    <string name="auth_role_admin">Administrator</string>
+    <string name="auth_favorites_subtitle">View all your saved items</string>
+    <string name="auth_edit_profile_heading">Profile details</string>
+    <string name="auth_edit_profile_subtitle">Update your name and account info</string>
+    <string name="auth_guest_subtitle">Sign in to continue your curated experience.</string>
+    <string name="auth_theme_light_active">Light appearance active</string>
+    <string name="auth_theme_dark_active">Dark appearance active</string>
+    <plurals name="auth_favorites_count">
+        <item quantity="one">%1$d item</item>
+        <item quantity="other">%1$d items</item>
+    </plurals>
+
+    <!-- Profile photo (PRF-001) -->
+    <string name="auth_avatar_change">Change photo</string>
+    <string name="auth_avatar_remove">Remove photo</string>
+    <string name="auth_avatar_content_description">Profile photo. Tap to change.</string>
+    <string name="auth_avatar_initials_content_description">Profile initial</string>
+    <string name="auth_feedback_avatar_updated">Profile photo updated.</string>
+    <string name="auth_feedback_avatar_removed">Profile photo removed.</string>
+    <string name="auth_error_avatar_unsupported">Choose a JPEG, PNG, or WebP image.</string>
+    <string name="auth_error_avatar_too_large">The photo must be 5 MB or smaller.</string>
+    <string name="auth_error_avatar_read_failed">The photo could not be read. Try another image.</string>
 
     <!-- Field Labels & Hints -->
     <string name="auth_label_email">Email address</string>

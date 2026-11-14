@@ -99,5 +99,14 @@ class AppServiceProvider extends ServiceProvider
 
             return Limit::perMinute(60)->by('customer-write:'.$key);
         });
+
+        // x-rate-limit-classes: customer-media { limit: 20, window: 1m, key: token }.
+        // PRF-001: profile-photo upload and delete are heavier than JSON writes.
+        RateLimiter::for('customer-media', function (Request $request) {
+            $user = $request->user();
+            $key = $user?->currentAccessToken()?->id ?? $user?->getAuthIdentifier() ?? $request->ip();
+
+            return Limit::perMinute(20)->by('customer-media:'.$key);
+        });
     }
 }
