@@ -84,6 +84,8 @@ find "$APP/storage/framework/sessions" -mindepth 1 -delete 2>/dev/null || true
 find "$APP/storage/framework/views" -type f -name '*.php' -delete
 mkdir -p "$APP/storage/app/product-images"
 printf '*\n!.gitignore\n' >"$APP/storage/app/product-images/.gitignore"
+mkdir -p "$APP/storage/app/profile-images"
+printf '*\n!.gitignore\n' >"$APP/storage/app/profile-images/.gitignore"
 
 step "Packing"
 entry_list=()

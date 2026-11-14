@@ -33,8 +33,17 @@ public final class User {
     @SerializedName("createdAt")
     private final String createdAt;
 
+    @SerializedName("avatarUrl")
+    private final String avatarUrl;
+
     public User(int id, @NonNull String email, @NonNull String firstName, @NonNull String lastName,
                 @NonNull UserRole role, @NonNull UserStatus status, @Nullable String createdAt) {
+        this(id, email, firstName, lastName, role, status, createdAt, null);
+    }
+
+    public User(int id, @NonNull String email, @NonNull String firstName, @NonNull String lastName,
+                @NonNull UserRole role, @NonNull UserStatus status, @Nullable String createdAt,
+                @Nullable String avatarUrl) {
         this.id = id;
         this.email = email;
         this.firstName = firstName;
@@ -42,6 +51,7 @@ public final class User {
         this.role = role;
         this.status = status;
         this.createdAt = createdAt;
+        this.avatarUrl = avatarUrl;
     }
 
     public int getId() {
@@ -83,6 +93,15 @@ public final class User {
         return createdAt;
     }
 
+    /**
+     * Absolute URL of the customer's profile photo, or null when none is set.
+     * Served by the public media capability route (PRF-001).
+     */
+    @Nullable
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -93,11 +112,12 @@ public final class User {
                 Objects.equals(firstName, user.firstName) &&
                 Objects.equals(lastName, user.lastName) &&
                 role == user.role &&
-                status == user.status;
+                status == user.status &&
+                Objects.equals(avatarUrl, user.avatarUrl);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, email, firstName, lastName, role, status);
+        return Objects.hash(id, email, firstName, lastName, role, status, avatarUrl);
     }
 }

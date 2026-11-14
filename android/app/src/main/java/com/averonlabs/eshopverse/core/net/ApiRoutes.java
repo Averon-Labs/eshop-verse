@@ -26,13 +26,16 @@ import com.averonlabs.eshopverse.core.model.User;
 
 import java.util.List;
 
+import okhttp3.MultipartBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
+import retrofit2.http.Multipart;
 import retrofit2.http.PATCH;
 import retrofit2.http.POST;
+import retrofit2.http.Part;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
@@ -78,6 +81,13 @@ public interface ApiRoutes {
 
     @PATCH("auth/profile")
     Call<ApiResponse<User>> updateCustomerProfile(@Body UpdateProfileRequest request);
+
+    @Multipart
+    @POST("auth/profile/avatar")
+    Call<ApiResponse<User>> uploadProfileAvatar(@Part MultipartBody.Part image);
+
+    @DELETE("auth/profile/avatar")
+    Call<Void> deleteProfileAvatar();
 
     @POST("auth/password-reset")
     Call<Void> requestPasswordReset(@Body PasswordResetRequest request);

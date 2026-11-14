@@ -32,6 +32,7 @@ public class AuthViewModel extends ViewModel {
     private final MutableLiveData<UiState<Void>> resetRequestState = new MutableLiveData<>();
     private final MutableLiveData<UiState<Void>> resetConfirmState = new MutableLiveData<>();
     private final MutableLiveData<UiState<User>> profileUpdateState = new MutableLiveData<>();
+    private final MutableLiveData<UiState<User>> avatarState = new MutableLiveData<>();
 
     // Client-side and server-side field errors
     private final MutableLiveData<Integer> emailErrorRes = new MutableLiveData<>();
@@ -52,6 +53,7 @@ public class AuthViewModel extends ViewModel {
 
     private AuthType currentAuthType = AuthType.EMAIL_PASSWORD;
     private boolean isSubmitting = false;
+    private boolean isAvatarSubmitting = false;
 
     public AuthViewModel(@NonNull AuthRepository authRepository) {
         this.authRepository = Objects.requireNonNull(authRepository, "authRepository cannot be null");
@@ -79,6 +81,10 @@ public class AuthViewModel extends ViewModel {
 
     public LiveData<UiState<User>> getProfileUpdateState() {
         return profileUpdateState;
+    }
+
+    public LiveData<UiState<User>> getAvatarState() {
+        return avatarState;
     }
 
     public LiveData<Integer> getEmailErrorRes() {
@@ -115,6 +121,10 @@ public class AuthViewModel extends ViewModel {
 
     public boolean isSubmitting() {
         return isSubmitting;
+    }
+
+    public boolean isAvatarSubmitting() {
+        return isAvatarSubmitting;
     }
 
     public void clearErrors() {
@@ -385,6 +395,60 @@ public class AuthViewModel extends ViewModel {
             public void onError(Throwable throwable) {
                 isSubmitting = false;
                 handleAuthError(throwable, profileUpdateState);
+            }
+        });
+    }
+
+    /**
+     * Uploads or replaces the profile photo (PRF-001).
+     */
+    public void uploadAvatar(@NonNull byte[] imageBytes, @NonNull String mimeType) {
+        if (isAvatarSubmitting) {
+            return;
+        }
+
+        isAvatarSubmitting = true;
+        avatarState.setValue(UiState.loading());
+
+        authRepository.uploadProfileAvatar(mimeType, imageBytes, new AuthCallback<User>() {
+            @Override
+            public void onSuccess(User data) {
+                isAvatarSubmitting = false;
+                avatarState.postValue(UiState.content(data));
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                isAvatarSubmitting = false;
+                handleAuthError(throwable, avatarState);
+            }
+        });
+    }
+
+    /**
+     * Removes the profile photo (PRF-001). Success is reported as an EMPTY
+     * state because the endpoint answers 204 without a user body; the screen
+     * refreshes the profile to drop the cached avatar URL.
+     */
+    public void deleteAvatar() {
+        if (isAvatarSubmitting) {
+            return;
+        }
+
+        isAvatarSubmitting = true;
+        avatarState.setValue(UiState.loading());
+
+        authRepository.deleteProfileAvatar(new AuthCallback<Void>() {
+            @Override
+            public void onSuccess(Void data) {
+                isAvatarSubmitting = false;
+                avatarState.postValue(UiState.empty());
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                isAvatarSubmitting = false;
+                handleAuthError(throwable, avatarState);
             }
         });
     }
