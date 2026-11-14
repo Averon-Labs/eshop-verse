@@ -207,12 +207,12 @@ public class AccountFragment extends Fragment {
             binding.layoutSignedIn.setVisibility(signedIn ? View.VISIBLE : View.GONE);
             binding.layoutSignedInActions.setVisibility(signedIn ? View.VISIBLE : View.GONE);
             binding.layoutGuestState.setVisibility(signedIn ? View.GONE : View.VISIBLE);
+            binding.cardThemeToggle.setVisibility(signedIn ? View.VISIBLE : View.GONE);
+            binding.cardFavoritesNav.setVisibility(signedIn ? View.VISIBLE : View.GONE);
             binding.tvAccountTitle.setText(signedIn ? R.string.auth_account_title : R.string.auth_sign_in_title);
 
             // Update favorites badge according to auth status
-            if (!signedIn) {
-                binding.tvFavoritesCountBadge.setText(R.string.favorites_action_sign_in);
-            } else {
+            if (signedIn) {
                 int count = FavoritesRepository.getInstance(requireContext()).getFavoritesCount();
                 binding.tvFavoritesCountBadge.setText(count + " " + (count == 1 ? "item" : "items"));
             }

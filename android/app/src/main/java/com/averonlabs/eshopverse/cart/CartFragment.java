@@ -171,9 +171,13 @@ public class CartFragment extends Fragment {
                             getString(R.string.cart_guest_title),
                             getString(R.string.cart_action_sign_in),
                             () -> {
-                                Bundle args = new Bundle();
-                                args.putInt("returnToNavId", R.id.cartFragment);
-                                NavHostFragment.findNavController(this).navigate(R.id.nav_auth, args);
+                                try {
+                                    NavHostFragment.findNavController(this).navigate(R.id.accountFragment);
+                                } catch (Exception e) {
+                                    Bundle args = new Bundle();
+                                    args.putInt("returnToNavId", R.id.cartFragment);
+                                    NavHostFragment.findNavController(this).navigate(R.id.nav_auth, args);
+                                }
                             }
                     );
                     binding.btnCartCheckout.setEnabled(false);

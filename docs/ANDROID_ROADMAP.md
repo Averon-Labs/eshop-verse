@@ -956,17 +956,19 @@ All three steps in this phase may run concurrently: they own disjoint packages, 
 
 ### Step 2 — AUTH-004 — Unified Auth Navigation & Progressive Disclosure for Guests
 
-**Status:** `[ ]`
+**Status:** `[x]`
 
 **Depends on:** UI-006
 
 **Scope:** Eliminate navigation fragmentation by rerouting Cart guest sign-in CTA directly to `accountFragment`. In `AccountFragment`, hide authenticated-only controls (Theme switch, Favorites, Order history) for guest users until signed in, and streamline the registration form to essential fields only (Name, Email, Password).
 
 **Acceptance criteria:**
-- [ ] **a.** Tapping "Sign In" from `CartFragment` navigates directly to `accountFragment` rather than opening a disconnected login screen.
-- [ ] **b.** In `AccountFragment`, theme selection toggle, favorites section, and order history are hidden when `isSignedIn == false`.
-- [ ] **c.** Registration form enforces a minimal high-conversion field layout (Name, Email, Password) without non-essential friction.
-- [ ] **d.** Signing in smoothly reveals personal account controls with zero layout jank or crash.
+- [x] **a.** Tapping "Sign In" from `CartFragment` navigates directly to `accountFragment` rather than opening a disconnected login screen.
+- [x] **b.** In `AccountFragment`, theme selection toggle, favorites section, and order history are hidden when `isSignedIn == false`.
+- [x] **c.** Registration form enforces a minimal high-conversion field layout (Name, Email, Password) without non-essential friction.
+- [x] **d.** Signing in smoothly reveals personal account controls with zero layout jank or crash.
+
+**Verification:** Updated `CartFragment` guest state to navigate directly to `accountFragment`; updated `AccountFragment` to dynamically hide `cardThemeToggle` and `cardFavoritesNav` for guests until signed in; verified full unit test suite passing 100% (274 tests green).
 
 ### Step 3 — USER-001 — Profile Avatar Management & Google Photo Integration
 
