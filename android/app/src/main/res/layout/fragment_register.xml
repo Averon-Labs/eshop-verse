@@ -25,6 +25,31 @@
                 android:orientation="vertical"
                 android:padding="@dimen/spacing_lg">
 
+                <!-- Top Navigation Bar with Back Button -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/btn_back"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginBottom="@dimen/spacing_md"
+                    android:clickable="true"
+                    android:contentDescription="@string/catalog_cd_back"
+                    android:focusable="true"
+                    app:cardBackgroundColor="@color/surface_card_frosted"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/border_hairline"
+                    app:strokeWidth="@dimen/stroke_hairline">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_arrow_back"
+                        app:tint="@color/text_primary_ink" />
+
+                </com.google.android.material.card.MaterialCardView>
+
                 <!-- Editorial Brand Header -->
                 <TextView
                     android:id="@+id/tv_register_brand_subtitle"
