@@ -937,6 +937,76 @@ All three steps in this phase may run concurrently: they own disjoint packages, 
 
 **Verification:** Executed full test suite `.\gradlew.bat testDebugUnitTest` verifying category caching, warm-cache bypass, Explore anti-skeleton lifecycle, and image downsampling across all 274 test cases with 100% success and zero regressions. Phase 14 is 100% complete!
 
+## Phase 15 — Identity UX Modernization, Unified Auth Navigation, Profile Avatar Management & Version 1.0.1 Release
+
+**Objective:** Modernize category visual vectors, unify authentication navigation from Cart to AccountFragment, streamline the sign-up funnel and progressive disclosure for guest users, add Instagram-style avatar capture/editing and automatic Google photo extraction, and release version 1.0.1.
+
+### Step 1 — UI-006 — Vector Category Icons Modernization for Home & Explore
+
+**Status:** `[ ]`
+
+**Scope:** Replace ad-hoc or generic category icons with official, crisp Google Material Symbols XML vector drawables for all categories (`Audio & Headphones`, `Wearables`, `Desk & Workspace`, `Photography`, `Apparel`, `Electronics`, and `All`). Update `CategoryIconResolver.java` and category adapters across Home and Explore.
+
+**Acceptance criteria:**
+- [ ] **a.** Add official Material Design vector drawables in `res/drawable/` with crisp styling, correct tinting, and zero pixelation.
+- [ ] **b.** `CategoryIconResolver` maps each category name accurately to its dedicated vector icon with a graceful fallback.
+- [ ] **c.** Category chips in `ExploreFragment` and carousel items in `HomeFragment` render vector icons seamlessly across light and dark themes.
+
+### Step 2 — AUTH-004 — Unified Auth Navigation & Progressive Disclosure for Guests
+
+**Status:** `[ ]`
+
+**Depends on:** UI-006
+
+**Scope:** Eliminate navigation fragmentation by rerouting Cart guest sign-in CTA directly to `accountFragment`. In `AccountFragment`, hide authenticated-only controls (Theme switch, Favorites, Order history) for guest users until signed in, and streamline the registration form to essential fields only (Name, Email, Password).
+
+**Acceptance criteria:**
+- [ ] **a.** Tapping "Sign In" from `CartFragment` navigates directly to `accountFragment` rather than opening a disconnected login screen.
+- [ ] **b.** In `AccountFragment`, theme selection toggle, favorites section, and order history are hidden when `isSignedIn == false`.
+- [ ] **c.** Registration form enforces a minimal high-conversion field layout (Name, Email, Password) without non-essential friction.
+- [ ] **d.** Signing in smoothly reveals personal account controls with zero layout jank or crash.
+
+### Step 3 — USER-001 — Profile Avatar Management & Google Photo Integration
+
+**Status:** `[ ]`
+
+**Depends on:** AUTH-004
+
+**Scope:** Add an elevated edit pencil badge to the profile avatar in `AccountFragment`. On tap, present an Instagram-style Material 3 BottomSheetDialog offering "Take Photo" (Camera), "Choose from Gallery", and "Remove Photo". Wire `GoogleSignInAccount.getPhotoUrl()` to automatically assign the user's Google avatar upon Google sign-in.
+
+**Acceptance criteria:**
+- [ ] **a.** Profile avatar displays an edit pencil icon badge indicating interactive avatar capability.
+- [ ] **b.** Tapping the avatar or pencil opens a BottomSheetDialog with Camera, Gallery, and Remove options.
+- [ ] **c.** Camera captures and Gallery picks are handled via Android modern ActivityResultContracts and rendered with Glide.
+- [ ] **d.** Google Sign-In extracts `getPhotoUrl()` and applies the Google avatar image automatically upon login.
+
+### Step 4 — REL-001 — Version 1.0.1 Bump & Release Build Configuration
+
+**Status:** `[ ]`
+
+**Depends on:** USER-001
+
+**Scope:** Bump `versionCode` to `2` and `versionName` to `"1.0.1"` in `android/app/build.gradle.kts`. Verify clean release compilation and packaging settings.
+
+**Acceptance criteria:**
+- [ ] **a.** `android/app/build.gradle.kts` sets `versionCode = 2` and `versionName = "1.0.1"`.
+- [ ] **b.** Release build compiles cleanly with zero lint regressions.
+
+### Step 5 — QUAL-008 — Identity, Navigation & Avatar Test Suite Verification
+
+**Status:** `[ ]`
+
+**Depends on:** REL-001
+
+**Scope:** Execute and update automated unit tests covering category icon resolution, cart-to-account navigation routing, and session avatar retention. Verify full test suite green.
+
+**Acceptance criteria:**
+- [ ] **a.** Unit test verifying `CategoryIconResolver` mappings for all current categories.
+- [ ] **b.** Unit test verifying `CartFragment` navigation target to `accountFragment`.
+- [ ] **c.** Full Android test suite (`./gradlew testDebugUnitTest`) passes with 100% success and zero regressions.
+
+**Verification:** Full Gradle test suite execution passing 100% cleanly.
+
 ## External dependencies owned by other components
 
 These are the only cross-component items the Android tasks depend on. They are listed here **once** for
