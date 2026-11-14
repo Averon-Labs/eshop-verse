@@ -943,14 +943,16 @@ All three steps in this phase may run concurrently: they own disjoint packages, 
 
 ### Step 1 — UI-006 — Vector Category Icons Modernization for Home & Explore
 
-**Status:** `[ ]`
+**Status:** `[x]`
 
 **Scope:** Replace ad-hoc or generic category icons with official, crisp Google Material Symbols XML vector drawables for all categories (`Audio & Headphones`, `Wearables`, `Desk & Workspace`, `Photography`, `Apparel`, `Electronics`, and `All`). Update `CategoryIconResolver.java` and category adapters across Home and Explore.
 
 **Acceptance criteria:**
-- [ ] **a.** Add official Material Design vector drawables in `res/drawable/` with crisp styling, correct tinting, and zero pixelation.
-- [ ] **b.** `CategoryIconResolver` maps each category name accurately to its dedicated vector icon with a graceful fallback.
-- [ ] **c.** Category chips in `ExploreFragment` and carousel items in `HomeFragment` render vector icons seamlessly across light and dark themes.
+- [x] **a.** Add official Material Design vector drawables in `res/drawable/` with crisp styling, correct tinting, and zero pixelation.
+- [x] **b.** `CategoryIconResolver` maps each category name accurately to its dedicated vector icon with a graceful fallback.
+- [x] **c.** Category chips in `ExploreFragment` and carousel items in `HomeFragment` render vector icons seamlessly across light and dark themes.
+
+**Verification:** Added official Google Material Symbols vectors (`ic_category_audio`, `ic_category_wearables`, `ic_category_workspace`, `ic_category_photography`, `ic_category_electronics`, `ic_category_apparel`); updated `CategoryIconResolver` and verified with updated `CategoryIconResolverTest`; all 274 project unit tests passing 100%.
 
 ### Step 2 — AUTH-004 — Unified Auth Navigation & Progressive Disclosure for Guests
 
