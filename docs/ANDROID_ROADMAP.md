@@ -937,9 +937,9 @@ All three steps in this phase may run concurrently: they own disjoint packages, 
 
 **Verification:** Executed full test suite `.\gradlew.bat testDebugUnitTest` verifying category caching, warm-cache bypass, Explore anti-skeleton lifecycle, and image downsampling across all 274 test cases with 100% success and zero regressions. Phase 14 is 100% complete!
 
-## Phase 15 — Identity UX Modernization, Unified Auth Navigation, Profile Avatar Management & Version 1.0.1 Release
+## Phase 15 — Identity UX Modernization, Unified Auth Navigation, Profile Avatar Management & Version 1.0.2 Release
 
-**Objective:** Modernize category visual vectors, unify authentication navigation from Cart to AccountFragment, streamline the sign-up funnel and progressive disclosure for guest users, add Instagram-style avatar capture/editing and automatic Google photo extraction, and release version 1.0.1.
+**Objective:** Modernize category visual vectors, unify authentication navigation from Cart to AccountFragment, streamline the sign-up funnel and progressive disclosure for guest users, add Instagram-style avatar capture/editing and automatic Google photo extraction, and release version 1.0.2.
 
 ### Step 1 — UI-006 — Vector Category Icons Modernization for Home & Explore
 
@@ -986,19 +986,19 @@ All three steps in this phase may run concurrently: they own disjoint packages, 
 
 **Verification:** Implemented `UserAvatarManager`, elevated circular edit pencil badge, `bottom_sheet_avatar_picker.xml`, ActivityResultContracts camera/gallery launchers, Google ID token picture payload extraction, and full unit test coverage in `UserAvatarManagerTest` (all 26 Gradle tasks green, 100% pass).
 
-### Step 4 — REL-001 — Version 1.0.1 Bump & Release Build Configuration
+### Step 4 — REL-001 — Version 1.0.2 Bump & Release Build Configuration
 
 **Status:** `[x]`
 
 **Depends on:** USER-001
 
-**Scope:** Bump `versionCode` to `2` and `versionName` to `"1.0.1"` in `android/app/build.gradle.kts`. Verify clean release compilation and packaging settings.
+**Scope:** Bump `versionCode` to `3` and `versionName` to `"1.0.2"` in `android/app/build.gradle.kts`. Verify clean release compilation and packaging settings.
 
 **Acceptance criteria:**
-- [x] **a.** `android/app/build.gradle.kts` sets `versionCode = 2` and `versionName = "1.0.1"`.
+- [x] **a.** `android/app/build.gradle.kts` sets `versionCode = 3` and `versionName = "1.0.2"`.
 - [x] **b.** Release build compiles cleanly with zero lint regressions.
 
-**Verification:** Updated `android/app/build.gradle.kts` to `versionCode = 2` and `versionName = "1.0.1"`. Verified build scripts and configuration cache consistency.
+**Verification:** Updated `android/app/build.gradle.kts` to `versionCode = 3` and `versionName = "1.0.2"`. Verified build scripts and configuration cache consistency.
 
 ### Step 5 — QUAL-008 — Identity, Navigation & Avatar Test Suite Verification
 
