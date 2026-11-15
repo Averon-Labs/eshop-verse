@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -48,9 +49,24 @@ public class RequestPasswordResetFragment extends Fragment {
 
         binding.stateContainer.setContentView(binding.scrollContent);
 
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                navigateBack();
+            }
+        });
+
         setupTextWatchers();
         setupClickListeners();
         observeViewModel();
+    }
+
+    private void navigateBack() {
+        if (!isAdded()) return;
+        NavController navController = NavHostFragment.findNavController(this);
+        if (!navController.popBackStack()) {
+            navController.navigate(R.id.signInFragment);
+        }
     }
 
     private void setupTextWatchers() {
@@ -71,6 +87,10 @@ public class RequestPasswordResetFragment extends Fragment {
     }
 
     private void setupClickListeners() {
+        if (binding.btnBack != null) {
+            binding.btnBack.setOnClickListener(v -> navigateBack());
+        }
+
         binding.btnSendReset.setOnClickListener(v -> {
             String email = binding.etEmail.getText() != null ? binding.etEmail.getText().toString() : "";
             authViewModel.requestPasswordReset(email);

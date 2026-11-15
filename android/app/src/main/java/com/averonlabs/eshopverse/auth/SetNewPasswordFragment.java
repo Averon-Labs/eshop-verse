@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -48,9 +49,24 @@ public class SetNewPasswordFragment extends Fragment {
 
         binding.stateContainer.setContentView(binding.scrollContent);
 
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                navigateBack();
+            }
+        });
+
         setupTextWatchers();
         setupClickListeners();
         observeViewModel();
+    }
+
+    private void navigateBack() {
+        if (!isAdded()) return;
+        NavController navController = NavHostFragment.findNavController(this);
+        if (!navController.popBackStack()) {
+            navController.navigate(R.id.signInFragment);
+        }
     }
 
     private void setupTextWatchers() {
@@ -78,6 +94,10 @@ public class SetNewPasswordFragment extends Fragment {
     }
 
     private void setupClickListeners() {
+        if (binding.btnBack != null) {
+            binding.btnBack.setOnClickListener(v -> navigateBack());
+        }
+
         binding.btnSubmitNewPassword.setOnClickListener(v -> {
             String token = binding.etResetToken.getText() != null ? binding.etResetToken.getText().toString() : "";
             String password = binding.etPassword.getText() != null ? binding.etPassword.getText().toString() : "";

@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -63,6 +64,13 @@ public class SignInFragment extends Fragment {
         googleAuthManager = new GoogleAuthManager(requireContext());
 
         binding.stateContainer.setContentView(binding.scrollContent);
+
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                navigateBack();
+            }
+        });
 
         setupTextWatchers();
         setupClickListeners();
@@ -131,6 +139,20 @@ public class SignInFragment extends Fragment {
             args.putInt("returnToNavId", returnToNavId);
             navController.navigate(R.id.action_signInFragment_to_registerFragment, args);
         });
+
+        if (binding.btnBack != null) {
+            binding.btnBack.setOnClickListener(v -> navigateBack());
+        }
+    }
+
+    private void navigateBack() {
+        if (!isAdded()) return;
+        NavController navController = NavHostFragment.findNavController(this);
+        if (!navController.popBackStack()) {
+            int targetId = (returnToNavId != 0 && returnToNavId != R.id.signInFragment && returnToNavId != R.id.registerFragment)
+                    ? returnToNavId : R.id.homeFragment;
+            navController.navigate(targetId);
+        }
     }
 
     private void observeViewModel() {

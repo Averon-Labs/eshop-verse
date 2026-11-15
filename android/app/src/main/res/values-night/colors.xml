@@ -94,6 +94,7 @@
     <color name="surface_container_low">#151A16</color>
     <color name="border_hairline">#394339</color>
     <color name="surface_white">#202720</color>
+    <color name="surface_card_frosted">#E6202720</color>
     <color name="text_secondary_muted">#B4B9AE</color>
 
     <!-- Floating Navigation in dark mode -->
