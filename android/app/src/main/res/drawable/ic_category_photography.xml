@@ -3,7 +3,22 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
+    <!-- Camera Body with Prism/Viewfinder Bump -->
     <path
-        android:fillColor="@color/color_botanical_green"
-        android:pathData="M9.4,10.5l4.77,-8.26C13.47,2.09 12.75,2 12,2c-2.4,0 -4.6,0.85 -6.32,2.25l3.66,6.35 0.06,-0.1zM21.54,8.96C20.73,5.92 18.7,3.46 16,2.29L12.4,8.53 14.15,11.57l7.39,-2.61zM21.75,10.36L16.27,12.3l2.84,4.92c1.78,-1.45 2.97,-3.64 3.09,-6.11 -0.15,-0.25 -0.3,-0.5 -0.45,-0.75zM14.6,13.5l-2.6,-4.5 -2.6,4.5h5.2zM8.5,14.5l-4.74,8.22c0.75,0.18 1.51,0.28 2.3,0.28 2.45,0 4.69,-0.88 6.44,-2.33L8.85,14.33l-0.35,0.17zM2.46,15.04c0.81,3.04 2.84,5.5 5.54,6.67l3.6,-6.24L9.85,12.43 2.46,15.04zM2.25,13.64l5.48,-1.94 -2.84,-4.92C3.11,8.23 1.92,10.42 1.8,12.89c0.15,0.25 0.3,0.5 0.45,0.75z" />
+        android:pathData="M4,7h3.5L9,4.5h6L16.5,7H20c0.8,0 1.5,0.7 1.5,1.5v10c0,0.8 -0.7,1.5 -1.5,1.5H4c-0.8,0 -1.5,-0.7 -1.5,-1.5v-10C2.5,7.7 3.2,7 4,7Z"
+        android:strokeWidth="1.6"
+        android:strokeColor="@android:color/white"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <!-- Camera Lens Ring -->
+    <path
+        android:pathData="M12,13m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0"
+        android:strokeWidth="1.6"
+        android:strokeColor="@android:color/white"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <!-- Flash Sensor Indicator -->
+    <path
+        android:pathData="M17.5,9.5m-0.8,0a0.8,0.8 0,1 1,1.6 0a0.8,0.8 0,1 1,-1.6 0"
+        android:fillColor="@android:color/white" />
 </vector>

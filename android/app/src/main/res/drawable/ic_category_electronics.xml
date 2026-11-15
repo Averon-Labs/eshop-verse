@@ -3,7 +3,18 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
+    <!-- Laptop Screen Display -->
     <path
-        android:fillColor="@color/color_botanical_green"
-        android:pathData="M4,6h16v10H4V6zm2,2v6h12V8H6zm-3,10h18v2H3v-2z" />
+        android:pathData="M5.5,4h13c0.83,0 1.5,0.67 1.5,1.5v9c0,0.83 -0.67,1.5 -1.5,1.5h-13C4.67,16 4,15.33 4,14.5v-9C4,4.67 4.67,4 5.5,4z"
+        android:strokeWidth="1.6"
+        android:strokeColor="@android:color/white"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <!-- Keyboard Deck and Base -->
+    <path
+        android:pathData="M2,17.5h20 M8,17.5l-0.8,3h9.6l-0.8,-3"
+        android:strokeWidth="1.6"
+        android:strokeColor="@android:color/white"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
 </vector>
