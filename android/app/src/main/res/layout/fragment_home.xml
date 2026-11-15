@@ -58,12 +58,34 @@
 
             </LinearLayout>
 
-            <!-- Account avatar with initials fallback (PRF-001) -->
+            <!-- Theme Toggle / Day-Night Mode Icon in Circular Frame -->
+            <FrameLayout
+                android:id="@+id/btn_theme_toggle"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="@dimen/spacing_sm"
+                android:background="@drawable/bg_circular_category"
+                android:clickable="true"
+                android:contentDescription="@string/theme_light_desc"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackgroundBorderless">
+
+                <ImageView
+                    android:id="@+id/iv_theme_toggle_icon"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_dark_mode"
+                    app:tint="@color/color_botanical_green" />
+
+            </FrameLayout>
+
+            <!-- Account avatar with initials fallback (PRF-001) - Outermost Anchor -->
             <FrameLayout
                 android:id="@+id/btn_account_avatar"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:layout_marginEnd="@dimen/spacing_sm"
                 android:background="@drawable/bg_avatar_circle"
                 android:clickable="true"
                 android:contentDescription="@string/action_account"
@@ -87,28 +109,6 @@
                     android:contentDescription="@null"
                     android:scaleType="centerCrop"
                     android:src="@drawable/bg_avatar_transparent" />
-            </FrameLayout>
-
-            <!-- Theme Toggle / Day-Night Mode Icon in Circular Frame -->
-            <FrameLayout
-                android:id="@+id/btn_theme_toggle"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="@drawable/bg_circular_category"
-                android:clickable="true"
-                android:contentDescription="@string/theme_light_desc"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackgroundBorderless">
-
-                <ImageView
-                    android:id="@+id/iv_theme_toggle_icon"
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:layout_gravity="center"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_dark_mode"
-                    app:tint="@color/color_botanical_green" />
-
             </FrameLayout>
 
         </LinearLayout>
