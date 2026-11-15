@@ -105,7 +105,7 @@
             android:layout_marginEnd="@dimen/spacing_md"
             android:contentDescription="@null"
             android:src="@drawable/ic_delete"
-            app:tint="@color/color_terracotta" />
+            app:tint="@color/status_error" />
 
         <TextView
             android:layout_width="0dp"
@@ -113,7 +113,7 @@
             android:layout_weight="1"
             android:text="@string/avatar_action_remove"
             android:textAppearance="@style/TextAppearance.EShopVerse.Body"
-            android:textColor="@color/color_terracotta" />
+            android:textColor="@color/status_error" />
     </LinearLayout>
 
 </LinearLayout>

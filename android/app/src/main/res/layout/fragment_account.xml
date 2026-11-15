@@ -209,6 +209,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="@dimen/spacing_xs"
+                            android:textColor="@color/status_error"
                             android:text="@string/auth_avatar_remove"
                             android:visibility="gone"
                             tools:visibility="visible" />

@@ -65,18 +65,27 @@ public class AccountFragment extends Fragment {
         takePictureLauncher = registerForActivityResult(
                 new ActivityResultContracts.TakePicturePreview(),
                 bitmap -> {
-                    if (bitmap != null && getContext() != null) {
-                        try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
-                            bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, stream);
-                            byte[] bytes = stream.toByteArray();
-                            if (AvatarImageValidator.isWithinSizeLimit(bytes.length)) {
-                                setAvatarBusy(true);
-                                authViewModel.uploadAvatar(bytes, "image/jpeg");
-                            } else {
-                                showAnchoredSnackbar(R.string.auth_error_avatar_too_large);
-                            }
-                        } catch (Exception e) {
-                            showAnchoredSnackbar(R.string.auth_error_avatar_read_failed);
+                    if (bitmap != null && getContext() != null && binding != null) {
+                        // Optimistic UI: Immediately render thumbnail on the avatar
+                        binding.ivProfileAvatar.setImageBitmap(bitmap);
+                        binding.tvAvatarInitials.setVisibility(View.GONE);
+                        setAvatarBusy(true);
+
+                        Context appContext = requireContext().getApplicationContext();
+                        if (avatarReader != null) {
+                            avatarReader.execute(() -> {
+                                byte[] bytes = AvatarImageCompressor.compressBitmap(bitmap);
+                                ContextCompat.getMainExecutor(appContext).execute(() -> {
+                                    if (AvatarImageValidator.isWithinSizeLimit(bytes.length)) {
+                                        authViewModel.uploadAvatar(bytes, "image/jpeg");
+                                    } else {
+                                        setAvatarBusy(false);
+                                        User currentUser = sessionViewModel.getCurrentUser().getValue();
+                                        if (currentUser != null) renderAvatar(currentUser);
+                                        showAnchoredSnackbar(R.string.auth_error_avatar_too_large);
+                                    }
+                                });
+                            });
                         }
                     }
                 }
@@ -551,6 +560,15 @@ public class AccountFragment extends Fragment {
                 new ActivityResultContracts.PickVisualMedia(),
                 uri -> {
                     if (uri != null) {
+                        // Optimistic UI: display gallery photo immediately with zero delay
+                        if (binding != null && isAdded()) {
+                            ImageLoaderHelper.loadImage(
+                                    binding.ivProfileAvatar,
+                                    uri.toString(),
+                                    R.drawable.bg_avatar_transparent,
+                                    R.drawable.bg_avatar_transparent);
+                            binding.tvAvatarInitials.setVisibility(View.GONE);
+                        }
                         readAndUploadAvatar(uri);
                     }
                 });
@@ -569,8 +587,40 @@ public class AccountFragment extends Fragment {
         setAvatarBusy(true);
         Context appContext = requireContext().getApplicationContext();
         avatarReader.execute(() -> {
-            AvatarReadResult result = readAvatarBytes(appContext, uri);
-            ContextCompat.getMainExecutor(appContext).execute(() -> handleAvatarRead(result));
+            byte[] compressedBytes = null;
+            try {
+                compressedBytes = AvatarImageCompressor.compressAndDownscaleUri(appContext, uri);
+            } catch (Exception e) {
+                AvatarReadResult rawResult = readAvatarBytes(appContext, uri);
+                compressedBytes = rawResult.bytes;
+            }
+            final byte[] finalBytes = compressedBytes;
+            ContextCompat.getMainExecutor(appContext).execute(() -> {
+                if (binding == null || !isAdded()) return;
+
+                if (finalBytes == null || finalBytes.length == 0) {
+                    setAvatarBusy(false);
+                    User currentUser = sessionViewModel.getCurrentUser().getValue();
+                    if (currentUser != null) renderAvatar(currentUser);
+                    showAnchoredSnackbar(R.string.auth_error_avatar_read_failed);
+                    return;
+                }
+
+                if (!AvatarImageValidator.isWithinSizeLimit(finalBytes.length)) {
+                    setAvatarBusy(false);
+                    User currentUser = sessionViewModel.getCurrentUser().getValue();
+                    if (currentUser != null) renderAvatar(currentUser);
+                    showAnchoredSnackbar(R.string.auth_error_avatar_too_large);
+                    return;
+                }
+
+                String mimeType = AvatarImageValidator.detectMimeType(finalBytes);
+                if (mimeType == null) {
+                    mimeType = "image/jpeg";
+                }
+
+                authViewModel.uploadAvatar(finalBytes, mimeType);
+            });
         });
     }
 
@@ -646,6 +696,10 @@ public class AccountFragment extends Fragment {
             showAnchoredSnackbar(R.string.auth_feedback_avatar_removed);
         } else if (state.isError()) {
             setAvatarBusy(false);
+            User currentUser = sessionViewModel.getCurrentUser().getValue();
+            if (currentUser != null) {
+                renderAvatar(currentUser);
+            }
             String message = state.getMessageRes() != 0
                     ? getString(state.getMessageRes())
                     : getString(R.string.error_generic);
@@ -703,10 +757,18 @@ public class AccountFragment extends Fragment {
             openAvatarPicker();
         });
 
-        sheetView.findViewById(R.id.btn_remove_photo).setOnClickListener(v -> {
-            dialog.dismiss();
-            authViewModel.deleteAvatar();
-        });
+        User currentUser = sessionViewModel.getCurrentUser().getValue();
+        boolean hasAvatar = currentUser != null && currentUser.getAvatarUrl() != null && !currentUser.getAvatarUrl().trim().isEmpty();
+        View btnRemovePhoto = sheetView.findViewById(R.id.btn_remove_photo);
+        if (hasAvatar) {
+            btnRemovePhoto.setVisibility(View.VISIBLE);
+            btnRemovePhoto.setOnClickListener(v -> {
+                dialog.dismiss();
+                authViewModel.deleteAvatar();
+            });
+        } else {
+            btnRemovePhoto.setVisibility(View.GONE);
+        }
 
         dialog.show();
     }
