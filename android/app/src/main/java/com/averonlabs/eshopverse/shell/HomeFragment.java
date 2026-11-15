@@ -17,6 +17,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import com.averonlabs.eshopverse.R;
+import com.averonlabs.eshopverse.auth.AuthViewModelFactory;
+import com.averonlabs.eshopverse.auth.AvatarInitials;
+import com.averonlabs.eshopverse.auth.SessionViewModel;
 import com.averonlabs.eshopverse.catalog.CatalogListViewModel;
 import com.averonlabs.eshopverse.catalog.CatalogViewModelFactory;
 import com.averonlabs.eshopverse.catalog.CategoryIconResolver;
@@ -25,6 +28,7 @@ import com.averonlabs.eshopverse.catalog.ProductGridAdapter;
 import com.averonlabs.eshopverse.catalog.fragment.ProductDetailFragment;
 import com.averonlabs.eshopverse.core.model.Category;
 import com.averonlabs.eshopverse.core.model.ProductSummary;
+import com.averonlabs.eshopverse.core.model.User;
 import com.averonlabs.eshopverse.core.state.UiState;
 import com.averonlabs.eshopverse.core.ui.ImageLoaderHelper;
 import com.averonlabs.eshopverse.core.ui.SkeletonAdapter;
@@ -40,6 +44,7 @@ public class HomeFragment extends Fragment {
     private FragmentHomeBinding binding;
     private CatalogListViewModel catalogViewModel;
     private CategoryViewModel categoryViewModel;
+    private SessionViewModel sessionViewModel;
     private ProductGridAdapter trendingCarouselAdapter;
     private ProductGridAdapter bestSellersAdapter;
     private ProductGridAdapter specialOffersAdapter;
@@ -62,6 +67,12 @@ public class HomeFragment extends Fragment {
         CatalogViewModelFactory factory = new CatalogViewModelFactory(requireContext());
         catalogViewModel = new ViewModelProvider(this, factory).get(CatalogListViewModel.class);
         categoryViewModel = new ViewModelProvider(this, factory).get(CategoryViewModel.class);
+        sessionViewModel = new ViewModelProvider(requireActivity(), new AuthViewModelFactory(requireContext()))
+                .get(SessionViewModel.class);
+
+        // XML clipToOutline only applies from API 31; set it on the view so
+        // the avatar stays circular from API 25 upward.
+        binding.btnAccountAvatar.setClipToOutline(true);
 
         setupSections();
         setupCategories();
@@ -69,6 +80,7 @@ public class HomeFragment extends Fragment {
         setupSwipeRefresh();
         updateThemeIcon();
         observeViewModel();
+        sessionViewModel.getCurrentUser().observe(getViewLifecycleOwner(), this::renderAccountAvatar);
 
         if (catalogViewModel.hasData()) {
             renderProducts(catalogViewModel.getLoadedProducts());
@@ -90,7 +102,39 @@ public class HomeFragment extends Fragment {
         if (binding == null || !isAdded()) return;
         boolean isDark = ThemeManager.isDarkMode(requireContext());
         binding.ivThemeToggleIcon.setImageResource(isDark ? R.drawable.ic_light_mode : R.drawable.ic_dark_mode);
-        binding.btnProfileAvatar.setContentDescription(getString(isDark ? R.string.theme_dark_desc : R.string.theme_light_desc));
+        binding.btnThemeToggle.setContentDescription(getString(isDark ? R.string.theme_dark_desc : R.string.theme_light_desc));
+    }
+
+    /**
+     * Shows the customer's photo, or initials when no photo is set. The
+     * transparent Glide placeholder keeps the initials visible until the
+     * image loads.
+     */
+    private void renderAccountAvatar(@Nullable User user) {
+        if (binding == null) return;
+
+        binding.btnAccountAvatar.setContentDescription(getString(R.string.action_account));
+
+        if (user == null) {
+            binding.tvHomeAvatarInitials.setText(AvatarInitials.from(null, null, null));
+            ImageLoaderHelper.loadImage(
+                    binding.ivHomeAvatar,
+                    null,
+                    R.drawable.bg_avatar_transparent,
+                    R.drawable.bg_avatar_transparent);
+            return;
+        }
+
+        binding.tvHomeAvatarInitials.setText(
+                AvatarInitials.from(user.getFirstName(), user.getLastName(), user.getEmail()));
+
+        String avatarUrl = user.getAvatarUrl();
+        boolean hasAvatar = avatarUrl != null && !avatarUrl.trim().isEmpty();
+        ImageLoaderHelper.loadImage(
+                binding.ivHomeAvatar,
+                hasAvatar ? avatarUrl : null,
+                R.drawable.bg_avatar_transparent,
+                R.drawable.bg_avatar_transparent);
     }
 
     private void setupSections() {
@@ -182,8 +226,17 @@ public class HomeFragment extends Fragment {
         binding.btnSpecialOffersViewAll.setOnClickListener(v -> navigateToExplore());
         binding.btnEssentialsViewAll.setOnClickListener(v -> navigateToExplore());
 
+        // Account avatar: open the Account destination
+        binding.btnAccountAvatar.setOnClickListener(v -> {
+            try {
+                Navigation.findNavController(requireView()).navigate(R.id.accountFragment);
+            } catch (Exception ignored) {
+                // Navigation is not ready; leave the current screen untouched.
+            }
+        });
+
         // Theme toggle button in circular frame
-        binding.btnProfileAvatar.setOnClickListener(v -> {
+        binding.btnThemeToggle.setOnClickListener(v -> {
             ThemeManager.toggleTheme(requireContext());
             updateThemeIcon();
         });

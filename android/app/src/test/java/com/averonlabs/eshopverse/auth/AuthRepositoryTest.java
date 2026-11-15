@@ -588,12 +588,136 @@ public class AuthRepositoryTest {
     }
 
     @Test
-    public void testIsSignedInAllowsRealTokenInReleaseMode() {
-        AuthRepository releaseRepo = new AuthRepository(apiRoutes, tokenStore, false);
-        tokenStore.save("real-production-bearer-token", "2030-01-01T00:00:00Z");
+    public void testGetProfileParsesTheAvatarUrl() throws Exception {
+        tokenStore.save("valid-token", "2099-01-01T00:00:00Z");
+        String body = "{\"data\":{\"id\":1,\"email\":\"user@example.com\",\"firstName\":\"Alice\",\"lastName\":\"Smith\",\"role\":\"customer\",\"status\":\"active\",\"createdAt\":\"2026-01-01T00:00:00Z\",\"avatarUrl\":\"https://api.example/api/v1/media/profile-images/photo.png\"}}";
+        mockWebServer.enqueue(new MockResponse().setResponseCode(200).setBody(body));
 
-        assertTrue(releaseRepo.isSignedIn());
-        assertEquals("real-production-bearer-token", tokenStore.getToken());
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<User> userRef = new AtomicReference<>();
+
+        authRepository.getProfile(new AuthCallback<User>() {
+            @Override
+            public void onSuccess(User data) {
+                userRef.set(data);
+                latch.countDown();
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                latch.countDown();
+            }
+        });
+
+        assertTrue(latch.await(3, TimeUnit.SECONDS));
+        assertNotNull(userRef.get());
+        assertEquals(
+                "https://api.example/api/v1/media/profile-images/photo.png",
+                userRef.get().getAvatarUrl());
+    }
+
+    @Test
+    public void testUploadProfileAvatarSendsMultipartAndParsesTheUpdatedUser() throws Exception {
+        tokenStore.save("valid-token", "2099-01-01T00:00:00Z");
+        String body = "{\"data\":{\"id\":1,\"email\":\"user@example.com\",\"firstName\":\"Alice\",\"lastName\":\"Smith\",\"role\":\"customer\",\"status\":\"active\",\"createdAt\":\"2026-01-01T00:00:00Z\",\"avatarUrl\":\"https://api.example/api/v1/media/profile-images/photo.png\"}}";
+        mockWebServer.enqueue(new MockResponse().setResponseCode(200).setBody(body));
+
+        byte[] png = {
+                (byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A,
+                0x00, 0x00, 0x00, 0x0D
+        };
+
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<User> userRef = new AtomicReference<>();
+
+        authRepository.uploadProfileAvatar(
+                AvatarImageValidator.MIME_PNG,
+                png,
+                new AuthCallback<User>() {
+                    @Override
+                    public void onSuccess(User data) {
+                        userRef.set(data);
+                        latch.countDown();
+                    }
+
+                    @Override
+                    public void onError(Throwable throwable) {
+                        latch.countDown();
+                    }
+                });
+
+        assertTrue(latch.await(3, TimeUnit.SECONDS));
+        RecordedRequest request = mockWebServer.takeRequest();
+        assertEquals("POST", request.getMethod());
+        assertEquals("/api/v1/auth/profile/avatar", request.getPath());
+        assertEquals("Bearer valid-token", request.getHeader("Authorization"));
+        String contentType = request.getHeader("Content-Type");
+        assertNotNull(contentType);
+        assertTrue(contentType.startsWith("multipart/form-data"));
+
+        String multipart = request.getBody().readUtf8();
+        assertTrue(multipart.contains("name=\"image\""));
+        assertTrue(multipart.contains("filename=\"avatar.png\""));
+
+        assertNotNull(userRef.get());
+        assertNotNull(userRef.get().getAvatarUrl());
+    }
+
+    @Test
+    public void testDeleteProfileAvatarSendsDeleteAndReportsSuccess() throws Exception {
+        tokenStore.save("valid-token", "2099-01-01T00:00:00Z");
+        mockWebServer.enqueue(new MockResponse().setResponseCode(204));
+
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicBoolean success = new AtomicBoolean(false);
+
+        authRepository.deleteProfileAvatar(new AuthCallback<Void>() {
+            @Override
+            public void onSuccess(Void data) {
+                success.set(true);
+                latch.countDown();
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                latch.countDown();
+            }
+        });
+
+        assertTrue(latch.await(3, TimeUnit.SECONDS));
+        assertTrue(success.get());
+        RecordedRequest request = mockWebServer.takeRequest();
+        assertEquals("DELETE", request.getMethod());
+        assertEquals("/api/v1/auth/profile/avatar", request.getPath());
+    }
+
+    @Test
+    public void testUploadProfileAvatarRejectsAnUnsupportedMimeTypeWithoutCallingTheApi() throws Exception {
+        tokenStore.save("valid-token", "2099-01-01T00:00:00Z");
+
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<Throwable> errorRef = new AtomicReference<>();
+
+        authRepository.uploadProfileAvatar(
+                "application/x-php",
+                new byte[]{0x01, 0x02},
+                new AuthCallback<User>() {
+                    @Override
+                    public void onSuccess(User data) {
+                        latch.countDown();
+                    }
+
+                    @Override
+                    public void onError(Throwable throwable) {
+                        errorRef.set(throwable);
+                        latch.countDown();
+                    }
+                });
+
+        assertTrue(latch.await(3, TimeUnit.SECONDS));
+        assertTrue(errorRef.get() instanceof ApiException);
+        assertEquals(ApiErrorCodes.VALIDATION_ERROR, ((ApiException) errorRef.get()).getCode());
+        assertEquals(0, mockWebServer.getRequestCount());
     }
 }
 

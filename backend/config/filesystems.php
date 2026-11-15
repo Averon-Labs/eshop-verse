@@ -59,6 +59,16 @@ return [
             'report' => false,
         ],
 
+        // PRF-001: customer profile photos. Also kept outside the web root and
+        // served through GET /api/v1/media/profile-images/{filename}.
+        'profile-images' => [
+            'driver' => 'local',
+            'root' => storage_path('app/profile-images'),
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

@@ -174,7 +174,8 @@ For testing authenticated features (Cart, Checkout, Order History, Profile):
 
 | Role | Email | Password | Notes |
 |---|---|---|---|
-| Customer | `demo@example.com` | `Password123` | Pre-seeded customer account in the local database and the hosted demo backend |
+| Customer | `aisha.rahman@example.com` | `Password123!` | Pre-seeded customer account on the public demo (`https://eshopverse.wasmer.app`) |
+| Customer | `demo@example.com` | `Password123` | Pre-seeded customer account from the local `migrate:fresh --seed` dataset |
 
 ---
 

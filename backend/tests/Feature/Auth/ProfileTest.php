@@ -28,12 +28,13 @@ class ProfileTest extends TestCase
             ->getJson('/api/v1/auth/profile')
             ->assertOk()
             ->assertJsonStructure([
-                'data' => ['id', 'email', 'firstName', 'lastName', 'role', 'status', 'createdAt'],
+                'data' => ['id', 'email', 'firstName', 'lastName', 'role', 'status', 'createdAt', 'avatarUrl'],
             ])
             ->assertJsonPath('data.id', $userId)
             ->assertJsonPath('data.email', 'customer@example.com')
             ->assertJsonPath('data.firstName', 'Ada')
             ->assertJsonPath('data.role', 'customer')
+            ->assertJsonPath('data.avatarUrl', null)
             ->assertJsonMissingPath('data.password')
             ->assertJsonMissingPath('data.tokens');
     }
@@ -80,6 +81,7 @@ class ProfileTest extends TestCase
             'email' => 'attacker@example.com',
             'role' => 'admin',
             'status' => 'suspended',
+            'avatarUrl' => 'https://example.com/attacker.png',
         ]);
 
         $this->assertApiError($response, 422, 'VALIDATION_ERROR');

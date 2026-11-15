@@ -269,6 +269,8 @@ public class CheckoutViewModelTest {
         @Override public retrofit2.Call<Void> logoutCustomer() { return null; }
         @Override public retrofit2.Call<com.averonlabs.eshopverse.core.net.ApiResponse<com.averonlabs.eshopverse.core.model.User>> getCustomerProfile() { return null; }
         @Override public retrofit2.Call<com.averonlabs.eshopverse.core.net.ApiResponse<com.averonlabs.eshopverse.core.model.User>> updateCustomerProfile(com.averonlabs.eshopverse.core.model.UpdateProfileRequest r) { return null; }
+        @Override public retrofit2.Call<com.averonlabs.eshopverse.core.net.ApiResponse<com.averonlabs.eshopverse.core.model.User>> uploadProfileAvatar(okhttp3.MultipartBody.Part image) { return null; }
+        @Override public retrofit2.Call<Void> deleteProfileAvatar() { return null; }
         @Override public retrofit2.Call<Void> requestPasswordReset(com.averonlabs.eshopverse.core.model.PasswordResetRequest r) { return null; }
         @Override public retrofit2.Call<Void> confirmPasswordReset(com.averonlabs.eshopverse.core.model.PasswordResetConfirmRequest r) { return null; }
         @Override public retrofit2.Call<com.averonlabs.eshopverse.core.net.ApiResponse<com.averonlabs.eshopverse.core.model.Cart>> getCart() { return null; }
