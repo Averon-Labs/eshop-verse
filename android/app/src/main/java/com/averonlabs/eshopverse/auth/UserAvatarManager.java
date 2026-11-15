@@ -12,8 +12,10 @@ import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
 import com.averonlabs.eshopverse.R;
+import com.averonlabs.eshopverse.core.model.User;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -30,6 +32,15 @@ public final class UserAvatarManager {
 
     public static final String PREFS_NAME = "eshop_avatar_prefs";
     public static final String KEY_PREFIX_AVATAR = "avatar_user_";
+    public static final String KEY_CACHED_USER = "cached_user_profile_json";
+    public static final String KEY_LAST_PROFILE_SYNC = "last_profile_sync_millis";
+
+    /**
+     * Standard Stale-While-Revalidate TTL (30 minutes) to conserve battery and eliminate redundant network calls.
+     */
+    public static final long PROFILE_REVALIDATION_INTERVAL_MS = 30 * 60 * 1000L;
+
+    private static final Gson GSON = new Gson();
 
     private UserAvatarManager() {
         // Utility class
@@ -116,6 +127,62 @@ public final class UserAvatarManager {
                 targetFile.delete();
             }
         } catch (Exception ignored) {}
+    }
+
+    /**
+     * Persists the authenticated User model locally for 0ms cold-start rendering
+     * and offline continuity until sign-out.
+     */
+    public static void saveCachedUser(@NonNull Context context, @NonNull User user) {
+        try {
+            String json = GSON.toJson(user);
+            getPrefs(context).edit()
+                    .putString(KEY_CACHED_USER, json)
+                    .putLong(KEY_LAST_PROFILE_SYNC, System.currentTimeMillis())
+                    .apply();
+        } catch (Exception ignored) {}
+    }
+
+    /**
+     * Retrieves the locally cached User for 0ms instant display without network lag.
+     */
+    @Nullable
+    public static User getCachedUser(@NonNull Context context) {
+        try {
+            String json = getPrefs(context).getString(KEY_CACHED_USER, null);
+            if (json == null || json.trim().isEmpty()) {
+                return null;
+            }
+            return GSON.fromJson(json, User.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Purges cached customer profile on sign-out.
+     */
+    public static void clearCachedUser(@NonNull Context context) {
+        getPrefs(context).edit()
+                .remove(KEY_CACHED_USER)
+                .remove(KEY_LAST_PROFILE_SYNC)
+                .apply();
+    }
+
+    /**
+     * Determines whether the Stale-While-Revalidate TTL (30 minutes) has elapsed,
+     * signaling that a silent background profile refresh is appropriate.
+     */
+    public static boolean shouldRevalidateProfile(@NonNull Context context) {
+        long lastSync = getPrefs(context).getLong(KEY_LAST_PROFILE_SYNC, 0L);
+        return (System.currentTimeMillis() - lastSync) > PROFILE_REVALIDATION_INTERVAL_MS;
+    }
+
+    /**
+     * Records the current timestamp as the latest successful profile revalidation.
+     */
+    public static void recordProfileRevalidated(@NonNull Context context) {
+        getPrefs(context).edit().putLong(KEY_LAST_PROFILE_SYNC, System.currentTimeMillis()).apply();
     }
 
     /**

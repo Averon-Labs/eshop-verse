@@ -175,6 +175,7 @@ public class AccountFragment extends Fragment {
         });
 
         binding.btnSignOut.setOnClickListener(v -> {
+            UserAvatarManager.clearCachedUser(requireContext());
             sessionViewModel.signOut();
             currentUserId = -1;
             pendingGoogleAvatarUrl = null;
@@ -275,12 +276,40 @@ public class AccountFragment extends Fragment {
             if (signedIn) {
                 int count = FavoritesRepository.getInstance(requireContext()).getFavoritesCount();
                 binding.tvFavoritesCountBadge.setText(count + " " + (count == 1 ? "item" : "items"));
+
+                // 0ms Instant Render: Load cached user immediately without blocking network
+                if (sessionViewModel.getCurrentUserValue() == null) {
+                    User cachedUser = UserAvatarManager.getCachedUser(requireContext());
+                    if (cachedUser != null) {
+                        sessionViewModel.setCurrentUser(cachedUser);
+                    }
+                }
+
+                // Stale-While-Revalidate: Check 30-minute TTL to preserve battery & data
+                if (UserAvatarManager.shouldRevalidateProfile(requireContext())) {
+                    sessionViewModel.refreshProfile(new AuthCallback<User>() {
+                        @Override
+                        public void onSuccess(User freshUser) {
+                            if (isAdded() && getContext() != null && freshUser != null) {
+                                UserAvatarManager.saveCachedUser(requireContext(), freshUser);
+                            }
+                        }
+
+                        @Override
+                        public void onError(Throwable t) {
+                            // Non-fatal; stale cached profile remains active
+                        }
+                    });
+                }
+            } else {
+                UserAvatarManager.clearCachedUser(requireContext());
             }
         });
 
         sessionViewModel.getCurrentUser().observe(getViewLifecycleOwner(), user -> {
             if (binding == null || user == null) return;
             currentUserId = user.getId();
+            UserAvatarManager.saveCachedUser(requireContext(), user);
             String fullName = user.getFirstName() + " " + user.getLastName();
             binding.tvUserName.setText(fullName.trim());
             binding.tvUserEmail.setText(user.getEmail());
