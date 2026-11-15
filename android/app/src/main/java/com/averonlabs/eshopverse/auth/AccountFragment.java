@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -115,6 +116,22 @@ public class AccountFragment extends Fragment {
         setupFavoritesSection();
         setupThemeSection();
         observeViewModels();
+
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (!sessionViewModel.isSignedIn()) {
+                    NavController navController = NavHostFragment.findNavController(AccountFragment.this);
+                    boolean popped = navController.popBackStack(R.id.homeFragment, false);
+                    if (!popped) {
+                        navController.navigate(R.id.homeFragment);
+                    }
+                } else {
+                    setEnabled(false);
+                    requireActivity().getOnBackPressedDispatcher().onBackPressed();
+                }
+            }
+        });
     }
 
     private void setupTextWatchers() {
@@ -235,6 +252,15 @@ public class AccountFragment extends Fragment {
                 } catch (Exception ignored) {}
             }
         });
+        if (binding.btnBack != null) {
+            binding.btnBack.setOnClickListener(v -> {
+                NavController navController = NavHostFragment.findNavController(this);
+                boolean popped = navController.popBackStack(R.id.homeFragment, false);
+                if (!popped) {
+                    navController.navigate(R.id.homeFragment);
+                }
+            });
+        }
     }
 
     private void showAnchoredSnackbar(@StringRes int messageRes) {
@@ -270,6 +296,7 @@ public class AccountFragment extends Fragment {
             binding.layoutGuestState.setVisibility(signedIn ? View.GONE : View.VISIBLE);
             binding.cardThemeToggle.setVisibility(signedIn ? View.VISIBLE : View.GONE);
             binding.cardFavoritesNav.setVisibility(signedIn ? View.VISIBLE : View.GONE);
+            binding.btnBack.setVisibility(signedIn ? View.GONE : View.VISIBLE);
             binding.tvAccountTitle.setText(signedIn ? R.string.auth_account_title : R.string.auth_sign_in_title);
 
             // Update favorites badge according to auth status
