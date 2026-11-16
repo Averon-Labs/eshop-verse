@@ -49,6 +49,12 @@ Route::get('media/product-images/{productId}/{filename}', [MediaController::clas
     ->where('filename', '[A-Za-z0-9][A-Za-z0-9._-]{0,120}')
     ->name('media.product-images');
 
+// PRF-001: uploaded customer profile photos. A flat, generated UUID name is
+// an unguessable capability; the route exposes no customer identifier.
+Route::get('media/profile-images/{filename}', [MediaController::class, 'profileImage'])
+    ->where('filename', '[A-Za-z0-9][A-Za-z0-9._-]{0,120}')
+    ->name('media.profile-images');
+
 // ------------------------------------------------------------- Customer auth
 
 Route::prefix('auth')->group(function (): void {
@@ -66,6 +72,10 @@ Route::prefix('auth')->group(function (): void {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::get('profile', [AuthController::class, 'showProfile']);
         Route::patch('profile', [AuthController::class, 'updateProfile']);
+        Route::post('profile/avatar', [AuthController::class, 'storeProfileAvatar'])
+            ->middleware('throttle:customer-media');
+        Route::delete('profile/avatar', [AuthController::class, 'destroyProfileAvatar'])
+            ->middleware('throttle:customer-media');
     });
 });
 

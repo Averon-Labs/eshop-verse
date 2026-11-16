@@ -25,6 +25,33 @@
                 android:orientation="vertical"
                 android:padding="@dimen/spacing_lg">
 
+                <!-- Top Navigation Bar with Back Button (Visible in Guest / Login state) -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/btn_back"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginBottom="@dimen/spacing_md"
+                    android:clickable="true"
+                    android:contentDescription="@string/catalog_cd_back"
+                    android:focusable="true"
+                    android:visibility="gone"
+                    app:cardBackgroundColor="@color/surface_card_frosted"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/border_hairline"
+                    app:strokeWidth="@dimen/stroke_hairline"
+                    tools:visibility="visible">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_arrow_back"
+                        app:tint="@color/text_primary_ink" />
+
+                </com.google.android.material.card.MaterialCardView>
+
                 <!-- Editorial Brand Header -->
                 <TextView
                     android:id="@+id/tv_account_brand_subtitle"
@@ -32,7 +59,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:letterSpacing="0.15"
-                    android:text="ESHOP VERSE"
+                    android:text="@string/auth_account_brand"
                     android:textColor="@color/color_muted_olive" />
 
                 <TextView
@@ -58,7 +85,7 @@
                         style="@style/Widget.EShopVerse.Card.Panel"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/spacing_lg">
+                        android:layout_marginBottom="@dimen/spacing_md">
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -67,20 +94,58 @@
                             android:orientation="horizontal"
                             android:padding="@dimen/spacing_md">
 
-                            <!-- Circular Avatar Container in Soft Sage -->
+                            <!-- Circular profile photo with initials fallback and elevated edit badge -->
                             <FrameLayout
-                                android:layout_width="60dp"
-                                android:layout_height="60dp"
+                                android:id="@+id/avatar_container"
+                                android:layout_width="72dp"
+                                android:layout_height="72dp"
                                 android:layout_marginEnd="@dimen/spacing_md"
-                                android:background="@drawable/bg_avatar_circle">
+                                android:clickable="true"
+                                android:contentDescription="@string/auth_avatar_content_description"
+                                android:focusable="true">
 
-                                <ImageView
-                                    android:layout_width="32dp"
-                                    android:layout_height="32dp"
-                                    android:layout_gravity="center"
-                                    android:contentDescription="@string/nav_account"
-                                    android:src="@drawable/ic_account"
-                                    app:tint="@color/color_botanical_green" />
+                                <TextView
+                                    android:id="@+id/tv_avatar_initials"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:background="@drawable/bg_avatar_circle"
+                                    android:gravity="center"
+                                    android:importantForAccessibility="no"
+                                    android:textAppearance="@style/TextAppearance.EShopVerse.LargeTitle"
+                                    android:textColor="@color/color_botanical_green"
+                                    tools:text="JD" />
+
+                                <com.google.android.material.imageview.ShapeableImageView
+                                    android:id="@+id/iv_profile_avatar"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:contentDescription="@null"
+                                    android:scaleType="centerCrop"
+                                    android:src="@drawable/bg_avatar_transparent"
+                                    app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+
+                                <!-- Edit Pencil Floating Action Badge -->
+                                <com.google.android.material.card.MaterialCardView
+                                    android:id="@+id/btn_edit_avatar_badge"
+                                    android:layout_width="26dp"
+                                    android:layout_height="26dp"
+                                    android:layout_gravity="bottom|end"
+                                    android:clickable="true"
+                                    android:focusable="true"
+                                    app:cardBackgroundColor="@color/color_botanical_green"
+                                    app:cardCornerRadius="13dp"
+                                    app:cardElevation="3dp"
+                                    app:strokeColor="@color/surface_color"
+                                    app:strokeWidth="1.5dp">
+
+                                    <ImageView
+                                        android:layout_width="14dp"
+                                        android:layout_height="14dp"
+                                        android:layout_gravity="center"
+                                        android:contentDescription="@string/account_edit_avatar_desc"
+                                        android:src="@drawable/ic_edit"
+                                        app:tint="@color/surface_color" />
+                                </com.google.android.material.card.MaterialCardView>
                             </FrameLayout>
 
                             <LinearLayout
@@ -114,7 +179,7 @@
                                     android:layout_height="wrap_content"
                                     android:background="@drawable/bg_status_badge"
                                     android:backgroundTint="@color/color_soft_sage"
-                                    android:text="Customer"
+                                    android:text="@string/auth_role_customer"
                                     android:textColor="@color/color_botanical_green" />
                             </LinearLayout>
                         </LinearLayout>
@@ -173,7 +238,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="View all your saved items"
+                                android:text="@string/auth_favorites_subtitle"
                                 android:textAppearance="@style/TextAppearance.EShopVerse.Supporting"
                                 android:textColor="@color/text_secondary" />
                         </LinearLayout>
@@ -292,7 +357,7 @@
                                 android:id="@+id/tv_edit_profile_heading"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Profile Details"
+                                android:text="@string/auth_edit_profile_heading"
                                 android:textAppearance="@style/TextAppearance.EShopVerse.ComponentTitle"
                                 android:textColor="@color/text_primary_ink" />
 
@@ -301,7 +366,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="@dimen/spacing_xs"
                                 android:layout_marginBottom="@dimen/spacing_md"
-                                android:text="Update your name and account info"
+                                android:text="@string/auth_edit_profile_subtitle"
                                 android:textAppearance="@style/TextAppearance.EShopVerse.Supporting"
                                 android:textColor="@color/text_secondary" />
 
@@ -386,7 +451,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/spacing_lg"
-                        android:text="Sign in to continue your curated experience."
+                        android:text="@string/auth_guest_subtitle"
                         android:textAppearance="@style/TextAppearance.EShopVerse.Body"
                         android:textColor="@color/color_muted_olive" />
 

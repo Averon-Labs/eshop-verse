@@ -26,6 +26,7 @@ public class ImageLoaderHelperTest {
         assertEquals(R.drawable.bg_placeholder_shimmer, ImageLoaderHelper.DEFAULT_PLACEHOLDER_RES);
         assertEquals(R.drawable.bg_placeholder_error, ImageLoaderHelper.DEFAULT_ERROR_RES);
         assertEquals(com.bumptech.glide.Priority.LOW, ImageLoaderHelper.PREFETCH_PRIORITY);
+        assertEquals(400, ImageLoaderHelper.DEFAULT_THUMBNAIL_MAX_DIMENSION);
     }
 
     @Test
@@ -119,5 +120,6 @@ public class ImageLoaderHelperTest {
         ImageLoaderHelper.loadImage(mockImageView, "https://example.com/sample.jpg");
         ImageLoaderHelper.loadImage(mockImageView, null);
         ImageLoaderHelper.loadImageFitCenter(mockImageView, "https://example.com/sample.jpg");
+        ImageLoaderHelper.loadImageFull(mockImageView, "https://example.com/sample.jpg");
     }
 }

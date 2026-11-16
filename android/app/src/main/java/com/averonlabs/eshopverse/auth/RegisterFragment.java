@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -65,9 +66,31 @@ public class RegisterFragment extends Fragment {
 
         binding.stateContainer.setContentView(binding.scrollContent);
 
+        // Handle back press to always return directly to Login (Account / SignIn screen)
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                navigateToLogin();
+            }
+        });
+
         setupTextWatchers();
         setupClickListeners();
         observeViewModel();
+    }
+
+    private void navigateToLogin() {
+        if (!isAdded()) return;
+        NavController navController = NavHostFragment.findNavController(this);
+        boolean popped = navController.popBackStack(R.id.accountFragment, false);
+        if (!popped) {
+            popped = navController.popBackStack(R.id.signInFragment, false);
+        }
+        if (!popped) {
+            if (!navController.popBackStack()) {
+                navController.navigate(R.id.accountFragment);
+            }
+        }
     }
 
     private void setupTextWatchers() {
@@ -131,15 +154,11 @@ public class RegisterFragment extends Fragment {
             });
         });
 
-        binding.btnToSignIn.setOnClickListener(v -> {
-            NavController navController = NavHostFragment.findNavController(this);
-            boolean popped = navController.popBackStack(R.id.signInFragment, false);
-            if (!popped) {
-                Bundle args = new Bundle();
-                args.putInt("returnToNavId", returnToNavId);
-                navController.navigate(R.id.signInFragment, args);
-            }
-        });
+        if (binding.btnBack != null) {
+            binding.btnBack.setOnClickListener(v -> navigateToLogin());
+        }
+
+        binding.btnToSignIn.setOnClickListener(v -> navigateToLogin());
     }
 
     private void observeViewModel() {

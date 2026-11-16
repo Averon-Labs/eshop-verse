@@ -352,6 +352,28 @@ Task steps are component-specific: see [Android](ANDROID_ROADMAP.md), [Backend](
 **Phase 3 exit criteria:** an unfamiliar reviewer can set up and evaluate the complete local demo from a clean checkout; required CI/security/accessibility checks pass; demo limitations and any deferred follow-up work are clear.
 
 
+## Phase 4 — Cross-component follow-ups
+
+### Step 1 — PRF-001 — Customer profile photos across API, backend, and Android
+
+**Status:** `[x]` (owner-requested; implemented and verified 2026-11-14)
+
+**Depends on:** AUTH-001, AUTH-002
+
+**Scope:** add customer profile-photo upload, replacement, and removal end to end. The API contract owns `POST`/`DELETE /auth/profile/avatar` and the public `GET /media/profile-images/{filename}` read; the backend stores one JPEG/PNG/WebP file up to 5 MB under a generated UUID name outside the web root and exposes `avatarUrl` on `User`; the Android Account screen uses the system photo picker, an initials fallback, inline progress, and separate account-avatar and theme controls on Home.
+
+**Acceptance criteria:**
+
+- [x] **a.** `docs/openapi.yaml` defines both avatar operations, the public media read, `User.avatarUrl`, and the `customer-media` rate-limit class; the contract validates.
+- [x] **b.** Upload validates detected content type, 5 MB size, and 4096×4096 maximum dimensions; the previous file is removed only after the replacement row saves.
+- [x] **c.** `DELETE` is idempotent and answers `204`; customers can only change their own photo because the endpoints accept no customer id.
+- [x] **d.** The media route serves only safe plain file names with the stored content type and `nosniff`.
+- [x] **e.** Android renders the photo in a fixed circular viewport with initials fallback, reads picked bytes off the main thread, rejects unsupported/oversized files before upload, and reports progress and success/failure accessibly.
+- [x] **f.** Backend feature tests and Android JVM tests cover upload, replacement cleanup, idempotent delete, validation, isolation, media reads, multipart upload, and initials.
+
+**Verification:** backend `ProfileAvatarTest|ProfileTest` passes (15 tests, 130 assertions) on the isolated SQLite test configuration; Android `testDebugUnitTest` covers the new validator, initials, and multipart repository paths; OpenAPI lint is valid apart from the two pre-existing localhost server warnings. Device-level picker behavior still needs an emulator or hardware run.
+
+
 ## Canonical Task ID index
 
 Each Task ID has exactly one canonical task entry. Status, dependencies, acceptance criteria, and verification expectations are maintained only there.
@@ -411,6 +433,7 @@ Each Task ID has exactly one canonical task entry. Status, dependencies, accepta
 | IMG-003 | [Android Roadmap — Phase 11 — Step 2](ANDROID_ROADMAP.md) | Prefetch Bandwidth Guard & Low-Priority Glide Optimization |
 | IMG-004 | [Android Roadmap — Phase 11 — Step 3](ANDROID_ROADMAP.md) | Layout Token & Active Shimmer Alignment across Order Review Views |
 | IMG-005 | [Android Roadmap — Phase 11 — Step 4](ANDROID_ROADMAP.md) | Admin Dashboard Zero-CLS & Web Lazy Loading Standards |
+| PRF-001 | [Project Roadmap — Phase 4 — Step 1](ROADMAP.md) | Customer profile photos across API, backend, and Android |
 
 ## Optional follow-up — Public deployment
 

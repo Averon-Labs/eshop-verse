@@ -60,9 +60,10 @@
 
             <!-- Theme Toggle / Day-Night Mode Icon in Circular Frame -->
             <FrameLayout
-                android:id="@+id/btn_profile_avatar"
+                android:id="@+id/btn_theme_toggle"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
+                android:layout_marginEnd="@dimen/spacing_sm"
                 android:background="@drawable/bg_circular_category"
                 android:clickable="true"
                 android:contentDescription="@string/theme_light_desc"
@@ -78,6 +79,36 @@
                     android:src="@drawable/ic_dark_mode"
                     app:tint="@color/color_botanical_green" />
 
+            </FrameLayout>
+
+            <!-- Account avatar with initials fallback (PRF-001) - Outermost Anchor -->
+            <FrameLayout
+                android:id="@+id/btn_account_avatar"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_avatar_circle"
+                android:clickable="true"
+                android:contentDescription="@string/action_account"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackgroundBorderless">
+
+                <TextView
+                    android:id="@+id/tv_home_avatar_initials"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:importantForAccessibility="no"
+                    android:textAppearance="@style/TextAppearance.EShopVerse.ComponentTitle"
+                    android:textColor="@color/color_botanical_green"
+                    tools:text="A" />
+
+                <ImageView
+                    android:id="@+id/iv_home_avatar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="@null"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/bg_avatar_transparent" />
             </FrameLayout>
 
         </LinearLayout>

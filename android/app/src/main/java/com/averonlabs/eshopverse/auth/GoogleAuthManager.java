@@ -26,6 +26,7 @@ import androidx.credentials.exceptions.NoCredentialException;
 import com.averonlabs.eshopverse.BuildConfig;
 import com.averonlabs.eshopverse.R;
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption;
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption;
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 
 import java.util.Locale;
@@ -97,6 +98,16 @@ public class GoogleAuthManager {
 
     @NonNull
     public GetCredentialRequest buildCredentialRequest() {
+        GetSignInWithGoogleOption signInWithGoogleOption = new GetSignInWithGoogleOption.Builder(serverClientId)
+                .build();
+
+        return new GetCredentialRequest.Builder()
+                .addCredentialOption(signInWithGoogleOption)
+                .build();
+    }
+
+    @NonNull
+    public GetCredentialRequest buildFallbackCredentialRequest() {
         GetGoogleIdOption googleIdOption = new GetGoogleIdOption.Builder()
                 .setFilterByAuthorizedAccounts(false)
                 .setServerClientId(serverClientId)
@@ -131,7 +142,40 @@ public class GoogleAuthManager {
 
                     @Override
                     public void onError(GetCredentialException e) {
-                        handleCredentialError(e, callback);
+                        if (e instanceof NoCredentialException || e instanceof GetCredentialUnsupportedException) {
+                            // If explicit sign-in option fails with NoCredential or unsupported,
+                            // attempt a seamless fallback with GetGoogleIdOption before bubbling up error.
+                            tryFallbackSignIn(activity, callback, e);
+                        } else {
+                            handleCredentialError(e, callback);
+                        }
+                    }
+                }
+        );
+    }
+
+    private void tryFallbackSignIn(
+            @NonNull Activity activity,
+            @NonNull GoogleAuthCallback callback,
+            @NonNull GetCredentialException primaryException
+    ) {
+        GetCredentialRequest fallbackRequest = buildFallbackCredentialRequest();
+        CancellationSignal cancellationSignal = new CancellationSignal();
+
+        credentialManager.getCredentialAsync(
+                activity,
+                fallbackRequest,
+                cancellationSignal,
+                ContextCompat.getMainExecutor(activity),
+                new CredentialManagerCallback<GetCredentialResponse, GetCredentialException>() {
+                    @Override
+                    public void onResult(GetCredentialResponse response) {
+                        handleCredentialResponse(response, callback);
+                    }
+
+                    @Override
+                    public void onError(GetCredentialException fallbackException) {
+                        handleCredentialError(fallbackException, callback);
                     }
                 }
         );

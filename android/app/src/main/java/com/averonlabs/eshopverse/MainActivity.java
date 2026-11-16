@@ -15,12 +15,15 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.NavOptions;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
+import com.averonlabs.eshopverse.auth.AuthViewModelFactory;
+import com.averonlabs.eshopverse.auth.SessionViewModel;
 import com.averonlabs.eshopverse.core.ui.ThemeManager;
 import com.averonlabs.eshopverse.databinding.ActivityMainBinding;
 import com.google.android.material.badge.BadgeDrawable;
@@ -29,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
     private NavController navController;
+    private SessionViewModel sessionViewModel;
     private Insets lastSystemBars = Insets.NONE;
     private Insets lastIme = Insets.NONE;
 
@@ -46,6 +50,12 @@ public class MainActivity extends AppCompatActivity {
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        sessionViewModel = new ViewModelProvider(this, new AuthViewModelFactory(this))
+                .get(SessionViewModel.class);
+        sessionViewModel.getIsSignedIn().observe(this, signedIn -> {
+            updateBottomNavVisibility();
+        });
 
         // Insets handling: left/right/top to root, bottom margin to floating card and content
         ViewCompat.setOnApplyWindowInsetsListener(binding.main, (v, insets) -> {
@@ -146,10 +156,11 @@ public class MainActivity extends AppCompatActivity {
         }
         int destId = navController != null && navController.getCurrentDestination() != null
                 ? navController.getCurrentDestination().getId() : 0;
+        boolean signedIn = sessionViewModel != null && sessionViewModel.isSignedIn();
         boolean isTopLevel = destId == R.id.homeFragment
                 || destId == R.id.exploreFragment
                 || destId == R.id.cartFragment
-                || destId == R.id.accountFragment;
+                || (destId == R.id.accountFragment && signedIn);
 
         boolean isKeyboardVisible = lastIme != null && lastIme.bottom > 0;
 

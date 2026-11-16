@@ -505,6 +505,59 @@ paths:
         '422': { $ref: '#/components/responses/ValidationError' }
         '429': { $ref: '#/components/responses/RateLimited' }
 
+  /auth/profile/avatar:
+    post:
+      tags: [Customer auth]
+      operationId: uploadCustomerProfileAvatar
+      security:
+        - bearerAuth: []
+      summary: Upload or replace the signed-in customer's profile photo
+      description: |
+        Stores one image file on the server and points the customer's profile at it.
+        The file is validated on its detected content type (JPEG, PNG, or WebP) and a
+        5 MB ceiling. The stored name is generated, so the client-supplied name never
+        reaches the path; a previous file is removed after the replacement succeeds.
+        The returned `avatarUrl` is absolute and served by `getProfileAvatar`.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image]
+              additionalProperties: false
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: JPEG, PNG, or WebP, at most 5 MB.
+      responses:
+        '200':
+          description: Avatar stored; the updated customer is returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/User' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+    delete:
+      tags: [Customer auth]
+      operationId: deleteCustomerProfileAvatar
+      security:
+        - bearerAuth: []
+      summary: Remove the signed-in customer's profile photo
+      description: |
+        Removes the stored file and clears `avatarUrl`. Idempotent: answers `204`
+        whether or not a profile photo existed.
+      responses:
+        '204': { description: Profile photo removed (or already absent). }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
   /auth/password-reset:
     post:
       tags: [Customer auth]
@@ -1472,7 +1525,9 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
         '429': { $ref: '#/components/responses/RateLimited' }
 
-  /media/product-images/{filename}:
+  /media/product-images/{productId}/{filename}:
+    parameters:
+      - $ref: '#/components/parameters/ProductId'
     get:
       tags: [Catalog]
       operationId: getProductImage
@@ -1496,6 +1551,32 @@ paths:
             image/png: { schema: { type: string, format: binary } }
             image/webp: { schema: { type: string, format: binary } }
             image/gif: { schema: { type: string, format: binary } }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
+  /media/profile-images/{filename}:
+    get:
+      tags: [Customer auth]
+      operationId: getProfileAvatar
+      summary: Serve a stored profile photo
+      description: |
+        Public read of a file stored by `uploadCustomerProfileAvatar`. Files live outside
+        the web root; the generated UUID name is an unguessable capability and the route
+        exposes no customer identifier. The name is constrained to a plain file name, so a
+        path cannot be traversed. Governed by the document-level `global` rate-limit class.
+      security: []
+      parameters:
+        - name: filename
+          in: path
+          required: true
+          schema: { type: string, pattern: '^[A-Za-z0-9][A-Za-z0-9._-]{0,120}$' }
+      responses:
+        '200':
+          description: The image bytes with their content type.
+          content:
+            image/jpeg: { schema: { type: string, format: binary } }
+            image/png: { schema: { type: string, format: binary } }
+            image/webp: { schema: { type: string, format: binary } }
         '404': { $ref: '#/components/responses/NotFound' }
         '429': { $ref: '#/components/responses/RateLimited' }
 
@@ -2299,6 +2380,12 @@ components:
         role: { $ref: '#/components/schemas/UserRole' }
         status: { $ref: '#/components/schemas/UserStatus' }
         createdAt: { type: string, format: date-time }
+        avatarUrl:
+          type: [string, 'null']
+          format: uri
+          description: |
+            Absolute URL of the customer's profile photo, or `null` when none is set.
+            Served by `getProfileAvatar`.
 
     RegisterRequest:
       type: object
@@ -2830,6 +2917,7 @@ x-rate-limit-classes:
   password-reset: { limit: 3, window: 1h, key: email, secondary: { limit: 10, window: 1h, key: ip }, applies-to: [requestPasswordReset, confirmPasswordReset] }
   admin-login: { limit: 10, window: 1m, key: ip, applies-to: [loginAdmin] }
   customer-write: { limit: 60, window: 1m, key: token, applies-to: [logoutCustomer, updateCustomerProfile, addCartItem, clearCart, updateCartItem, removeCartItem, createCheckoutQuote, createOrder, submitSimulatedPayment] }
+  customer-media: { limit: 20, window: 1m, key: token, applies-to: [uploadCustomerProfileAvatar, deleteCustomerProfileAvatar] }
   admin-write: { limit: 120, window: 1m, key: session, applies-to: [logoutAdmin, adminCreateProduct, adminUpdateProduct, adminArchiveProduct, adminDeleteProduct, adminUploadProductImage, adminDeleteProductImage, adminCreateCategory, adminUpdateCategory, adminArchiveCategory, adminRestoreCategory, adminUpdateInventory, adminUpdateOrderStatus] }
 
 x-order-state-machine:

@@ -17,6 +17,15 @@ public class CategoryIconResolverTest {
 
     @Test
     public void testTenCatalogCategories() {
+        // Tech & Workspace categories
+        assertEquals(R.drawable.ic_category_audio, CategoryIconResolver.getCategoryIcon("Audio & Headphones"));
+        assertEquals(R.drawable.ic_category_wearables, CategoryIconResolver.getCategoryIcon("Wearables"));
+        assertEquals(R.drawable.ic_category_workspace, CategoryIconResolver.getCategoryIcon("Desk & Workspace"));
+        assertEquals(R.drawable.ic_category_photography, CategoryIconResolver.getCategoryIcon("Photography"));
+        assertEquals(R.drawable.ic_category_electronics, CategoryIconResolver.getCategoryIcon("Electronics"));
+        assertEquals(R.drawable.ic_category_apparel, CategoryIconResolver.getCategoryIcon("Apparel"));
+
+        // Fashion & Lifestyle categories
         assertEquals(R.drawable.ic_category_shirts, CategoryIconResolver.getCategoryIcon("Shirts & Tops"));
         assertEquals(R.drawable.ic_category_pants, CategoryIconResolver.getCategoryIcon("Pants & Jeans"));
         assertEquals(R.drawable.ic_category_dresses, CategoryIconResolver.getCategoryIcon("Dresses"));
@@ -29,6 +38,10 @@ public class CategoryIconResolverTest {
         assertEquals(R.drawable.ic_category_bags, CategoryIconResolver.getCategoryIcon("Bags & Backpacks"));
 
         // Single-word streamlined category names
+        assertEquals(R.drawable.ic_category_audio, CategoryIconResolver.getCategoryIcon("Audio"));
+        assertEquals(R.drawable.ic_category_wearables, CategoryIconResolver.getCategoryIcon("Wearables"));
+        assertEquals(R.drawable.ic_category_workspace, CategoryIconResolver.getCategoryIcon("Workspace"));
+        assertEquals(R.drawable.ic_category_photography, CategoryIconResolver.getCategoryIcon("Photography"));
         assertEquals(R.drawable.ic_category_shirts, CategoryIconResolver.getCategoryIcon("Shirts"));
         assertEquals(R.drawable.ic_category_pants, CategoryIconResolver.getCategoryIcon("Pants"));
         assertEquals(R.drawable.ic_category_jackets, CategoryIconResolver.getCategoryIcon("Jackets"));
@@ -40,6 +53,12 @@ public class CategoryIconResolverTest {
     public void testGetStreamlinedName() {
         assertEquals("All", CategoryIconResolver.getStreamlinedName(null));
         assertEquals("All", CategoryIconResolver.getStreamlinedName("All"));
+        assertEquals("Audio", CategoryIconResolver.getStreamlinedName("Audio & Headphones"));
+        assertEquals("Wearables", CategoryIconResolver.getStreamlinedName("Wearables"));
+        assertEquals("Workspace", CategoryIconResolver.getStreamlinedName("Desk & Workspace"));
+        assertEquals("Photography", CategoryIconResolver.getStreamlinedName("Photography"));
+        assertEquals("Electronics", CategoryIconResolver.getStreamlinedName("Electronics"));
+        assertEquals("Apparel", CategoryIconResolver.getStreamlinedName("Apparel"));
         assertEquals("Shirts", CategoryIconResolver.getStreamlinedName("Shirts & Tops"));
         assertEquals("Pants", CategoryIconResolver.getStreamlinedName("Pants & Jeans"));
         assertEquals("Dresses", CategoryIconResolver.getStreamlinedName("Dresses"));

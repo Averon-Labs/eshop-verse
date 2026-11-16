@@ -40,18 +40,54 @@ public class CategoryViewModel extends ViewModel {
         return selectedCategoryId;
     }
 
+    public boolean hasData() {
+        UiState<List<Category>> current = categoriesState.getValue();
+        boolean hasVmState = current != null && current.isContent() && current.getData() != null && !current.getData().isEmpty();
+        return hasVmState || repository.hasValidCategoryCache();
+    }
+
+    @NonNull
+    public List<Category> getLoadedCategories() {
+        UiState<List<Category>> current = categoriesState.getValue();
+        if (current != null && current.isContent() && current.getData() != null) {
+            return current.getData();
+        }
+        return repository.getCachedCategories();
+    }
+
     public void selectCategory(@Nullable Long categoryId) {
         selectedCategoryId.setValue(categoryId);
     }
 
     public void loadCategories() {
+        loadCategories(false);
+    }
+
+    public void reload() {
+        loadCategories(true);
+    }
+
+    public void loadCategories(boolean forceRefresh) {
         if (inFlight) {
             return;
         }
+        // 0ms synchronous return if warm cache exists and not forced
+        if (!forceRefresh && repository.hasValidCategoryCache()) {
+            List<Category> cached = repository.getCachedCategories();
+            if (!cached.isEmpty()) {
+                categoriesState.setValue(UiState.content(cached));
+                return;
+            }
+        }
+        if (!forceRefresh && hasData()) {
+            return;
+        }
         inFlight = true;
-        categoriesState.setValue(UiState.loading());
+        if (!hasData()) {
+            categoriesState.setValue(UiState.loading());
+        }
 
-        repository.listCategories(new CatalogRepository.CatalogCallback<List<Category>>() {
+        repository.listCategories(forceRefresh, new CatalogRepository.CatalogCallback<List<Category>>() {
             @Override
             public void onSuccess(List<Category> result) {
                 inFlight = false;

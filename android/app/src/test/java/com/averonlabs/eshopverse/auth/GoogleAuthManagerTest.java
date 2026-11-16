@@ -13,6 +13,7 @@ import androidx.credentials.GetCredentialRequest;
 import androidx.credentials.GetCredentialResponse;
 import androidx.credentials.exceptions.ClearCredentialException;
 import androidx.credentials.exceptions.GetCredentialCancellationException;
+import androidx.credentials.exceptions.GetCredentialException;
 import androidx.credentials.exceptions.GetCredentialInterruptedException;
 import androidx.credentials.exceptions.GetCredentialProviderConfigurationException;
 import androidx.credentials.exceptions.GetCredentialUnsupportedException;
@@ -133,6 +134,64 @@ public class GoogleAuthManagerTest {
         GetCredentialRequest request = googleAuthManager.buildCredentialRequest();
         assertNotNull(request);
         assertEquals(1, request.getCredentialOptions().size());
+    }
+
+    @Test
+    public void testBuildFallbackCredentialRequestBuildsCorrectRequest() {
+        GetCredentialRequest request = googleAuthManager.buildFallbackCredentialRequest();
+        assertNotNull(request);
+        assertEquals(1, request.getCredentialOptions().size());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testStartSignInInvokesCredentialManager() {
+        android.app.Activity mockActivity = Mockito.mock(android.app.Activity.class);
+        GoogleAuthManager.GoogleAuthCallback mockCallback = Mockito.mock(GoogleAuthManager.GoogleAuthCallback.class);
+
+        googleAuthManager.startSignIn(mockActivity, mockCallback);
+
+        ArgumentCaptor<GetCredentialRequest> requestCaptor = ArgumentCaptor.forClass(GetCredentialRequest.class);
+        Mockito.verify(mockCredentialManager).getCredentialAsync(
+                Mockito.eq(mockActivity),
+                requestCaptor.capture(),
+                Mockito.any(CancellationSignal.class),
+                Mockito.any(Executor.class),
+                Mockito.any(CredentialManagerCallback.class)
+        );
+
+        assertEquals(1, requestCaptor.getValue().getCredentialOptions().size());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testStartSignInNoCredentialTriggersFallback() {
+        android.app.Activity mockActivity = Mockito.mock(android.app.Activity.class);
+        GoogleAuthManager.GoogleAuthCallback mockCallback = Mockito.mock(GoogleAuthManager.GoogleAuthCallback.class);
+
+        googleAuthManager.startSignIn(mockActivity, mockCallback);
+
+        ArgumentCaptor<CredentialManagerCallback<GetCredentialResponse, GetCredentialException>> callbackCaptor =
+                ArgumentCaptor.forClass(CredentialManagerCallback.class);
+        Mockito.verify(mockCredentialManager).getCredentialAsync(
+                Mockito.eq(mockActivity),
+                Mockito.any(GetCredentialRequest.class),
+                Mockito.any(CancellationSignal.class),
+                Mockito.any(Executor.class),
+                callbackCaptor.capture()
+        );
+
+        // Simulate NoCredentialException on primary attempt
+        callbackCaptor.getValue().onError(new NoCredentialException("No credential"));
+
+        // Verify fallback was attempted with a second call to getCredentialAsync
+        Mockito.verify(mockCredentialManager, Mockito.times(2)).getCredentialAsync(
+                Mockito.eq(mockActivity),
+                Mockito.any(GetCredentialRequest.class),
+                Mockito.any(CancellationSignal.class),
+                Mockito.any(Executor.class),
+                Mockito.any(CredentialManagerCallback.class)
+        );
     }
 
     @Test

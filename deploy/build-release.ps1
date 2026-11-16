@@ -78,6 +78,9 @@ Get-ChildItem (Join-Path $app 'bootstrap\cache') -File -Filter *.php -ErrorActio
 $images = Join-Path $app 'storage\app\product-images'
 New-Item -ItemType Directory -Force -Path $images | Out-Null
 Set-Content -Path (Join-Path $images '.gitignore') -Value "*`n!.gitignore" -NoNewline
+$profileImages = Join-Path $app 'storage\app\profile-images'
+New-Item -ItemType Directory -Force -Path $profileImages | Out-Null
+Set-Content -Path (Join-Path $profileImages '.gitignore') -Value "*`n!.gitignore" -NoNewline
 
 Step 'Packing'
 $adminEntries = @('index.html', 'assets', 'fonts') | Where-Object { Test-Path (Join-Path $stage $_) }

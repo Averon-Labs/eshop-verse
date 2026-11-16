@@ -6,7 +6,7 @@ This document defines the actionable checklist and implementation steps for opti
 > - Architecture Law: [`docs/ARCHITECTURE.md`](file:///d:/Ham/Code___/for_fiverr/eshop-verse/docs/ARCHITECTURE.md#L112-L142)
 > - Android Rules: [`android/AGENTS.md`](file:///d:/Ham/Code___/for_fiverr/eshop-verse/android/AGENTS.md#L121-L135)
 > - Admin & Backend Execution Plan: [`docs/IMAGE_LOADING_ADMIN_BACKEND.md`](file:///d:/Ham/Code___/for_fiverr/eshop-verse/docs/IMAGE_LOADING_ADMIN_BACKEND.md)
-> - Agent Skill: [`.agents/skills/text-first-async-image-loading/SKILL.md`](file:///d:/Ham/Code___/for_fiverr/eshop-verse/.agents/skills/text-first-async-image-loading/SKILL.md)
+> - Agent Skill: [`.agents/skills/recyclerview-loading/SKILL.md`](file:///d:/Ham/Code___/for_fiverr/eshop-verse/.agents/skills/recyclerview-loading/SKILL.md)
 
 ---
 

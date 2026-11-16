@@ -1,0 +1,24 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Camera Body with Prism/Viewfinder Bump -->
+    <path
+        android:pathData="M4,7h3.5L9,4.5h6L16.5,7H20c0.8,0 1.5,0.7 1.5,1.5v10c0,0.8 -0.7,1.5 -1.5,1.5H4c-0.8,0 -1.5,-0.7 -1.5,-1.5v-10C2.5,7.7 3.2,7 4,7Z"
+        android:strokeWidth="1.6"
+        android:strokeColor="@android:color/white"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <!-- Camera Lens Ring -->
+    <path
+        android:pathData="M12,13m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0"
+        android:strokeWidth="1.6"
+        android:strokeColor="@android:color/white"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <!-- Flash Sensor Indicator -->
+    <path
+        android:pathData="M17.5,9.5m-0.8,0a0.8,0.8 0,1 1,1.6 0a0.8,0.8 0,1 1,-1.6 0"
+        android:fillColor="@android:color/white" />
+</vector>

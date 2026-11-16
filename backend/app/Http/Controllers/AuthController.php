@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Exceptions\ApiException;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\StoreProfileAvatarRequest;
 use App\Http\Requests\UpdateProfileRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Services\AccountLockout;
 use App\Services\AuthSessionIssuer;
+use App\Services\ProfileImageStorage;
 use App\Support\ApiError;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
@@ -33,6 +35,7 @@ class AuthController extends Controller
     public function __construct(
         private readonly AccountLockout $lockout,
         private readonly AuthSessionIssuer $sessions,
+        private readonly ProfileImageStorage $profileImages,
     ) {}
 
     public function register(RegisterRequest $request): JsonResponse
@@ -125,6 +128,56 @@ class AuthController extends Controller
         $user->save();
 
         return new UserResource($user);
+    }
+
+    /**
+     * PRF-001: store or replace the signed-in customer's profile photo.
+     * The new file is written first and the previous one is removed only
+     * after the row saves, so a failed write never destroys the old photo.
+     */
+    public function storeProfileAvatar(StoreProfileAvatarRequest $request): UserResource
+    {
+        $user = $request->user();
+        $path = $this->profileImages->store($request->file('image'));
+
+        if ($path === null) {
+            throw new ApiException(500, 'INTERNAL_ERROR', 'The profile photo could not be stored.');
+        }
+
+        $previous = $user->avatar_path;
+        $user->avatar_path = $path;
+
+        try {
+            $user->save();
+        } catch (\Throwable $exception) {
+            $this->profileImages->delete($path);
+
+            throw $exception;
+        }
+
+        if ($previous !== null && $previous !== $path) {
+            $this->profileImages->delete($previous);
+        }
+
+        return new UserResource($user->fresh());
+    }
+
+    /**
+     * PRF-001: remove the signed-in customer's profile photo. Idempotent —
+     * a second call still answers 204 when no photo remains.
+     */
+    public function destroyProfileAvatar(Request $request): Response
+    {
+        $user = $request->user();
+        $previous = $user->avatar_path;
+
+        if ($previous !== null) {
+            $user->avatar_path = null;
+            $user->save();
+            $this->profileImages->delete($previous);
+        }
+
+        return response()->noContent();
     }
 
     private function accountLockedResponse(string $email): JsonResponse

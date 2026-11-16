@@ -3,7 +3,31 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
+    <!-- Watch Case (Dial) -->
     <path
-        android:fillColor="@color/color_botanical_green"
-        android:pathData="M21,7.5h-3.2c-0.4,0 -0.7,0.2 -0.9,0.5L15.6,10H8.4L7.1,8C6.9,7.7 6.6,7.5 6.2,7.5H3c-0.6,0 -1,0.4 -1,1v1c0,2.8 2.2,5 5,5h1c2.2,0 4,-1.8 4,-4v-0.5h2V10.5c0,2.2 1.8,4 4,4h1c2.8,0 5,-2.2 5,-5v-1c0,-0.6 -0.4,-1 -1,-1zM8,12.5H7c-1.7,0 -3,-1.3 -3,-3v-0.5h2.4l1.6,2.5V12.5zM20,9.5c0,1.7 -1.3,3 -3,3h-1v-1l1.6,-2.5H20V9.5z" />
+        android:pathData="M12,12m-5.5,0a5.5,5.5 0,1 1,11 0a5.5,5.5 0,1 1,-11 0"
+        android:strokeWidth="1.6"
+        android:strokeColor="@android:color/white"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <!-- Straps & Lugs -->
+    <path
+        android:pathData="M8.5,6.8L9.5,2.5h5l1,4.3 M8.5,17.2l1,4.3h5l1,-4.3"
+        android:strokeWidth="1.6"
+        android:strokeColor="@android:color/white"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <!-- Hands at 10:10 (Luxury Swiss Standard) -->
+    <path
+        android:pathData="M10,10L12,12l2.2,-2.2"
+        android:strokeWidth="1.6"
+        android:strokeColor="@android:color/white"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <!-- Winding Crown at 3 o'clock -->
+    <path
+        android:pathData="M17.5,12h1.5"
+        android:strokeWidth="1.6"
+        android:strokeColor="@android:color/white"
+        android:strokeLineCap="round" />
 </vector>
