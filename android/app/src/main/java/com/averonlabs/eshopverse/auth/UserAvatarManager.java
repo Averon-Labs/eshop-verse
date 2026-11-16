@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.util.Base64;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
@@ -200,12 +199,8 @@ public final class UserAvatarManager {
         try {
             String[] parts = idToken.split("\\.");
             if (parts.length >= 2) {
-                byte[] decoded;
-                try {
-                    decoded = java.util.Base64.getUrlDecoder().decode(parts[1]);
-                } catch (Throwable t) {
-                    decoded = Base64.decode(parts[1], Base64.URL_SAFE | Base64.NO_PADDING | Base64.NO_WRAP);
-                }
+                // java.util.Base64 is available on minSdk 25 through core library desugaring.
+                byte[] decoded = java.util.Base64.getUrlDecoder().decode(parts[1]);
                 String jsonString = new String(decoded, StandardCharsets.UTF_8);
                 JsonObject json = JsonParser.parseString(jsonString).getAsJsonObject();
                 if (json.has("picture") && !json.get("picture").isJsonNull()) {
