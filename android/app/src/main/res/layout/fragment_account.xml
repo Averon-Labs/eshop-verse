@@ -85,7 +85,7 @@
                         style="@style/Widget.EShopVerse.Card.Panel"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/spacing_sm">
+                        android:layout_marginBottom="@dimen/spacing_md">
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -184,43 +184,6 @@
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
-
-                    <!-- Profile photo actions (PRF-001) -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/spacing_lg"
-                        android:gravity="end|center_vertical"
-                        android:orientation="horizontal">
-
-                        <ProgressBar
-                            android:id="@+id/progress_avatar"
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:layout_marginEnd="@dimen/spacing_sm"
-                            android:indeterminate="true"
-                            android:indeterminateTint="@color/color_botanical_green"
-                            android:visibility="gone"
-                            tools:visibility="visible" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btn_remove_avatar"
-                            style="@style/Widget.EShopVerse.Button.Text"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="@dimen/spacing_xs"
-                            android:textColor="@color/status_error"
-                            android:text="@string/auth_avatar_remove"
-                            android:visibility="gone"
-                            tools:visibility="visible" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btn_change_avatar"
-                            style="@style/Widget.EShopVerse.Button.Text"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/auth_avatar_change" />
-                    </LinearLayout>
                 </LinearLayout>
 
                 <!-- Customer Favorites Action Bento Card (Visible in both Signed-In and Guest states) -->
