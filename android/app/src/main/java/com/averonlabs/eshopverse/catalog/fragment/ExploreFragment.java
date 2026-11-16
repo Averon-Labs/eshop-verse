@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.averonlabs.eshopverse.R;
 import com.averonlabs.eshopverse.catalog.CatalogListViewModel;
+import com.averonlabs.eshopverse.catalog.CatalogRepository;
 import com.averonlabs.eshopverse.catalog.CatalogViewModelFactory;
 import com.averonlabs.eshopverse.catalog.CategoryIconResolver;
 import com.averonlabs.eshopverse.catalog.CategoryViewModel;
@@ -102,8 +103,19 @@ public class ExploreFragment extends Fragment {
         binding.rvProducts.setLayoutManager(layoutManager);
 
         gridAdapter = new ProductGridAdapter(this::onProductClicked);
-        // Initially attach skeleton placeholder cards so the product grid is never blank or spinning
-        binding.rvProducts.setAdapter(new SkeletonAdapter(R.layout.item_skeleton_product_card, 6));
+        
+        // Anti-Skeleton Guard: Bind immediately from ViewModel or Repository if warm cache exists
+        CatalogRepository repo = CatalogViewModelFactory.getDefaultRepository(requireContext());
+        if (catalogViewModel.hasData()) {
+            binding.rvProducts.setAdapter(gridAdapter);
+            gridAdapter.submitList(catalogViewModel.getLoadedProducts());
+        } else if (repo.hasValidCache()) {
+            binding.rvProducts.setAdapter(gridAdapter);
+            gridAdapter.submitList(repo.getCachedProducts());
+        } else {
+            // Cold start: attach skeleton placeholders
+            binding.rvProducts.setAdapter(new SkeletonAdapter(R.layout.item_skeleton_product_card, 6));
+        }
 
         binding.rvProducts.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -206,8 +218,16 @@ public class ExploreFragment extends Fragment {
     }
 
     private void setupCategoryChips() {
-        // Immediately attach skeleton chips so the category bar is never blank on initial entry
-        binding.rvCategories.setAdapter(new SkeletonAdapter(R.layout.item_skeleton_category_chip, 5));
+        // Anti-Skeleton Guard: Bind immediately from ViewModel or Repository if warm cache exists
+        CatalogRepository repo = CatalogViewModelFactory.getDefaultRepository(requireContext());
+        if (categoryViewModel.hasData()) {
+            renderCategoryChips(categoryViewModel.getLoadedCategories());
+        } else if (repo.hasValidCategoryCache()) {
+            renderCategoryChips(repo.getCachedCategories());
+        } else {
+            // Cold start only: attach skeleton chips
+            binding.rvCategories.setAdapter(new SkeletonAdapter(R.layout.item_skeleton_category_chip, 5));
+        }
 
         categoryViewModel.getCategoriesState().observe(getViewLifecycleOwner(), state -> {
             if (state != null && state.isContent() && state.getData() != null) {
@@ -285,7 +305,7 @@ public class ExploreFragment extends Fragment {
         binding.swipeRefreshExplore.setColorSchemeResources(R.color.color_botanical_green);
         binding.swipeRefreshExplore.setOnRefreshListener(() -> {
             catalogViewModel.reload();
-            categoryViewModel.loadCategories();
+            categoryViewModel.reload();
         });
     }
 
@@ -319,7 +339,9 @@ public class ExploreFragment extends Fragment {
         switch (state.getStatus()) {
             case LOADING:
                 if (!binding.swipeRefreshExplore.isRefreshing()) {
-                    if (binding.rvProducts.getAdapter() != gridAdapter || gridAdapter.getItemCount() == 0) {
+                    CatalogRepository repo = CatalogViewModelFactory.getDefaultRepository(requireContext());
+                    if ((binding.rvProducts.getAdapter() != gridAdapter || gridAdapter.getItemCount() == 0)
+                            && !catalogViewModel.hasData() && !repo.hasValidCache()) {
                         binding.rvProducts.setAdapter(new SkeletonAdapter(R.layout.item_skeleton_product_card, 6));
                     }
                     binding.stateContainer.setState(StateContainerView.State.CONTENT, null, null, null);

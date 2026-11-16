@@ -2,8 +2,12 @@ package com.averonlabs.eshopverse.catalog;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
+
+import android.content.SharedPreferences;
 
 import com.averonlabs.eshopverse.core.model.Category;
+import com.averonlabs.eshopverse.core.model.Pagination;
 import com.averonlabs.eshopverse.core.model.ProductDetail;
 import com.averonlabs.eshopverse.core.model.ProductSummary;
 import com.averonlabs.eshopverse.core.net.ApiErrorMapper;
@@ -11,8 +15,12 @@ import com.averonlabs.eshopverse.core.net.ApiException;
 import com.averonlabs.eshopverse.core.net.ApiResponse;
 import com.averonlabs.eshopverse.core.net.ApiRoutes;
 import com.averonlabs.eshopverse.core.net.PagedResponse;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -22,9 +30,15 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 /**
- * Repository coordinating product and category catalog operations per docs/android/PHASE-1-SPEC.md §E.
+ * Repository coordinating product and category catalog operations per docs/android/PHASE-1-SPEC.md §E
+ * and Phase 13/14 in-memory and persistent caching per .agents/skills/recyclerview-loading/SKILL.md.
  */
 public class CatalogRepository {
+
+    public static final long CACHE_TTL_MILLIS = 5 * 60 * 1000L; // 5 minutes for products
+    public static final long CATEGORY_CACHE_TTL_MILLIS = 30 * 60 * 1000L; // 30 minutes for categories/taxonomy
+    private static final String KEY_CATEGORIES_JSON = "key_categories_json";
+    private static final String KEY_CATEGORIES_TIMESTAMP = "key_categories_timestamp";
 
     public interface CatalogCallback<T> {
         void onSuccess(T result);
@@ -32,15 +46,138 @@ public class CatalogRepository {
     }
 
     private final ApiRoutes apiRoutes;
+    private final SharedPreferences prefs;
+    private final Gson gson;
+
+    private final List<ProductSummary> inMemoryProductCache = new ArrayList<>();
+    private long lastCacheTimestamp = 0;
+
+    private final List<Category> inMemoryCategoryCache = new ArrayList<>();
+    private long lastCategoryCacheTimestamp = 0;
 
     public CatalogRepository(@NonNull ApiRoutes apiRoutes) {
+        this(apiRoutes, null, new Gson());
+    }
+
+    public CatalogRepository(
+            @NonNull ApiRoutes apiRoutes,
+            @Nullable SharedPreferences prefs,
+            @NonNull Gson gson
+    ) {
         this.apiRoutes = Objects.requireNonNull(apiRoutes, "apiRoutes cannot be null");
+        this.prefs = prefs;
+        this.gson = gson != null ? gson : new Gson();
+        loadCategoriesFromPrefs();
+    }
+
+    /**
+     * Checks if in-memory cache is present and within TTL.
+     */
+    public synchronized boolean hasValidCache() {
+        return !inMemoryProductCache.isEmpty() && (System.currentTimeMillis() - lastCacheTimestamp < CACHE_TTL_MILLIS);
+    }
+
+    /**
+     * Returns an unmodifiable snapshot of cached products.
+     */
+    @NonNull
+    public synchronized List<ProductSummary> getCachedProducts() {
+        return Collections.unmodifiableList(new ArrayList<>(inMemoryProductCache));
+    }
+
+    /**
+     * Clears in-memory catalog cache.
+     */
+    public synchronized void clearCache() {
+        inMemoryProductCache.clear();
+        lastCacheTimestamp = 0;
+    }
+
+    @VisibleForTesting
+    public synchronized void setCacheForTesting(@NonNull List<ProductSummary> items, long timestamp) {
+        inMemoryProductCache.clear();
+        inMemoryProductCache.addAll(items);
+        lastCacheTimestamp = timestamp;
+    }
+
+    /**
+     * Checks if in-memory or persisted category cache is valid.
+     */
+    public synchronized boolean hasValidCategoryCache() {
+        return !inMemoryCategoryCache.isEmpty() && (System.currentTimeMillis() - lastCategoryCacheTimestamp < CATEGORY_CACHE_TTL_MILLIS);
+    }
+
+    /**
+     * Returns an unmodifiable snapshot of cached categories.
+     */
+    @NonNull
+    public synchronized List<Category> getCachedCategories() {
+        return Collections.unmodifiableList(new ArrayList<>(inMemoryCategoryCache));
+    }
+
+    /**
+     * Clears category cache in memory and SharedPreferences.
+     */
+    public synchronized void clearCategoryCache() {
+        inMemoryCategoryCache.clear();
+        lastCategoryCacheTimestamp = 0;
+        if (prefs != null) {
+            prefs.edit().remove(KEY_CATEGORIES_JSON).remove(KEY_CATEGORIES_TIMESTAMP).apply();
+        }
+    }
+
+    @VisibleForTesting
+    public synchronized void setCategoryCacheForTesting(@NonNull List<Category> items, long timestamp) {
+        inMemoryCategoryCache.clear();
+        inMemoryCategoryCache.addAll(items);
+        lastCategoryCacheTimestamp = timestamp;
+    }
+
+    private void saveCategoriesToPrefs() {
+        if (prefs == null) return;
+        try {
+            String json = gson.toJson(inMemoryCategoryCache);
+            prefs.edit()
+                    .putString(KEY_CATEGORIES_JSON, json)
+                    .putLong(KEY_CATEGORIES_TIMESTAMP, lastCategoryCacheTimestamp)
+                    .apply();
+        } catch (Exception ignored) {}
+    }
+
+    private void loadCategoriesFromPrefs() {
+        if (prefs == null) return;
+        try {
+            String json = prefs.getString(KEY_CATEGORIES_JSON, null);
+            long timestamp = prefs.getLong(KEY_CATEGORIES_TIMESTAMP, 0);
+            if (json != null && !json.trim().isEmpty()) {
+                Type type = new TypeToken<List<Category>>() {}.getType();
+                List<Category> loaded = gson.fromJson(json, type);
+                if (loaded != null && !loaded.isEmpty()) {
+                    inMemoryCategoryCache.clear();
+                    inMemoryCategoryCache.addAll(loaded);
+                    lastCategoryCacheTimestamp = timestamp;
+                }
+            }
+        } catch (Exception ignored) {}
     }
 
     /**
      * Retrieves the list of active product categories (GET /categories).
+     * Defaults forceRefresh to false (utilizes memory/disk cache when valid).
      */
     public void listCategories(@NonNull CatalogCallback<List<Category>> callback) {
+        listCategories(false, callback);
+    }
+
+    /**
+     * Retrieves categories with explicit control over cache bypass.
+     */
+    public void listCategories(boolean forceRefresh, @NonNull CatalogCallback<List<Category>> callback) {
+        if (!forceRefresh && hasValidCategoryCache()) {
+            callback.onSuccess(getCachedCategories());
+            return;
+        }
+
         apiRoutes.listCategories().enqueue(new Callback<ApiResponse<List<Category>>>() {
             @Override
             public void onResponse(
@@ -49,9 +186,24 @@ public class CatalogRepository {
             ) {
                 if (response.isSuccessful() && response.body() != null) {
                     List<Category> data = response.body().getData();
-                    callback.onSuccess(data != null ? data : Collections.emptyList());
+                    if (data != null) {
+                        synchronized (CatalogRepository.this) {
+                            inMemoryCategoryCache.clear();
+                            inMemoryCategoryCache.addAll(data);
+                            lastCategoryCacheTimestamp = System.currentTimeMillis();
+                            saveCategoriesToPrefs();
+                        }
+                        callback.onSuccess(getCachedCategories());
+                    } else {
+                        callback.onSuccess(Collections.emptyList());
+                    }
                 } else {
-                    callback.onError(parseError(response));
+                    if (!inMemoryCategoryCache.isEmpty()) {
+                        // SWR fallback: return cached categories if network call returns error
+                        callback.onSuccess(getCachedCategories());
+                    } else {
+                        callback.onError(parseError(response));
+                    }
                 }
             }
 
@@ -60,18 +212,43 @@ public class CatalogRepository {
                     @NonNull Call<ApiResponse<List<Category>>> call,
                     @NonNull Throwable t
             ) {
-                callback.onError(t);
+                if (!inMemoryCategoryCache.isEmpty()) {
+                    // SWR fallback on network failure
+                    callback.onSuccess(getCachedCategories());
+                } else {
+                    callback.onError(t);
+                }
             }
         });
     }
 
     /**
      * Lists, searches, and paginates products matching the provided query parameters (GET /products).
+     * Defaults forceRefresh to false (utilizes in-memory cache when valid).
      */
     public void listProducts(
             @NonNull ProductParams params,
             @NonNull CatalogCallback<PagedResponse<ProductSummary>> callback
     ) {
+        listProducts(params, false, callback);
+    }
+
+    /**
+     * Lists products with explicit control over cache bypass.
+     */
+    public void listProducts(
+            @NonNull ProductParams params,
+            boolean forceRefresh,
+            @NonNull CatalogCallback<PagedResponse<ProductSummary>> callback
+    ) {
+        // Synchronous 0ms return if cache is valid and not forced to refresh
+        if (!forceRefresh && params.getPage() == 1 && !hasActiveFilters(params) && hasValidCache()) {
+            List<ProductSummary> cached = getCachedProducts();
+            Pagination pagination = new Pagination(1, params.getPerPage(), cached.size(), 1);
+            callback.onSuccess(new PagedResponse<>(cached, pagination));
+            return;
+        }
+
         apiRoutes.listProducts(
                 params.getPage(),
                 params.getPerPage(),
@@ -85,7 +262,15 @@ public class CatalogRepository {
                     @NonNull Response<PagedResponse<ProductSummary>> response
             ) {
                 if (response.isSuccessful() && response.body() != null) {
-                    callback.onSuccess(response.body());
+                    PagedResponse<ProductSummary> body = response.body();
+                    if (params.getPage() == 1 && !hasActiveFilters(params) && body.getData() != null) {
+                        synchronized (CatalogRepository.this) {
+                            inMemoryProductCache.clear();
+                            inMemoryProductCache.addAll(body.getData());
+                            lastCacheTimestamp = System.currentTimeMillis();
+                        }
+                    }
+                    callback.onSuccess(body);
                 } else {
                     callback.onError(parseError(response));
                 }
@@ -99,6 +284,15 @@ public class CatalogRepository {
                 callback.onError(t);
             }
         });
+    }
+
+    private boolean hasActiveFilters(@NonNull ProductParams params) {
+        return params.getCategoryId() != null
+                || (params.getQ() != null && !params.getQ().trim().isEmpty())
+                || (params.getSort() != null && !ProductParams.SORT_NEWEST.equals(params.getSort()))
+                || params.getMinPrice() != null
+                || params.getMaxPrice() != null
+                || Boolean.TRUE.equals(params.getInStock());
     }
 
     /**

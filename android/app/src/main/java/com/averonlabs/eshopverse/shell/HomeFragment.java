@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
@@ -20,6 +21,7 @@ import com.averonlabs.eshopverse.R;
 import com.averonlabs.eshopverse.auth.AuthViewModelFactory;
 import com.averonlabs.eshopverse.auth.AvatarInitials;
 import com.averonlabs.eshopverse.auth.SessionViewModel;
+import com.averonlabs.eshopverse.auth.UserAvatarManager;
 import com.averonlabs.eshopverse.catalog.CatalogListViewModel;
 import com.averonlabs.eshopverse.catalog.CatalogViewModelFactory;
 import com.averonlabs.eshopverse.catalog.CategoryIconResolver;
@@ -81,9 +83,32 @@ public class HomeFragment extends Fragment {
         updateThemeIcon();
         observeViewModel();
         sessionViewModel.getCurrentUser().observe(getViewLifecycleOwner(), this::renderAccountAvatar);
+        sessionViewModel.getIsSignedIn().observe(getViewLifecycleOwner(), signedIn -> {
+            if (!Boolean.TRUE.equals(signedIn)) {
+                renderAccountAvatar(null);
+            } else {
+                User user = sessionViewModel.getCurrentUserValue();
+                if (user == null && getContext() != null) {
+                    user = UserAvatarManager.getCachedUser(requireContext());
+                }
+                renderAccountAvatar(user);
+            }
+        });
 
-        catalogViewModel.loadFirstPage();
-        categoryViewModel.loadCategories();
+        if (catalogViewModel.hasData()) {
+            renderProducts(catalogViewModel.getLoadedProducts());
+        } else {
+            catalogViewModel.loadFirstPage();
+        }
+
+        if (categoryViewModel.hasData()) {
+            UiState<List<Category>> catState = categoryViewModel.getCategoriesState().getValue();
+            if (catState != null && catState.getData() != null) {
+                renderCategoryMoodCircles(catState.getData());
+            }
+        } else {
+            categoryViewModel.loadCategories();
+        }
     }
 
     private void updateThemeIcon() {
@@ -94,61 +119,91 @@ public class HomeFragment extends Fragment {
     }
 
     /**
-     * Shows the customer's photo, or initials when no photo is set. The
-     * transparent Glide placeholder keeps the initials visible until the
-     * image loads.
+     * Renders the top bar profile circle:
+     * - Shows the default account person silhouette icon (matching the bottom navigation bar) when user is not signed in.
+     * - Shows the customer's photo when signed in and avatar is uploaded/cached.
+     * - Shows clean initials fallback when signed in without a custom photo.
      */
     private void renderAccountAvatar(@Nullable User user) {
-        if (binding == null) return;
+        if (binding == null || !isAdded()) return;
 
         binding.btnAccountAvatar.setContentDescription(getString(R.string.action_account));
 
         if (user == null) {
-            binding.tvHomeAvatarInitials.setText(AvatarInitials.from(null, null, null));
-            ImageLoaderHelper.loadImage(
-                    binding.ivHomeAvatar,
-                    null,
-                    R.drawable.bg_avatar_transparent,
-                    R.drawable.bg_avatar_transparent);
+            // Check if user is cached in local storage and active session
+            if (getContext() != null) {
+                User cachedUser = UserAvatarManager.getCachedUser(requireContext());
+                if (cachedUser != null && sessionViewModel.isSignedIn()) {
+                    renderAccountAvatar(cachedUser);
+                    return;
+                }
+            }
+            // Guest state: show the exact default account silhouette matching bottom navigation bar
+            binding.tvHomeAvatarInitials.setText("");
+            binding.tvHomeAvatarInitials.setVisibility(View.GONE);
+            binding.ivHomeAvatar.setVisibility(View.VISIBLE);
+            int pad = getResources().getDimensionPixelSize(R.dimen.spacing_xs);
+            binding.ivHomeAvatar.setPadding(pad, pad, pad, pad);
+            binding.ivHomeAvatar.setImageResource(R.drawable.ic_account);
+            binding.ivHomeAvatar.setImageTintList(ContextCompat.getColorStateList(requireContext(), R.color.color_botanical_green));
+            binding.ivHomeAvatar.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
             return;
         }
 
-        binding.tvHomeAvatarInitials.setText(
-                AvatarInitials.from(user.getFirstName(), user.getLastName(), user.getEmail()));
+        // Signed-in user: restore normal padding
+        binding.ivHomeAvatar.setPadding(0, 0, 0, 0);
+        binding.ivHomeAvatar.setImageTintList(null);
+        binding.ivHomeAvatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
         String avatarUrl = user.getAvatarUrl();
+        if ((avatarUrl == null || avatarUrl.trim().isEmpty()) && getContext() != null) {
+            avatarUrl = UserAvatarManager.getAvatarPath(requireContext(), user.getId());
+        }
+
         boolean hasAvatar = avatarUrl != null && !avatarUrl.trim().isEmpty();
-        ImageLoaderHelper.loadImage(
-                binding.ivHomeAvatar,
-                hasAvatar ? avatarUrl : null,
-                R.drawable.bg_avatar_transparent,
-                R.drawable.bg_avatar_transparent);
+        if (hasAvatar) {
+            binding.tvHomeAvatarInitials.setText("");
+            binding.tvHomeAvatarInitials.setVisibility(View.GONE);
+            binding.ivHomeAvatar.setVisibility(View.VISIBLE);
+            UserAvatarManager.loadAvatarInto(binding.ivHomeAvatar, avatarUrl);
+        } else {
+            binding.ivHomeAvatar.setVisibility(View.GONE);
+            binding.tvHomeAvatarInitials.setVisibility(View.VISIBLE);
+            binding.tvHomeAvatarInitials.setText(
+                    AvatarInitials.from(user.getFirstName(), user.getLastName(), user.getEmail()));
+        }
     }
 
     private void setupSections() {
         // Section 1: Trending This Week (Horizontal Carousel)
         trendingCarouselAdapter = new ProductGridAdapter(this::onProductClicked, true);
-        binding.rvTrendingCarousel.setAdapter(new SkeletonAdapter(R.layout.item_skeleton_product_card, 4));
 
         // Section 2: Popular & Best Sellers (2-Column Grid)
         bestSellersAdapter = new ProductGridAdapter(this::onProductClicked, false);
-        binding.rvBestsellersGrid.setAdapter(new SkeletonAdapter(R.layout.item_skeleton_product_card, 4));
 
         // Section 3: Special Offers (Horizontal Carousel)
         specialOffersAdapter = new ProductGridAdapter(this::onProductClicked, true);
-        binding.rvSpecialOffersCarousel.setAdapter(new SkeletonAdapter(R.layout.item_skeleton_product_card, 4));
 
         // Section 4: Curated Essentials (2-Column Grid)
         essentialsAdapter = new ProductGridAdapter(this::onProductClicked, false);
-        binding.rvEssentialsGrid.setAdapter(new SkeletonAdapter(R.layout.item_skeleton_product_card, 4));
+
+        // Attach skeleton adapters only when there is no existing data (cold launch)
+        if (!catalogViewModel.hasData()) {
+            binding.rvTrendingCarousel.setAdapter(new SkeletonAdapter(R.layout.item_skeleton_product_card, 4));
+            binding.rvBestsellersGrid.setAdapter(new SkeletonAdapter(R.layout.item_skeleton_product_card, 4));
+            binding.rvSpecialOffersCarousel.setAdapter(new SkeletonAdapter(R.layout.item_skeleton_product_card, 4));
+            binding.rvEssentialsGrid.setAdapter(new SkeletonAdapter(R.layout.item_skeleton_product_card, 4));
+        }
     }
 
     private void setupCategories() {
         LinearLayoutManager layoutManager = new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false);
         binding.rvHomeCategories.setLayoutManager(layoutManager);
 
-        // Immediately attach 8 skeleton mood circles so category row is never blank on initial render
-        binding.rvHomeCategories.setAdapter(new SkeletonAdapter(R.layout.item_skeleton_category_circle, 8));
+        // Immediately attach 8 skeleton mood circles only if category data is not yet loaded
+        if (!categoryViewModel.hasData()) {
+            binding.rvHomeCategories.setAdapter(new SkeletonAdapter(R.layout.item_skeleton_category_circle, 8));
+        }
 
         categoryViewModel.getCategoriesState().observe(getViewLifecycleOwner(), state -> {
             if (state != null && state.isContent() && state.getData() != null) {
@@ -228,7 +283,7 @@ public class HomeFragment extends Fragment {
         binding.swipeRefreshHome.setColorSchemeResources(R.color.color_botanical_green);
         binding.swipeRefreshHome.setOnRefreshListener(() -> {
             catalogViewModel.reload();
-            categoryViewModel.loadCategories();
+            categoryViewModel.reload();
         });
     }
 
@@ -238,54 +293,58 @@ public class HomeFragment extends Fragment {
                 binding.swipeRefreshHome.setRefreshing(false);
             }
             if (state != null && state.getStatus() == UiState.Status.CONTENT && state.getData() != null) {
-                List<ProductSummary> all = state.getData();
-                if (!all.isEmpty()) {
-                    int total = all.size();
-                    if (binding.rvTrendingCarousel.getAdapter() != trendingCarouselAdapter) {
-                        binding.rvTrendingCarousel.setAdapter(trendingCarouselAdapter);
-                    }
-                    trendingCarouselAdapter.submitList(all.subList(0, Math.min(8, total)));
-
-                    if (binding.rvBestsellersGrid.getAdapter() != bestSellersAdapter) {
-                        binding.rvBestsellersGrid.setAdapter(bestSellersAdapter);
-                    }
-                    if (total > 8) {
-                        bestSellersAdapter.submitList(all.subList(8, Math.min(12, total)));
-                    } else {
-                        bestSellersAdapter.submitList(all.subList(0, Math.min(4, total)));
-                    }
-
-                    if (binding.rvSpecialOffersCarousel.getAdapter() != specialOffersAdapter) {
-                        binding.rvSpecialOffersCarousel.setAdapter(specialOffersAdapter);
-                    }
-                    if (total > 12) {
-                        specialOffersAdapter.submitList(all.subList(12, Math.min(20, total)));
-                    } else {
-                        specialOffersAdapter.submitList(all.subList(Math.max(0, total - 4), total));
-                    }
-
-                    if (binding.rvEssentialsGrid.getAdapter() != essentialsAdapter) {
-                        binding.rvEssentialsGrid.setAdapter(essentialsAdapter);
-                    }
-                    if (total > 20) {
-                        essentialsAdapter.submitList(all.subList(20, Math.min(24, total)));
-                    } else {
-                        essentialsAdapter.submitList(all.subList(0, Math.min(4, total)));
-                    }
-
-                    // Proactive background prefetching for top section product cards
-                    List<String> preloadUrls = new ArrayList<>();
-                    int preloadCount = Math.min(12, total);
-                    for (int i = 0; i < preloadCount; i++) {
-                        ProductSummary p = all.get(i);
-                        if (p != null && p.getImageUrl() != null && !p.getImageUrl().trim().isEmpty()) {
-                            preloadUrls.add(p.getImageUrl());
-                        }
-                    }
-                    ImageLoaderHelper.preloadBatch(getContext(), preloadUrls);
-                }
+                renderProducts(state.getData());
             }
         });
+    }
+
+    private void renderProducts(@NonNull List<ProductSummary> all) {
+        if (binding == null || all.isEmpty()) {
+            return;
+        }
+        int total = all.size();
+        if (binding.rvTrendingCarousel.getAdapter() != trendingCarouselAdapter) {
+            binding.rvTrendingCarousel.setAdapter(trendingCarouselAdapter);
+        }
+        trendingCarouselAdapter.submitList(all.subList(0, Math.min(8, total)));
+
+        if (binding.rvBestsellersGrid.getAdapter() != bestSellersAdapter) {
+            binding.rvBestsellersGrid.setAdapter(bestSellersAdapter);
+        }
+        if (total > 8) {
+            bestSellersAdapter.submitList(all.subList(8, Math.min(12, total)));
+        } else {
+            bestSellersAdapter.submitList(all.subList(0, Math.min(4, total)));
+        }
+
+        if (binding.rvSpecialOffersCarousel.getAdapter() != specialOffersAdapter) {
+            binding.rvSpecialOffersCarousel.setAdapter(specialOffersAdapter);
+        }
+        if (total > 12) {
+            specialOffersAdapter.submitList(all.subList(12, Math.min(20, total)));
+        } else {
+            specialOffersAdapter.submitList(all.subList(Math.max(0, total - 4), total));
+        }
+
+        if (binding.rvEssentialsGrid.getAdapter() != essentialsAdapter) {
+            binding.rvEssentialsGrid.setAdapter(essentialsAdapter);
+        }
+        if (total > 20) {
+            essentialsAdapter.submitList(all.subList(20, Math.min(24, total)));
+        } else {
+            essentialsAdapter.submitList(all.subList(0, Math.min(4, total)));
+        }
+
+        // Proactive background prefetching for top section product cards
+        List<String> preloadUrls = new ArrayList<>();
+        int preloadCount = Math.min(12, total);
+        for (int i = 0; i < preloadCount; i++) {
+            ProductSummary p = all.get(i);
+            if (p != null && p.getImageUrl() != null && !p.getImageUrl().trim().isEmpty()) {
+                preloadUrls.add(p.getImageUrl());
+            }
+        }
+        ImageLoaderHelper.preloadBatch(getContext(), preloadUrls);
     }
 
     private void onProductClicked(@NonNull ProductSummary product) {

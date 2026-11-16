@@ -22,6 +22,18 @@ public final class CategoryIconResolver {
 
         if (lower.contains("all")) {
             return R.drawable.ic_category_all;
+        } else if (lower.contains("audio") || lower.contains("headphone") || lower.contains("earbud") || lower.contains("sound")) {
+            return R.drawable.ic_category_audio;
+        } else if (lower.contains("wearable") || lower.contains("watch") || lower.contains("smartwatch") || lower.contains("band")) {
+            return R.drawable.ic_category_wearables;
+        } else if (lower.contains("desk") || lower.contains("workspace") || lower.contains("office")) {
+            return R.drawable.ic_category_workspace;
+        } else if (lower.contains("photo") || lower.contains("camera") || lower.contains("lens")) {
+            return R.drawable.ic_category_photography;
+        } else if (lower.contains("electronic") || lower.contains("tech") || lower.contains("gadget")) {
+            return R.drawable.ic_category_electronics;
+        } else if (lower.contains("apparel") || lower.contains("cloth")) {
+            return R.drawable.ic_category_apparel;
         } else if (lower.contains("t-shirt") || lower.contains("tshirt") || lower.contains("tee")) {
             return R.drawable.ic_category_tshirts;
         } else if (lower.contains("shirt") || lower.contains("top") || lower.contains("blouse")) {
@@ -48,8 +60,7 @@ public final class CategoryIconResolver {
     }
 
     /**
-     * Maps compound backend category names into clean, punchy, single-word titles
-     * ("Shirts", "Pants", "Dresses", "Jackets", "T-Shirts", "Activewear", "Shoes", "Accessories", "Leather", "Bags").
+     * Maps compound backend category names into clean, punchy, single-word titles.
      */
     @androidx.annotation.NonNull
     public static String getStreamlinedName(@Nullable String categoryName) {
@@ -61,6 +72,18 @@ public final class CategoryIconResolver {
 
         if (lower.contains("all")) {
             return "All";
+        } else if (lower.contains("audio") || lower.contains("headphone")) {
+            return "Audio";
+        } else if (lower.contains("wearable") || lower.contains("watch")) {
+            return "Wearables";
+        } else if (lower.contains("desk") || lower.contains("workspace")) {
+            return "Workspace";
+        } else if (lower.contains("photo") || lower.contains("camera")) {
+            return "Photography";
+        } else if (lower.contains("electronic")) {
+            return "Electronics";
+        } else if (lower.contains("apparel")) {
+            return "Apparel";
         } else if (lower.contains("t-shirt") || lower.contains("tshirt") || lower.contains("tee")) {
             return "T-Shirts";
         } else if (lower.contains("shirt") || lower.contains("top") || lower.contains("blouse")) {

@@ -25,6 +25,33 @@
                 android:orientation="vertical"
                 android:padding="@dimen/spacing_lg">
 
+                <!-- Top Navigation Bar with Back Button (Visible in Guest / Login state) -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/btn_back"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginBottom="@dimen/spacing_md"
+                    android:clickable="true"
+                    android:contentDescription="@string/catalog_cd_back"
+                    android:focusable="true"
+                    android:visibility="gone"
+                    app:cardBackgroundColor="@color/surface_card_frosted"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/border_hairline"
+                    app:strokeWidth="@dimen/stroke_hairline"
+                    tools:visibility="visible">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_arrow_back"
+                        app:tint="@color/text_primary_ink" />
+
+                </com.google.android.material.card.MaterialCardView>
+
                 <!-- Editorial Brand Header -->
                 <TextView
                     android:id="@+id/tv_account_brand_subtitle"
@@ -67,35 +94,58 @@
                             android:orientation="horizontal"
                             android:padding="@dimen/spacing_md">
 
-                            <!-- Circular profile photo with initials fallback (PRF-001) -->
+                            <!-- Circular profile photo with initials fallback and elevated edit badge -->
                             <FrameLayout
                                 android:id="@+id/avatar_container"
                                 android:layout_width="72dp"
                                 android:layout_height="72dp"
                                 android:layout_marginEnd="@dimen/spacing_md"
-                                android:background="@drawable/bg_avatar_circle"
                                 android:clickable="true"
                                 android:contentDescription="@string/auth_avatar_content_description"
-                                android:focusable="true"
-                                android:foreground="?attr/selectableItemBackgroundBorderless">
+                                android:focusable="true">
 
                                 <TextView
                                     android:id="@+id/tv_avatar_initials"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
+                                    android:background="@drawable/bg_avatar_circle"
                                     android:gravity="center"
                                     android:importantForAccessibility="no"
                                     android:textAppearance="@style/TextAppearance.EShopVerse.LargeTitle"
                                     android:textColor="@color/color_botanical_green"
                                     tools:text="JD" />
 
-                                <ImageView
+                                <com.google.android.material.imageview.ShapeableImageView
                                     android:id="@+id/iv_profile_avatar"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:contentDescription="@null"
                                     android:scaleType="centerCrop"
-                                    android:src="@drawable/bg_avatar_transparent" />
+                                    android:src="@drawable/bg_avatar_transparent"
+                                    app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+
+                                <!-- Edit Pencil Floating Action Badge -->
+                                <com.google.android.material.card.MaterialCardView
+                                    android:id="@+id/btn_edit_avatar_badge"
+                                    android:layout_width="26dp"
+                                    android:layout_height="26dp"
+                                    android:layout_gravity="bottom|end"
+                                    android:clickable="true"
+                                    android:focusable="true"
+                                    app:cardBackgroundColor="@color/color_botanical_green"
+                                    app:cardCornerRadius="13dp"
+                                    app:cardElevation="3dp"
+                                    app:strokeColor="@color/surface_color"
+                                    app:strokeWidth="1.5dp">
+
+                                    <ImageView
+                                        android:layout_width="14dp"
+                                        android:layout_height="14dp"
+                                        android:layout_gravity="center"
+                                        android:contentDescription="@string/account_edit_avatar_desc"
+                                        android:src="@drawable/ic_edit"
+                                        app:tint="@color/surface_color" />
+                                </com.google.android.material.card.MaterialCardView>
                             </FrameLayout>
 
                             <LinearLayout
@@ -159,6 +209,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="@dimen/spacing_xs"
+                            android:textColor="@color/status_error"
                             android:text="@string/auth_avatar_remove"
                             android:visibility="gone"
                             tools:visibility="visible" />

@@ -8,8 +8,11 @@ import androidx.annotation.VisibleForTesting;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.content.SharedPreferences;
+
 import com.averonlabs.eshopverse.core.net.ApiClient;
 import com.averonlabs.eshopverse.core.storage.KeystoreTokenStore;
+import com.google.gson.Gson;
 
 /**
  * Factory for creating catalog ViewModel instances: {@link CatalogListViewModel},
@@ -17,6 +20,7 @@ import com.averonlabs.eshopverse.core.storage.KeystoreTokenStore;
  */
 public class CatalogViewModelFactory implements ViewModelProvider.Factory {
 
+    private static final String CATALOG_CACHE_PREFS = "eshop_catalog_cache_prefs";
     private static volatile CatalogRepository sDefaultRepository;
 
     private final CatalogRepository repository;
@@ -25,7 +29,8 @@ public class CatalogViewModelFactory implements ViewModelProvider.Factory {
         if (sDefaultRepository == null) {
             Context appContext = context.getApplicationContext();
             ApiClient apiClient = new ApiClient(new KeystoreTokenStore(appContext), null);
-            sDefaultRepository = new CatalogRepository(apiClient.getRoutes());
+            SharedPreferences cachePrefs = appContext.getSharedPreferences(CATALOG_CACHE_PREFS, Context.MODE_PRIVATE);
+            sDefaultRepository = new CatalogRepository(apiClient.getRoutes(), cachePrefs, new Gson());
         }
         return sDefaultRepository;
     }
