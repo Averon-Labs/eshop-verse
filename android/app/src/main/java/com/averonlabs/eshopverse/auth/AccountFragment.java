@@ -190,9 +190,7 @@ public class AccountFragment extends Fragment {
             }
         };
         binding.avatarContainer.setOnClickListener(openPicker);
-        binding.btnChangeAvatar.setOnClickListener(openPicker);
         binding.btnEditAvatarBadge.setOnClickListener(openPicker);
-        binding.btnRemoveAvatar.setOnClickListener(v -> authViewModel.deleteAvatar());
 
         binding.btnSaveProfile.setOnClickListener(v -> {
             String firstName = binding.etFirstName.getText() != null ? binding.etFirstName.getText().toString() : "";
@@ -709,10 +707,8 @@ public class AccountFragment extends Fragment {
 
     private void setAvatarBusy(boolean busy) {
         if (binding == null) return;
-        binding.progressAvatar.setVisibility(busy ? View.VISIBLE : View.GONE);
-        binding.btnChangeAvatar.setEnabled(!busy);
-        binding.btnRemoveAvatar.setEnabled(!busy);
         binding.avatarContainer.setEnabled(!busy);
+        binding.btnEditAvatarBadge.setEnabled(!busy);
     }
 
     /**
@@ -728,7 +724,6 @@ public class AccountFragment extends Fragment {
 
         binding.tvAvatarInitials.setText(
                 AvatarInitials.from(user.getFirstName(), user.getLastName(), user.getEmail()));
-        binding.btnRemoveAvatar.setVisibility(hasAvatar ? View.VISIBLE : View.GONE);
 
         ImageLoaderHelper.loadImage(
                 binding.ivProfileAvatar,
