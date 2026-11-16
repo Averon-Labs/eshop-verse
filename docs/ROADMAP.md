@@ -374,6 +374,23 @@ Task steps are component-specific: see [Android](ANDROID_ROADMAP.md), [Backend](
 **Verification:** backend `ProfileAvatarTest|ProfileTest` passes (15 tests, 130 assertions) on the isolated SQLite test configuration; Android `testDebugUnitTest` covers the new validator, initials, and multipart repository paths; OpenAPI lint is valid apart from the two pre-existing localhost server warnings. Device-level picker behavior still needs an emulator or hardware run.
 
 
+### Step 2 — CI-002 — Restore green CI after the v1.0.2 release
+
+**Status:** `[x]` (implemented and locally verified 2026-11-16; hosted CI run on the task PR)
+
+**Depends on:** CI-001, PRF-001
+
+**Scope:** restore the two required checks that v1.0.2 left red without weakening either one: back avatar JWT decoding with core library desugaring so `java.util.Base64` is available at minSdk 25, and update `laravel/framework` past CVE-2026-128083.
+
+**Acceptance criteria:**
+
+- [x] **a.** `./gradlew lintDebug` passes at minSdk 25 with core library desugaring enabled, without `@SuppressLint`, a lint baseline, or a minSdk change.
+- [x] **b.** `composer audit` and `composer validate --strict` pass against the committed lockfile.
+- [x] **c.** Existing Android unit tests and backend feature tests remain enabled and run in the task PR workflow.
+
+**Verification:** local `assembleDebug`, `lintDebug` (0 errors, 182 warnings), and `testDebugUnitTest` (299 tests, 0 failures); local `composer audit` (0 advisories) and `composer validate --strict`; backend feature tests are exercised by the task PR's `Backend Build & Test` job because no local MySQL server is available.
+
+
 ## Canonical Task ID index
 
 Each Task ID has exactly one canonical task entry. Status, dependencies, acceptance criteria, and verification expectations are maintained only there.
@@ -434,6 +451,7 @@ Each Task ID has exactly one canonical task entry. Status, dependencies, accepta
 | IMG-004 | [Android Roadmap — Phase 11 — Step 3](ANDROID_ROADMAP.md) | Layout Token & Active Shimmer Alignment across Order Review Views |
 | IMG-005 | [Android Roadmap — Phase 11 — Step 4](ANDROID_ROADMAP.md) | Admin Dashboard Zero-CLS & Web Lazy Loading Standards |
 | PRF-001 | [Project Roadmap — Phase 4 — Step 1](ROADMAP.md) | Customer profile photos across API, backend, and Android |
+| CI-002 | [Project Roadmap — Phase 4 — Step 2](ROADMAP.md) | Restore green CI after the v1.0.2 release |
 
 ## Optional follow-up — Public deployment
 
